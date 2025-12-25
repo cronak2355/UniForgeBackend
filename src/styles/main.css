@@ -410,13 +410,15 @@ ul {
     fill: none;
     stroke-linecap: round;
     /* 기본적으로 안보임 (투명) */
-    mask-image: radial-gradient(300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    mask-image: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
             black 0%,
+            rgba(0, 0, 0, 0.1) 60%,
             transparent 100%);
-    -webkit-mask-image: radial-gradient(300px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    -webkit-mask-image: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
             black 0%,
+            rgba(0, 0, 0, 0.1) 60%,
             transparent 100%);
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease-out;
 }
 
 .ribbon-path {
@@ -680,8 +682,8 @@ footer {
 
 /* Animation CSS */
 .reveal {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 0;
+    transform: translateY(30px);
     transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
 }
 

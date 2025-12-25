@@ -5,6 +5,7 @@ export interface User {
     email: string;
     name: string;
     provider: 'LOCAL' | 'GOOGLE';
+    profileImage: string | null;
 }
 
 export interface AuthResponse {

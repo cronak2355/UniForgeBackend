@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
@@ -24,8 +24,13 @@ const AuthPage = () => {
     const isLoginMode = mode === 'login';
 
     // 이미 로그인된 경우 홈으로 리다이렉트
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, navigate]);
+
     if (isAuthenticated) {
-        navigate('/');
         return null;
     }
 
