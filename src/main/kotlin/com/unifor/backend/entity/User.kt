@@ -26,6 +26,9 @@ data class User(
     @Column(nullable = true)
     val providerId: String? = null,
     
+    @Column(nullable = true)
+    var profileImage: String? = null,
+    
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()
 )
@@ -33,3 +36,4 @@ data class User(
 enum class AuthProvider {
     LOCAL, GOOGLE
 }
+

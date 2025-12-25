@@ -13,7 +13,7 @@ class HealthController @Autowired constructor(
     private val redisTemplate: StringRedisTemplate
 ) {
 
-    @GetMapping("/health", "/actuator/health")
+    @GetMapping("/health")
     fun healthCheck(): ResponseEntity<Map<String, Any>> {
         val status = mutableMapOf<String, Any>("status" to "UP")
 

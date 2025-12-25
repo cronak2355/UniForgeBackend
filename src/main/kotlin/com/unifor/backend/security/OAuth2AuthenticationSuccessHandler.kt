@@ -31,6 +31,7 @@ class OAuth2AuthenticationSuccessHandler(
         val email = attributes["email"] as String
         val name = attributes["name"] as? String ?: email.substringBefore("@")
         val providerId = attributes["sub"] as String
+        val picture = attributes["picture"] as? String
         
         // 사용자 조회 또는 생성
         val user = userRepository.findByEmail(email).orElseGet {
@@ -39,9 +40,16 @@ class OAuth2AuthenticationSuccessHandler(
                     email = email,
                     name = name,
                     provider = AuthProvider.GOOGLE,
-                    providerId = providerId
+                    providerId = providerId,
+                    profileImage = picture
                 )
             )
+        }.also { existingUser ->
+            // 기존 사용자의 프로필 이미지 업데이트
+            if (existingUser.profileImage != picture && picture != null) {
+                existingUser.profileImage = picture
+                userRepository.save(existingUser)
+            }
         }
         
         // JWT 토큰 생성

@@ -41,14 +41,16 @@ data class UserDTO(
     val id: Long,
     val email: String,
     val name: String,
-    val provider: AuthProvider
+    val provider: AuthProvider,
+    val profileImage: String?
 ) {
     companion object {
         fun from(user: User): UserDTO = UserDTO(
             id = user.id,
             email = user.email,
             name = user.name,
-            provider = user.provider
+            provider = user.provider,
+            profileImage = user.profileImage
         )
     }
 }
