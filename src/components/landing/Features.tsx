@@ -1,9 +1,48 @@
-import { memo } from 'react';
+import { memo, useRef } from 'react';
 
 const Features = () => {
+    const sectionRef = useRef<HTMLElement>(null);
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+        if (!sectionRef.current) return;
+
+        const rect = sectionRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        sectionRef.current.style.setProperty('--mouse-x', `${x}px`);
+        sectionRef.current.style.setProperty('--mouse-y', `${y}px`);
+    };
+
     return (
-        <section id="features" className="features">
-            <div className="container">
+        <section
+            id="features"
+            className="features"
+            ref={sectionRef}
+            onMouseMove={handleMouseMove}
+        >
+            <div className="ribbon-container">
+                <svg className="ribbon-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                    <path
+                        className="ribbon-path-bg"
+                        d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0V96Z"
+                    />
+                    <path
+                        className="ribbon-path"
+                        d="M0,160 C320,300, 420,0, 740,160 C1060,320, 1120,0, 1440,160"
+                        fill="none"
+                        strokeWidth="4"
+                    />
+                    <path
+                        className="ribbon-path-2"
+                        d="M0,160 C320,20, 420,320, 740,160 C1060,0, 1120,320, 1440,160"
+                        fill="none"
+                        strokeWidth="4"
+                    />
+                </svg>
+            </div>
+
+            <div className="container" style={{ position: 'relative', zIndex: 2 }}>
                 <div className="section-header reveal">
                     <h2>왜 <span className="gradient-text">Uniforge</span>인가요?</h2>
                     <p>게임 개발이 처음인 당신을 위한 완벽한 도구입니다.</p>
