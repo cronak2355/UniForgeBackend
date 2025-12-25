@@ -1,35 +1,44 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="editor-root">
+      <div className="editor-topbar">
+        <span>file</span>
+        <span>assets</span>
+        <span>edit</span>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+
+      <div className="editor-main">
+        <div className="editor-panel left">
+          <div className="editor-panel-header">Hierarchy</div>
+        </div>
+
+        <div className="editor-camera">
+          <div className="editor-camera-header">Camera</div>
+          <div className="editor-camera-viewport">
+            {/* PhaserCanvas 삽입 */}
+          </div>
+        </div>
+
+        <div className="editor-panel right">
+          <div className="editor-panel-header">Inspector</div>
+        </div>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      <div className="editor-assets">
+        <div className="editor-assets-tabs">
+          <span>Tile</span>
+          <span>Sfx</span>
+        </div>
+        <div className="editor-assets-grid">
+          <div className="asset-item" />
+          <div className="asset-item" />
+          <div className="asset-item" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
