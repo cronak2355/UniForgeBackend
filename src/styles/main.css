@@ -20,14 +20,14 @@
     box-sizing: border-box;
 }
 
+html,
 body {
     font-family: 'Outfit', sans-serif;
     background-color: var(--bg-color);
     color: var(--text-main);
-    color: var(--text-main);
     line-height: 1.6;
 
-    /* 스크롤바 숨기기 */
+    /* 스크롤바 숨기기 (모든 브라우저) */
     scrollbar-width: none;
     /* Firefox */
     -ms-overflow-style: none;
@@ -35,6 +35,7 @@ body {
 }
 
 /* Chrome, Safari, Opera */
+html::-webkit-scrollbar,
 body::-webkit-scrollbar {
     display: none;
 }

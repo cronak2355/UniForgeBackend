@@ -22,22 +22,29 @@ const Features = () => {
             onMouseMove={handleMouseMove}
         >
             <div className="ribbon-container">
-                <svg className="ribbon-svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
-                    <path
-                        className="ribbon-path-bg"
-                        d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,112C672,96,768,96,864,112C960,128,1056,160,1152,160C1248,160,1344,128,1392,112L1440,96V320H1392C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320H0V96Z"
-                    />
+                <svg className="ribbon-svg" viewBox="0 0 1440 380" preserveAspectRatio="none">
+                    {/* 불규칙한 손그림 느낌의 경로 1 */}
                     <path
                         className="ribbon-path"
-                        d="M0,160 C320,300, 420,0, 740,160 C1060,320, 1120,0, 1440,160"
+                        d="M-50,150 C200,50 450,250 700,100 C950,-50 1200,200 1500,50"
                         fill="none"
-                        strokeWidth="4"
+                        strokeWidth="3"
                     />
+                    {/* 엇갈리는 경로 2 (더 얇게) */}
                     <path
                         className="ribbon-path-2"
-                        d="M0,160 C320,20, 420,320, 740,160 C1060,0, 1120,320, 1440,160"
+                        d="M-50,200 C300,350 600,0 900,200 C1100,350 1350,50 1500,250"
                         fill="none"
-                        strokeWidth="4"
+                        strokeWidth="2"
+                    />
+                    {/* 은은한 배경 라인 (거의 안 보임) */}
+                    <path
+                        className="ribbon-path-bg"
+                        d="M0,180 Q400,0 800,180 T1600,180"
+                        stroke="#ffffff"
+                        strokeWidth="1"
+                        fill="none"
+                        opacity="0.05"
                     />
                 </svg>
             </div>
