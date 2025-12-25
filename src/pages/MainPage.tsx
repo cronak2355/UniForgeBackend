@@ -24,9 +24,12 @@ const MainPage = () => {
                 alignItems: 'center',
                 padding: '1rem 2rem',
                 border: '1px solid #333',
-                margin: '20px 20px 0',
+                margin: '20px auto 0',
+                width: '95%',
+                maxWidth: '1200px',
                 borderRadius: '16px',
-                backgroundColor: '#0a0a0a'
+                backgroundColor: '#0a0a0a',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
             }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
                     <span className="gradient-text">Uniforge</span>
