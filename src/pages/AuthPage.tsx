@@ -23,17 +23,7 @@ const AuthPage = () => {
 
     const isLoginMode = mode === 'login';
 
-    // 이미 로그인된 경우 홈으로 리다이렉트
-    useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/');
-        }
-    }, [isAuthenticated, navigate]);
-
-    if (isAuthenticated) {
-        return null;
-    }
-
+    // 모든 useCallback hooks를 조건부 return 전에 선언
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
@@ -62,15 +52,13 @@ const AuthPage = () => {
                     name: formData.username,
                 });
             }
-            // 성공 시 페이지 새로고침 (AuthProvider가 상태 업데이트)
-            // window.location.href = '/'; 
             navigate('/');
         } catch (err) {
             setError(err instanceof Error ? err.message : '오류가 발생했습니다');
         } finally {
             setIsLoading(false);
         }
-    }, [isLoginMode, formData]);
+    }, [isLoginMode, formData, navigate]);
 
     const toggleMode = useCallback(() => {
         setMode(prev => prev === 'login' ? 'signup' : 'login');
@@ -81,6 +69,18 @@ const AuthPage = () => {
     const handleGoogleLogin = useCallback(() => {
         window.location.href = authService.getGoogleLoginUrl();
     }, []);
+
+    // 이미 로그인된 경우 홈으로 리다이렉트
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, navigate]);
+
+    // 조건부 return은 모든 hooks 선언 후에
+    if (isAuthenticated) {
+        return null;
+    }
 
     return (
         <div className="auth-page">
