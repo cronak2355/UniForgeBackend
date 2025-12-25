@@ -23,7 +23,10 @@ const MainPage = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '1rem 2rem',
-                borderBottom: '1px solid #333'
+                border: '1px solid #333',
+                margin: '20px 20px 0',
+                borderRadius: '16px',
+                backgroundColor: '#0a0a0a'
             }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
                     <span className="gradient-text">Uniforge</span>
