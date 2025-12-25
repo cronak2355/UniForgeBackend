@@ -3,10 +3,15 @@ import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import OAuthCallback from './pages/OAuthCallback';
 import MainPage from './pages/MainPage';
+import Loading from './components/common/Loading';
 import { useAuth } from './contexts/AuthContext';
 
 function AppRoutes() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
+
+    if (isLoading) {
+        return <Loading />;
+    }
 
     return (
         <Routes>

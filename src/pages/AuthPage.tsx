@@ -58,7 +58,8 @@ const AuthPage = () => {
                 });
             }
             // 성공 시 페이지 새로고침 (AuthProvider가 상태 업데이트)
-            window.location.href = '/';
+            // window.location.href = '/'; 
+            navigate('/');
         } catch (err) {
             setError(err instanceof Error ? err.message : '오류가 발생했습니다');
         } finally {
