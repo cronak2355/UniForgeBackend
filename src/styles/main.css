@@ -405,6 +405,7 @@ ul {
     background: var(--card-bg-hover);
     transform: translateY(-5px);
     border-color: var(--primary-color);
+    transition: var(--transition) !important;
 }
 
 .icon-box {
