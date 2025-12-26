@@ -45,8 +45,58 @@ const MainPage = () => {
                 backgroundColor: '#0a0a0a',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
             }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
-                    <span className="gradient-text">Uniforge</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>
+                        <span className="gradient-text">Uniforge</span>
+                    </div>
+                    <nav style={{ display: 'flex', gap: '1.5rem' }}>
+                        <button
+                            onClick={() => navigate('/assets')}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#888',
+                                fontSize: '0.95rem',
+                                cursor: 'pointer',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.color = '#fff';
+                                e.currentTarget.style.backgroundColor = '#1a1a1a';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.color = '#888';
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                        >
+                            에셋
+                        </button>
+                        <button
+                            onClick={() => navigate('/marketplace')}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#888',
+                                fontSize: '0.95rem',
+                                cursor: 'pointer',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.color = '#fff';
+                                e.currentTarget.style.backgroundColor = '#1a1a1a';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.color = '#888';
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                        >
+                            게임 마켓플레이스
+                        </button>
+                    </nav>
                 </div>
                 <div style={{ position: 'relative' }} ref={dropdownRef}>
                     <button
@@ -126,6 +176,31 @@ const MainPage = () => {
                                     {user?.email}
                                 </div>
                             </div>
+                            <button
+                                onClick={() => {
+                                    setShowDropdown(false);
+                                    navigate('/library');
+                                }}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    backgroundColor: 'transparent',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderBottom: '1px solid #333',
+                                    textAlign: 'left',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    transition: 'background-color 0.2s',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#222'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            >
+                                <span>📚</span> 라이브러리
+                            </button>
                             <button
                                 onClick={handleLogout}
                                 style={{
