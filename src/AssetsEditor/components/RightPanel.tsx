@@ -4,21 +4,44 @@ import { useState } from 'react';
 import { useAssetsEditor } from '../context/AssetsEditorContext';
 
 export function RightPanel() {
-  const { currentColor, setCurrentColor, downloadWebP } = useAssetsEditor();
+  const { downloadWebP, loadAIImage, isLoading } = useAssetsEditor();
   const [fps, setFps] = useState(12);
-  
-  const hexToRgba = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16),
-      a: 255,
-    } : { r: 0, g: 0, b: 0, a: 255 };
+  const [prompt, setPrompt] = useState('');
+  const [style, setStyle] = useState('pixel-art');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerate = async () => {
+    if (!prompt.trim() || isGenerating) return;
+    
+    setIsGenerating(true);
+    try {
+      // TODO: 실제 AI API 연동
+      const response = await fetch('/api/generate-pixel-art', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, style }),
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        await loadAIImage(blob);
+      }
+    } catch (error) {
+      console.error('AI generation error:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
+  const styles = [
+    { id: 'pixel-art', label: 'Pixel Art' },
+    { id: '8-bit', label: '8-bit' },
+    { id: '16-bit', label: '16-bit' },
+    { id: 'isometric', label: 'Isometric' },
+  ];
+
   return (
-    <div className="w-[220px] bg-black border-l border-neutral-800 flex flex-col">
+    <div className="w-[260px] bg-black border-l border-neutral-800 flex flex-col">
       {/* Preview */}
       <div className="p-3 border-b border-neutral-800">
         <div className="text-xs text-neutral-500 mb-2">Preview</div>
@@ -79,39 +102,71 @@ export function RightPanel() {
         </div>
       </div>
 
-      {/* Palette */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="px-3 py-2 border-b border-neutral-800">
-          <span className="text-xs text-neutral-500">Palette</span>
+      {/* AI Generate */}
+      <div className="flex-1 flex flex-col min-h-0 border-b border-neutral-800">
+        <div className="px-3 py-2 border-b border-neutral-800 flex items-center gap-2">
+          <span className="text-xs text-neutral-500">AI Generate</span>
+          <span className="text-[10px] px-1.5 py-0.5 bg-[#2563eb] text-white">BETA</span>
         </div>
-        <div className="p-2 flex-1 overflow-auto">
-          <select className="w-full bg-neutral-900 border border-neutral-800 text-xs py-1.5 px-2 text-neutral-400 mb-2">
-            <option>Default</option>
-            <option>Game Boy</option>
-            <option>NES</option>
-            <option>PICO-8</option>
-          </select>
-          
-          <div className="grid grid-cols-8 gap-0.5">
-            {[
-              '#000000', '#1a1a2e', '#16213e', '#0f3460',
-              '#e94560', '#ff6b6b', '#feca57', '#48dbfb',
-              '#1dd1a1', '#10ac84', '#5f27cd', '#341f97',
-              '#2e86de', '#54a0ff', '#c8d6e5', '#ffffff',
-            ].map((color, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentColor(hexToRgba(color))}
-                className="aspect-square border border-neutral-800 hover:border-[#3b82f6] transition-colors"
-                style={{ backgroundColor: color }}
-              />
-            ))}
+        
+        <div className="p-3 flex flex-col gap-3">
+          {/* Prompt */}
+          <div>
+            <label className="text-[10px] text-neutral-600 block mb-1">Prompt</label>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="A cute robot character..."
+              className="w-full h-16 bg-neutral-900 border border-neutral-800 text-xs text-white p-2 resize-none focus:border-[#3b82f6] focus:outline-none placeholder-neutral-600"
+            />
           </div>
+
+          {/* Style */}
+          <div>
+            <label className="text-[10px] text-neutral-600 block mb-1">Style</label>
+            <div className="grid grid-cols-2 gap-1">
+              {styles.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setStyle(s.id)}
+                  className={`py-1 text-[10px] transition-colors ${
+                    style === s.id
+                      ? 'bg-[#2563eb] text-white'
+                      : 'bg-neutral-900 text-neutral-500 hover:bg-neutral-800 hover:text-white border border-neutral-800'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Generate Button */}
+          <button
+            onClick={handleGenerate}
+            disabled={!prompt.trim() || isGenerating || isLoading}
+            className={`w-full py-2 text-xs font-medium transition-colors flex items-center justify-center gap-2 ${
+              !prompt.trim() || isGenerating || isLoading
+                ? 'bg-neutral-800 text-neutral-600 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#2563eb] to-[#7c3aed] hover:from-[#3b82f6] hover:to-[#8b5cf6] text-white'
+            }`}
+          >
+            {isGenerating || isLoading ? (
+              <>
+                <span className="w-3 h-3 border-2 border-neutral-600 border-t-white rounded-full animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <span>Generate</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
       {/* Export */}
-      <div className="p-3 border-t border-neutral-800 space-y-2">
+      <div className="p-3 space-y-2">
         <button
           onClick={() => downloadWebP('pixel-art')}
           className="w-full py-2 text-xs bg-[#2563eb] hover:bg-[#3b82f6] text-white transition-colors font-medium"

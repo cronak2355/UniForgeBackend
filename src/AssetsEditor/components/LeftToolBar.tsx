@@ -15,7 +15,7 @@ export function LeftToolbar() {
 
   const tools = [
     { id: 'brush', icon: '✏️', label: 'Pen (P)' },
-    { id: 'eraser', icon: '⌫', label: 'Eraser (E)' },
+    { id: 'eraser', icon: '⬜', label: 'Eraser (E)' },
     { id: 'eyedropper', icon: '💧', label: 'Picker (O)' },
     { id: 'bucket', icon: '🪣', label: 'Fill (B)' },
   ] as const;
