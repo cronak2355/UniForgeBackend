@@ -18,11 +18,17 @@ class JwtTokenProvider(
 ) {
     
     private val key: SecretKey by lazy {
-        val keyBytes = if (jwtSecret.length < 32) {
-            // 비밀키가 짧으면 패딩
-            jwtSecret.padEnd(32, '0').toByteArray()
-        } else {
-            jwtSecret.toByteArray()
+        val keyBytes = try {
+            // Base64 인코딩된 키 시도
+            Decoders.BASE64.decode(jwtSecret)
+        } catch (e: Exception) {
+            // Base64가 아니면 직접 바이트 배열로 변환
+            if (jwtSecret.length < 32) {
+                // 비밀키가 짧으면 패딩
+                jwtSecret.padEnd(32, '0').toByteArray()
+            } else {
+                jwtSecret.toByteArray()
+            }
         }
         Keys.hmacShaKeyFor(keyBytes)
     }

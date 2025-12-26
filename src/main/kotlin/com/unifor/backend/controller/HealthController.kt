@@ -1,6 +1,5 @@
 package com.unifor.backend.controller
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.ResponseEntity
 import org.springframework.jdbc.core.JdbcTemplate
@@ -8,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class HealthController @Autowired constructor(
+class HealthController(
     private val jdbcTemplate: JdbcTemplate,
     private val redisTemplate: StringRedisTemplate
 ) {

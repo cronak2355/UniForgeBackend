@@ -5,10 +5,48 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT:6379}
+      ssl:
+        enabled: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: email, profile
+            redirect-uri: "https://uniforge.kr/login/oauth2/code/{registrationId}"
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+jwt:
+  secret: ${JWT_SECRET:uniforge-jwt-secret-key-for-development-only-change-in-production}
+  expiration: 86400000
 
 server:
   port: 8080
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: false
