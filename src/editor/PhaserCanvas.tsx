@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import Phaser from "phaser";
-import type { EditorEntity } from "./EditorLayout";
+import type { EditorEntity } from "./EditorState";
+
 
 
 class EditorScene extends Phaser.Scene {
