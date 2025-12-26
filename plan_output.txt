@@ -1,0 +1,274 @@
+﻿[0m[1mrandom_password.db_password: Refreshing state... [id=none][0m
+[0m[1mmodule.rds.module.db_instance.random_id.snapshot_identifier[0]: Refreshing state... [id=fY1u6A][0m
+[0m[1mdata.aws_availability_zones.available: Reading...[0m[0m
+[0m[1maws_cloudfront_origin_access_control.oac: Refreshing state... [id=E1BM6D2ENX3TXC][0m
+[0m[1maws_ecs_cluster.this: Refreshing state... [id=arn:aws:ecs:ap-northeast-2:859012633338:cluster/unifor-cluster][0m
+[0m[1mmodule.rds.module.db_parameter_group.aws_db_parameter_group.this[0]: Refreshing state... [id=unifor-db-20251224152246640000000001][0m
+[0m[1mmodule.rds.module.db_instance.data.aws_partition.current: Reading...[0m[0m
+[0m[1maws_cloudwatch_log_group.backend: Refreshing state... [id=/ecs/unifor-backend][0m
+[0m[1maws_s3_bucket.assets: Refreshing state... [id=unifor-assets-20251224152246648200000002][0m
+[0m[1maws_iam_role.ecs_task_execution_role: Refreshing state... [id=unifor-ecs-task-execution-role][0m
+[0m[1mmodule.rds.module.db_instance.data.aws_partition.current: Read complete after 0s [id=aws][0m
+[0m[1mmodule.alb.data.aws_partition.current: Reading...[0m[0m
+[0m[1maws_route53_zone.main: Refreshing state... [id=Z06880831D57AQU02V2MY][0m
+[0m[1mmodule.alb.data.aws_partition.current: Read complete after 0s [id=aws][0m
+[0m[1mmodule.vpc.aws_vpc.this[0]: Refreshing state... [id=vpc-0b9bf0a9a047534a3][0m
+[0m[1mdata.aws_availability_zones.available: Read complete after 0s [id=ap-northeast-2][0m
+[0m[1maws_ecr_repository.backend: Refreshing state... [id=unifor-backend][0m
+[0m[1maws_secretsmanager_secret.db_password: Refreshing state... [id=arn:aws:secretsmanager:ap-northeast-2:859012633338:secret:unifor-db-password-ZsM3De][0m
+[0m[1mmodule.rds.module.db_instance.data.aws_iam_policy_document.enhanced_monitoring: Reading...[0m[0m
+[0m[1mmodule.rds.module.db_instance.data.aws_iam_policy_document.enhanced_monitoring: Read complete after 0s [id=76086537][0m
+[0m[1maws_ecs_cluster_capacity_providers.this: Refreshing state... [id=unifor-cluster][0m
+[0m[1maws_secretsmanager_secret_version.db_password: Refreshing state... [id=arn:aws:secretsmanager:ap-northeast-2:859012633338:secret:unifor-db-password-ZsM3De|terraform-20251225051246601200000002][0m
+[0m[1maws_iam_policy.ecs_secrets_policy: Refreshing state... [id=arn:aws:iam::859012633338:policy/unifor-ecs-secrets-policy][0m
+[0m[1maws_s3_bucket_server_side_encryption_configuration.assets: Refreshing state... [id=unifor-assets-20251224152246648200000002][0m
+[0m[1maws_s3_bucket_public_access_block.assets: Refreshing state... [id=unifor-assets-20251224152246648200000002][0m
+[0m[1maws_acm_certificate.cert: Refreshing state... [id=arn:aws:acm:us-east-1:859012633338:certificate/9ddebfab-1e8a-4cf1-a949-59841b91a131][0m
+[0m[1mmodule.vpc.aws_default_route_table.default[0]: Refreshing state... [id=rtb-03afd8f987dd70224][0m
+[0m[1mmodule.vpc.aws_default_security_group.this[0]: Refreshing state... [id=sg-038b172e26de6f714][0m
+[0m[1mmodule.vpc.aws_default_network_acl.this[0]: Refreshing state... [id=acl-0019d523531815e31][0m
+[0m[1mmodule.alb.aws_lb_target_group.this["backend"]: Refreshing state... [id=arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596][0m
+[0m[1mmodule.db_sg.aws_security_group.this_name_prefix[0]: Refreshing state... [id=sg-000a69f6ec450191c][0m
+[0m[1mmodule.ecs_tasks_sg.aws_security_group.this_name_prefix[0]: Refreshing state... [id=sg-09bf7149618e6de8b][0m
+[0m[1mmodule.alb.aws_security_group.this[0]: Refreshing state... [id=sg-0db4712c65a8bf569][0m
+[0m[1mmodule.vpc.aws_subnet.public[0]: Refreshing state... [id=subnet-00807f721b6dc8295][0m
+[0m[1mmodule.vpc.aws_subnet.public[1]: Refreshing state... [id=subnet-09cba43d895bb187b][0m
+[0m[1mmodule.alb_sg.aws_security_group.this_name_prefix[0]: Refreshing state... [id=sg-0bb48802629a31a85][0m
+[0m[1mmodule.vpc.aws_route_table.private[0]: Refreshing state... [id=rtb-02735f5493864cc4c][0m
+[0m[1mmodule.vpc.aws_route_table.private[1]: Refreshing state... [id=rtb-0c2f6d8adc2644fc1][0m
+[0m[1mmodule.redis_sg.aws_security_group.this_name_prefix[0]: Refreshing state... [id=sg-0e1e9772ec9f2132e][0m
+[0m[1mmodule.vpc.aws_route_table.database[1]: Refreshing state... [id=rtb-01b4aef782b056f12][0m
+[0m[1mmodule.vpc.aws_route_table.database[0]: Refreshing state... [id=rtb-0270f9effd2a4b4a3][0m
+[0m[1mmodule.vpc.aws_subnet.database[0]: Refreshing state... [id=subnet-0215553f278a690f3][0m
+[0m[1mmodule.vpc.aws_subnet.database[1]: Refreshing state... [id=subnet-0d9696938e5159cea][0m
+[0m[1mmodule.vpc.aws_subnet.private[0]: Refreshing state... [id=subnet-0aff194d464a9f15e][0m
+[0m[1mmodule.vpc.aws_internet_gateway.this[0]: Refreshing state... [id=igw-0c2f32db119380af2][0m
+[0m[1mmodule.vpc.aws_subnet.private[1]: Refreshing state... [id=subnet-0dde7be0b9232da2c][0m
+[0m[1mmodule.vpc.aws_route_table.public[0]: Refreshing state... [id=rtb-0c83467e50ca1b818][0m
+[0m[1mmodule.vpc.aws_route_table_association.database[0]: Refreshing state... [id=rtbassoc-061ed147f6975df5a][0m
+[0m[1mmodule.vpc.aws_route_table_association.database[1]: Refreshing state... [id=rtbassoc-00ce6853208f0a579][0m
+[0m[1mmodule.vpc.aws_db_subnet_group.database[0]: Refreshing state... [id=unifor-db-subnet-group][0m
+[0m[1mmodule.ecs_tasks_sg.aws_security_group_rule.egress_rules[0]: Refreshing state... [id=sgrule-760822551][0m
+[0m[1mmodule.db_sg.aws_security_group_rule.ingress_with_cidr_blocks[0]: Refreshing state... [id=sgrule-1663371923][0m
+[0m[1mmodule.alb_sg.aws_security_group_rule.ingress_rules[1]: Refreshing state... [id=sgrule-1950878141][0m
+[0m[1mmodule.alb_sg.aws_security_group_rule.ingress_rules[0]: Refreshing state... [id=sgrule-3901353178][0m
+[0m[1mmodule.alb_sg.aws_security_group_rule.egress_rules[0]: Refreshing state... [id=sgrule-4290519458][0m
+[0m[1mmodule.redis_sg.aws_security_group_rule.ingress_with_cidr_blocks[0]: Refreshing state... [id=sgrule-3850534517][0m
+[0m[1mmodule.vpc.aws_eip.nat[1]: Refreshing state... [id=eipalloc-00921783278a333f7][0m
+[0m[1mmodule.vpc.aws_eip.nat[0]: Refreshing state... [id=eipalloc-03bb171943c77a8d2][0m
+[0m[1mmodule.vpc.aws_route_table_association.private[1]: Refreshing state... [id=rtbassoc-0e812c351404d9c53][0m
+[0m[1mmodule.vpc.aws_route_table_association.private[0]: Refreshing state... [id=rtbassoc-01803f4d6346608d8][0m
+[0m[1mmodule.vpc.aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-05a27ec3e7aa76b13][0m
+[0m[1mmodule.vpc.aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-0caa4c02f52f0878d][0m
+[0m[1mmodule.vpc.aws_route.public_internet_gateway[0]: Refreshing state... [id=r-rtb-0c83467e50ca1b8181080289494][0m
+[0m[1mmodule.db_sg.aws_security_group_rule.ingress_with_source_security_group_id[0]: Refreshing state... [id=sgrule-2328102540][0m
+[0m[1mmodule.redis_sg.aws_security_group_rule.ingress_with_source_security_group_id[0]: Refreshing state... [id=sgrule-1446631486][0m
+[0m[1mmodule.alb.aws_lb.this[0]: Refreshing state... [id=arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:loadbalancer/app/unifor-alb/42128eb7554efd74][0m
+[0m[1mmodule.ecs_tasks_sg.aws_security_group_rule.ingress_with_source_security_group_id[0]: Refreshing state... [id=sgrule-1258149405][0m
+[0m[1maws_vpc_endpoint.s3: Refreshing state... [id=vpce-0eb629c8d123c59c2][0m
+[0m[1maws_elasticache_subnet_group.redis: Refreshing state... [id=unifor-redis-subnet-group][0m
+[0m[1mmodule.vpc.aws_nat_gateway.this[0]: Refreshing state... [id=nat-0c7f3aa35955fe7e1][0m
+[0m[1mmodule.vpc.aws_nat_gateway.this[1]: Refreshing state... [id=nat-0c0a54c040b9a9060][0m
+[0m[1mmodule.rds.module.db_instance.aws_db_instance.this[0]: Refreshing state... [id=db-S52XBKMIBJMHH4GHUXTDJDXBSQ][0m
+[0m[1mmodule.vpc.aws_route.private_nat_gateway[0]: Refreshing state... [id=r-rtb-02735f5493864cc4c1080289494][0m
+[0m[1mmodule.vpc.aws_route.private_nat_gateway[1]: Refreshing state... [id=r-rtb-0c2f6d8adc2644fc11080289494][0m
+[0m[1mmodule.alb.aws_lb_listener.this["http"]: Refreshing state... [id=arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:listener/app/unifor-alb/42128eb7554efd74/54aa4f5e733cd57f][0m
+[0m[1maws_route53_record.cert_validation["uniforge.kr"]: Refreshing state... [id=Z06880831D57AQU02V2MY__ec4ad1ba84cdba724a5695639d9373ad.uniforge.kr._CNAME][0m
+[0m[1maws_cloudfront_distribution.cdn: Refreshing state... [id=E2C82OGQQLZ3BB][0m
+[0m[1maws_iam_role_policy_attachment.ecs_secrets_policy: Refreshing state... [id=unifor-ecs-task-execution-role/arn:aws:iam::859012633338:policy/unifor-ecs-secrets-policy][0m
+[0m[1maws_iam_role_policy_attachment.ecs_task_execution_role_policy: Refreshing state... [id=unifor-ecs-task-execution-role/arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy][0m
+[0m[1maws_elasticache_replication_group.redis: Refreshing state... [id=unifor-redis][0m
+[0m[1maws_acm_certificate_validation.cert: Refreshing state... [id=0001-01-01 00:00:00 +0000 UTC][0m
+[0m[1maws_s3_bucket_policy.cdn_access: Refreshing state... [id=unifor-assets-20251224152246648200000002][0m
+[0m[1maws_route53_record.alias: Refreshing state... [id=Z06880831D57AQU02V2MY_uniforge.kr_A][0m
+[0m[1maws_ecs_task_definition.backend: Refreshing state... [id=unifor-backend][0m
+[0m[1maws_ecs_service.backend: Refreshing state... [id=arn:aws:ecs:ap-northeast-2:859012633338:service/unifor-cluster/unifor-backend][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # aws_iam_openid_connect_provider.github[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_openid_connect_provider" "github" {
+      [32m+[0m[0m arn             = (known after apply)
+      [32m+[0m[0m client_id_list  = [
+          [32m+[0m[0m "sts.amazonaws.com",
+        ]
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m tags            = {
+          [32m+[0m[0m "Environment" = "prod"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Project"     = "unifor"
+        }
+      [32m+[0m[0m tags_all        = {
+          [32m+[0m[0m "Environment" = "prod"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Project"     = "unifor"
+        }
+      [32m+[0m[0m thumbprint_list = [
+          [32m+[0m[0m "6938fd4d98bab03faadb97b34396831e3780aea1",
+          [32m+[0m[0m "1c58a3a8518e8759bf075b76b750d4f2df264fcd",
+        ]
+      [32m+[0m[0m url             = "https://token.actions.githubusercontent.com"
+    }
+
+[1m  # aws_iam_role.github_actions_backend[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_role" "github_actions_backend" {
+      [32m+[0m[0m arn                   = (known after apply)
+      [32m+[0m[0m assume_role_policy    = (known after apply)
+      [32m+[0m[0m create_date           = (known after apply)
+      [32m+[0m[0m force_detach_policies = false
+      [32m+[0m[0m id                    = (known after apply)
+      [32m+[0m[0m managed_policy_arns   = (known after apply)
+      [32m+[0m[0m max_session_duration  = 3600
+      [32m+[0m[0m name                  = "unifor-github-actions-backend"
+      [32m+[0m[0m name_prefix           = (known after apply)
+      [32m+[0m[0m path                  = "/"
+      [32m+[0m[0m tags                  = {
+          [32m+[0m[0m "Environment" = "prod"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Project"     = "unifor"
+        }
+      [32m+[0m[0m tags_all              = {
+          [32m+[0m[0m "Environment" = "prod"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Project"     = "unifor"
+        }
+      [32m+[0m[0m unique_id             = (known after apply)
+
+      [32m+[0m[0m inline_policy (known after apply)
+    }
+
+[1m  # aws_iam_role.github_actions_frontend[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_role" "github_actions_frontend" {
+      [32m+[0m[0m arn                   = (known after apply)
+      [32m+[0m[0m assume_role_policy    = (known after apply)
+      [32m+[0m[0m create_date           = (known after apply)
+      [32m+[0m[0m force_detach_policies = false
+      [32m+[0m[0m id                    = (known after apply)
+      [32m+[0m[0m managed_policy_arns   = (known after apply)
+      [32m+[0m[0m max_session_duration  = 3600
+      [32m+[0m[0m name                  = "unifor-github-actions-frontend"
+      [32m+[0m[0m name_prefix           = (known after apply)
+      [32m+[0m[0m path                  = "/"
+      [32m+[0m[0m tags                  = {
+          [32m+[0m[0m "Environment" = "prod"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Project"     = "unifor"
+        }
+      [32m+[0m[0m tags_all              = {
+          [32m+[0m[0m "Environment" = "prod"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Project"     = "unifor"
+        }
+      [32m+[0m[0m unique_id             = (known after apply)
+
+      [32m+[0m[0m inline_policy (known after apply)
+    }
+
+[1m  # aws_iam_role_policy.github_actions_backend[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_role_policy" "github_actions_backend" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m name        = "unifor-github-actions-backend-policy"
+      [32m+[0m[0m name_prefix = (known after apply)
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m Statement = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = [
+                          [32m+[0m[0m "ecr:GetAuthorizationToken",
+                        ]
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "*"
+                      [32m+[0m[0m Sid      = "ECRAuth"
+                    },
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = [
+                          [32m+[0m[0m "ecr:BatchCheckLayerAvailability",
+                          [32m+[0m[0m "ecr:GetDownloadUrlForLayer",
+                          [32m+[0m[0m "ecr:BatchGetImage",
+                          [32m+[0m[0m "ecr:InitiateLayerUpload",
+                          [32m+[0m[0m "ecr:UploadLayerPart",
+                          [32m+[0m[0m "ecr:CompleteLayerUpload",
+                          [32m+[0m[0m "ecr:PutImage",
+                        ]
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "arn:aws:ecr:ap-northeast-2:859012633338:repository/unifor-backend"
+                      [32m+[0m[0m Sid      = "ECRPush"
+                    },
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = [
+                          [32m+[0m[0m "ecs:UpdateService",
+                          [32m+[0m[0m "ecs:DescribeServices",
+                        ]
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "arn:aws:ecs:ap-northeast-2:859012633338:service/unifor-cluster/unifor-backend"
+                      [32m+[0m[0m Sid      = "ECSUpdate"
+                    },
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = [
+                          [32m+[0m[0m "ecs:DescribeClusters",
+                        ]
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "arn:aws:ecs:ap-northeast-2:859012633338:cluster/unifor-cluster"
+                      [32m+[0m[0m Sid      = "ECSCluster"
+                    },
+                ]
+              [32m+[0m[0m Version   = "2012-10-17"
+            }
+        )
+      [32m+[0m[0m role        = (known after apply)
+    }
+
+[1m  # aws_iam_role_policy.github_actions_frontend[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_role_policy" "github_actions_frontend" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m name        = "unifor-github-actions-frontend-policy"
+      [32m+[0m[0m name_prefix = (known after apply)
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m Statement = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = [
+                          [32m+[0m[0m "s3:PutObject",
+                          [32m+[0m[0m "s3:GetObject",
+                          [32m+[0m[0m "s3:ListBucket",
+                          [32m+[0m[0m "s3:DeleteObject",
+                        ]
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = [
+                          [32m+[0m[0m "arn:aws:s3:::unifor-assets-20251224152246648200000002",
+                          [32m+[0m[0m "arn:aws:s3:::unifor-assets-20251224152246648200000002/*",
+                        ]
+                      [32m+[0m[0m Sid      = "S3Deploy"
+                    },
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = [
+                          [32m+[0m[0m "cloudfront:CreateInvalidation",
+                          [32m+[0m[0m "cloudfront:GetInvalidation",
+                        ]
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "arn:aws:cloudfront::859012633338:distribution/E2C82OGQQLZ3BB"
+                      [32m+[0m[0m Sid      = "CloudFrontInvalidation"
+                    },
+                ]
+              [32m+[0m[0m Version   = "2012-10-17"
+            }
+        )
+      [32m+[0m[0m role        = (known after apply)
+    }
+
+[1mPlan:[0m [0m5 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  [32m+[0m[0m ecs_cluster_name                 = "unifor-cluster"
+  [32m+[0m[0m ecs_service_name                 = "unifor-backend"
+  [32m+[0m[0m github_actions_backend_role_arn  = (known after apply)
+  [32m+[0m[0m github_actions_frontend_role_arn = (known after apply)
+[90m
+?????????????????????????????????????????????????????????????????????????????[0m
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

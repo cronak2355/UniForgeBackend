@@ -1,0 +1,39 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+*.tfvars
+.terraform.lock.hcl
+
+# SSH Keys
+*.pem
+*.pub
+
+# Logs
+*.log
+*_log.txt
+*_error.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node modules (frontend)
+node_modules/
+dist/
+
+# Submodules (handled separately)
+UniForgeFrontend/
+backend/
+UniFor-Infra/
+
+# JSON validation files
+validation.json
