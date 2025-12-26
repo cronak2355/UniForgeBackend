@@ -1,5 +1,5 @@
-import type { Asset } from "../../data/Asset";
 
+import type { Asset } from "../../data/Asset";
 
 //가장 에디터 모드의 가장 틀이 되는 얘
 //모든 에디터 모드를 새로 만들 때는 얘를 상속받아서 만들어야 함.
@@ -27,7 +27,6 @@ export class CameraMode extends EditorMode
         const worldPoint = scene.cameras.main.getWorldPoint(p.x, p.y);
         const x = worldPoint.x;
         const y = worldPoint.y;
-
         this.prevX = x
         this.prevY = y
     }
