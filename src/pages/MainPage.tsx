@@ -244,106 +244,64 @@ const MainPage = () => {
                     <button
                         style={{
                             flex: 1,
-                            padding: '40px 30px',
+                            padding: '32px 24px',
                             backgroundColor: '#0a0a0a',
                             border: '1px solid #333',
-                            borderRadius: '16px',
                             cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '16px',
-                            transition: 'all 0.3s ease'
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.borderColor = '#2563eb';
                             e.currentTarget.style.backgroundColor = '#111';
-                            e.currentTarget.style.transform = 'translateY(-4px)';
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.borderColor = '#333';
                             e.currentTarget.style.backgroundColor = '#0a0a0a';
-                            e.currentTarget.style.transform = 'translateY(0)';
                         }}
                     >
-                        <div style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '12px',
-                            backgroundColor: '#1a1a1a',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.8rem',
-                            border: '1px solid #333'
-                        }}>
-                            ➕
-                        </div>
-                        <div>
-                            <h3 style={{
-                                color: '#fff',
-                                fontSize: '1.1rem',
-                                fontWeight: 600,
-                                marginBottom: '6px'
-                            }}>새 프로젝트</h3>
-                            <p style={{
-                                color: '#666',
-                                fontSize: '0.85rem'
-                            }}>처음부터 새로운 게임 만들기</p>
-                        </div>
+                        <h3 style={{
+                            color: '#fff',
+                            fontSize: '1.1rem',
+                            fontWeight: 600,
+                            marginBottom: '8px'
+                        }}>새 프로젝트</h3>
+                        <p style={{
+                            color: '#666',
+                            fontSize: '0.85rem'
+                        }}>처음부터 새로운 게임 만들기</p>
                     </button>
 
                     {/* 프로젝트 가져오기 */}
                     <button
                         style={{
                             flex: 1,
-                            padding: '40px 30px',
+                            padding: '32px 24px',
                             backgroundColor: '#0a0a0a',
                             border: '1px solid #333',
-                            borderRadius: '16px',
                             cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '16px',
-                            transition: 'all 0.3s ease'
+                            textAlign: 'left',
+                            transition: 'all 0.2s ease'
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.borderColor = '#2563eb';
                             e.currentTarget.style.backgroundColor = '#111';
-                            e.currentTarget.style.transform = 'translateY(-4px)';
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.borderColor = '#333';
                             e.currentTarget.style.backgroundColor = '#0a0a0a';
-                            e.currentTarget.style.transform = 'translateY(0)';
                         }}
                     >
-                        <div style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '12px',
-                            backgroundColor: '#1a1a1a',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.8rem',
-                            border: '1px solid #333'
-                        }}>
-                            📂
-                        </div>
-                        <div>
-                            <h3 style={{
-                                color: '#fff',
-                                fontSize: '1.1rem',
-                                fontWeight: 600,
-                                marginBottom: '6px'
-                            }}>프로젝트 가져오기</h3>
-                            <p style={{
-                                color: '#666',
-                                fontSize: '0.85rem'
-                            }}>기존 프로젝트 파일 열기</p>
-                        </div>
+                        <h3 style={{
+                            color: '#fff',
+                            fontSize: '1.1rem',
+                            fontWeight: 600,
+                            marginBottom: '8px'
+                        }}>프로젝트 가져오기</h3>
+                        <p style={{
+                            color: '#666',
+                            fontSize: '0.85rem'
+                        }}>기존 프로젝트 파일 열기</p>
                     </button>
                 </div>
 
@@ -378,14 +336,8 @@ const MainPage = () => {
                             padding: '80px 40px',
                             textAlign: 'center',
                             backgroundColor: '#0a0a0a',
-                            border: '1px dashed #333',
-                            borderRadius: '16px'
+                            border: '1px dashed #333'
                         }}>
-                            <div style={{
-                                fontSize: '3rem',
-                                marginBottom: '16px',
-                                opacity: 0.5
-                            }}>🎮</div>
                             <h3 style={{
                                 color: '#888',
                                 fontSize: '1.1rem',
