@@ -266,19 +266,16 @@ const MainPage = () => {
                 <div className="triangle-nav-container">
                     <div className="triangle-nav-item left" onClick={() => navigate('/marketplace')}>
                         <div className="triangle-nav-content">
-                            <i className="fa-regular fa-compass"></i>
                             <span>구경하기</span>
                         </div>
                     </div>
                     <div className="triangle-nav-item center" onClick={() => { }}>
                         <div className="triangle-nav-content">
-                            <i className="fa-solid fa-wrench"></i>
                             <span>에디터</span>
                         </div>
                     </div>
                     <div className="triangle-nav-item right" onClick={() => navigate('/assets')}>
                         <div className="triangle-nav-content">
-                            <i className="fa-solid fa-store"></i>
                             <span>에셋 스토어</span>
                         </div>
                     </div>
