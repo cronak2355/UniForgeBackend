@@ -229,14 +229,176 @@ const MainPage = () => {
             </header>
             <main style={{
                 flex: 1,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'column',
-                gap: '1rem'
+                padding: '40px 20px',
+                maxWidth: '1200px',
+                width: '95%',
+                margin: '0 auto'
             }}>
-                <h1>Welcome to Your Workspace</h1>
-                <p style={{ color: '#888' }}>Select a project or create a new one to get started.</p>
+                {/* 액션 버튼 섹션 */}
+                <div style={{
+                    display: 'flex',
+                    gap: '20px',
+                    marginBottom: '50px'
+                }}>
+                    {/* 새 프로젝트 */}
+                    <button
+                        style={{
+                            flex: 1,
+                            padding: '40px 30px',
+                            backgroundColor: '#0a0a0a',
+                            border: '1px solid #333',
+                            borderRadius: '16px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '16px',
+                            transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = '#2563eb';
+                            e.currentTarget.style.backgroundColor = '#111';
+                            e.currentTarget.style.transform = 'translateY(-4px)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = '#333';
+                            e.currentTarget.style.backgroundColor = '#0a0a0a';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                    >
+                        <div style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '12px',
+                            backgroundColor: '#1a1a1a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1.8rem',
+                            border: '1px solid #333'
+                        }}>
+                            ➕
+                        </div>
+                        <div>
+                            <h3 style={{
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                                fontWeight: 600,
+                                marginBottom: '6px'
+                            }}>새 프로젝트</h3>
+                            <p style={{
+                                color: '#666',
+                                fontSize: '0.85rem'
+                            }}>처음부터 새로운 게임 만들기</p>
+                        </div>
+                    </button>
+
+                    {/* 프로젝트 가져오기 */}
+                    <button
+                        style={{
+                            flex: 1,
+                            padding: '40px 30px',
+                            backgroundColor: '#0a0a0a',
+                            border: '1px solid #333',
+                            borderRadius: '16px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '16px',
+                            transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.borderColor = '#2563eb';
+                            e.currentTarget.style.backgroundColor = '#111';
+                            e.currentTarget.style.transform = 'translateY(-4px)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.borderColor = '#333';
+                            e.currentTarget.style.backgroundColor = '#0a0a0a';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                        }}
+                    >
+                        <div style={{
+                            width: '60px',
+                            height: '60px',
+                            borderRadius: '12px',
+                            backgroundColor: '#1a1a1a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1.8rem',
+                            border: '1px solid #333'
+                        }}>
+                            📂
+                        </div>
+                        <div>
+                            <h3 style={{
+                                color: '#fff',
+                                fontSize: '1.1rem',
+                                fontWeight: 600,
+                                marginBottom: '6px'
+                            }}>프로젝트 가져오기</h3>
+                            <p style={{
+                                color: '#666',
+                                fontSize: '0.85rem'
+                            }}>기존 프로젝트 파일 열기</p>
+                        </div>
+                    </button>
+                </div>
+
+                {/* 내 프로젝트 섹션 */}
+                <div>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '24px'
+                    }}>
+                        <h2 style={{
+                            fontSize: '1.3rem',
+                            fontWeight: 600,
+                            color: '#fff'
+                        }}>내 프로젝트</h2>
+                        <span style={{
+                            color: '#666',
+                            fontSize: '0.9rem'
+                        }}>최근 수정순</span>
+                    </div>
+
+                    {/* 프로젝트 그리드 */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                        gap: '20px'
+                    }}>
+                        {/* 빈 상태 */}
+                        <div style={{
+                            gridColumn: '1 / -1',
+                            padding: '80px 40px',
+                            textAlign: 'center',
+                            backgroundColor: '#0a0a0a',
+                            border: '1px dashed #333',
+                            borderRadius: '16px'
+                        }}>
+                            <div style={{
+                                fontSize: '3rem',
+                                marginBottom: '16px',
+                                opacity: 0.5
+                            }}>🎮</div>
+                            <h3 style={{
+                                color: '#888',
+                                fontSize: '1.1rem',
+                                fontWeight: 500,
+                                marginBottom: '8px'
+                            }}>아직 프로젝트가 없습니다</h3>
+                            <p style={{
+                                color: '#555',
+                                fontSize: '0.9rem'
+                            }}>새 프로젝트를 만들어 게임 개발을 시작하세요!</p>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     );
