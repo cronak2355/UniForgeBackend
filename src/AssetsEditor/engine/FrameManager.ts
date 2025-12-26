@@ -14,11 +14,15 @@ export interface Frame {
  * 프레임 관리자
  * - 최대 4프레임까지 지원
  * - 각 프레임은 독립적인 픽셀 데이터 보유
+ * - 해상도별로 작업 상태를 독립적으로 저장
  */
 export class FrameManager {
   private frames: Frame[] = [];
   private currentFrameIndex = 0;
   private resolution: number;
+  
+  // 해상도별 프레임 데이터 저장소
+  private resolutionCache: Map<number, { frames: Frame[]; currentIndex: number }> = new Map();
 
   constructor(resolution: number) {
     this.resolution = resolution;
@@ -166,13 +170,41 @@ export class FrameManager {
   }
 
   /**
-   * 해상도 변경 시 모든 프레임 리셋
+   * 해상도 변경 시 현재 상태를 저장하고 새 해상도 상태를 로드
+   * 각 해상도별로 독립적인 작업 상태 유지
    */
   changeResolution(newResolution: number): void {
+    // 같은 해상도면 무시
+    if (this.resolution === newResolution) return;
+
+    // 현재 해상도의 상태를 캐시에 저장 (deep copy)
+    this.resolutionCache.set(this.resolution, {
+      frames: this.frames.map(frame => ({
+        id: frame.id,
+        name: frame.name,
+        data: new Uint8ClampedArray(frame.data), // 복사
+      })),
+      currentIndex: this.currentFrameIndex,
+    });
+
+    // 새 해상도로 전환
     this.resolution = newResolution;
-    this.frames = [];
-    this.currentFrameIndex = 0;
-    this.addFrame();
+
+    // 새 해상도의 캐시가 있으면 로드, 없으면 새로 생성
+    const cached = this.resolutionCache.get(newResolution);
+    if (cached) {
+      this.frames = cached.frames.map(frame => ({
+        id: frame.id,
+        name: frame.name,
+        data: new Uint8ClampedArray(frame.data), // 복사
+      }));
+      this.currentFrameIndex = cached.currentIndex;
+    } else {
+      // 새 해상도는 빈 캔버스로 시작
+      this.frames = [];
+      this.currentFrameIndex = 0;
+      this.addFrame();
+    }
   }
 
   /**
@@ -217,9 +249,19 @@ export class FrameManager {
   }
 
   /**
-   * 전체 클리어
+   * 현재 해상도만 클리어 (다른 해상도 캐시는 유지)
    */
   clear(): void {
+    this.frames = [];
+    this.currentFrameIndex = 0;
+    this.addFrame();
+  }
+
+  /**
+   * 모든 해상도의 캐시를 포함해서 완전 초기화
+   */
+  clearAll(): void {
+    this.resolutionCache.clear();
     this.frames = [];
     this.currentFrameIndex = 0;
     this.addFrame();

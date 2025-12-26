@@ -149,8 +149,9 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
 
   const setPixelSize = useCallback((size: PixelSize) => {
     setPixelSizeState(size);
-    if (canvasRef.current) {
-      engineRef.current = new PixelEngine(canvasRef.current, size, 50);
+    if (engineRef.current) {
+      // 새 엔진 생성하지 않고 해상도만 변경 (캐시 유지)
+      engineRef.current.changeResolution(size);
       updateHistoryState();
       syncFrameState();
     }

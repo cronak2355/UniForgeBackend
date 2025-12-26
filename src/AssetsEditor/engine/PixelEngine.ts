@@ -107,6 +107,11 @@ export class PixelEngine {
   }
 
   changeResolution(newResolution: PixelSize): void {
+    if (this.resolution === newResolution) return;
+
+    // 기존 픽셀 데이터를 새 해상도로 스케일링
+    this.frameManager.changeResolution(newResolution);
+    
     this.resolution = newResolution;
     
     this.workCanvas.width = newResolution;
@@ -118,8 +123,9 @@ export class PixelEngine {
     this.viewCtx.imageSmoothingEnabled = false;
     this.workCtx.imageSmoothingEnabled = false;
     
+    // 히스토리는 클리어 (좌표 체계가 달라지므로)
     this.historyManager.clear();
-    this.frameManager.changeResolution(newResolution);
+    
     this.render();
   }
 
@@ -253,6 +259,15 @@ export class PixelEngine {
 
   clearAllFrames(): void {
     this.frameManager.clear();
+    this.historyManager.clear();
+    this.render();
+  }
+
+  /**
+   * 모든 해상도의 작업 내용 완전 초기화
+   */
+  clearAllResolutions(): void {
+    this.frameManager.clearAll();
     this.historyManager.clear();
     this.render();
   }
