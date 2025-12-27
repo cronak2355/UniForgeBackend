@@ -1,10 +1,64 @@
 import React, { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import type { EditorEntity } from "./EditorLayout";
-import {EditorMode, CameraMode} from "./editorMode/editorModes"
-
+import {EditorMode, CameraMode, TilingMode} from "./editorMode/editorModes"
+import type { Asset } from "../data/Asset"
 const tileSize = 32;
 let gridGfx: Phaser.GameObjects.Graphics;
+type Props = {
+    assets:Asset[];
+    selected_asset:Asset | null;
+};
+
+function loadImages(scene: Phaser.Scene, assets: Asset[]) {
+  return new Promise<void>((resolve, reject) => {
+    let pending = 0;
+
+    const onFileComplete = (key: string) => {
+      pending--;
+      if (pending === 0) {
+        cleanup();
+        resolve();
+      }
+    };
+
+    const onError = () => {
+      cleanup();
+      reject(new Error("asset load error"));
+    };
+
+    const cleanup = () => {
+      scene.load.off(Phaser.Loader.Events.FILE_COMPLETE, onFileComplete);
+      scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, onError);
+    };
+
+    // 이벤트 등록
+    scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, onFileComplete);
+    scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, onError);
+
+    // 큐에 추가
+    for (let i = 0; i < assets.length; i++) {
+      const asset = assets[i];
+
+      // 이미 있으면 스킵
+      if (scene.textures.exists(asset.name)) continue;
+
+      scene.load.image(asset.name, asset.url);
+      pending++;
+    }
+
+    // 로드할 게 없으면 바로 끝
+    if (pending === 0) {
+      cleanup();
+      resolve();
+      return;
+    }
+
+    // 로더 시작
+    scene.load.start();
+  });
+}
+
 
 //그리드 표시
 function redrawGrid(scene: Phaser.Scene) {
@@ -95,15 +149,12 @@ class EditorScene extends Phaser.Scene {
     }
 }
 
-export function PhaserCanvas() {
+export function PhaserCanvas({ assets, selected_asset }: Props) {
     const ref = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<EditorScene | null>(null);
     const [currentEditorMode, setEditorMode] = useState<EditorMode>(() => new CameraMode());
-
     useEffect(() => {
         if (!ref.current) return;
-
-        
 
         const config: Phaser.Types.Core.GameConfig = {
             type: Phaser.AUTO,
@@ -125,10 +176,13 @@ export function PhaserCanvas() {
         <div className="flex-1 p-2">
             <div className="border border-white px-2 py-1 mb-2 w-fit d-flex justify-content-left">
                 <div className="editor-item px-1">Camera</div>
-                <div className="border border-white mx-1">
-                    <button>그리기</button>
-                    <button>지우기</button>
-                </div>
+                { currentEditorMode instanceof TilingMode &&
+                    <div className="border border-white mx-1">
+                        <button>그리기</button>
+                        <button>지우기</button>
+                    </div>
+                }
+                
             </div>
 
             <div ref={ref} />
