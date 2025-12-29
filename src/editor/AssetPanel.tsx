@@ -1,32 +1,28 @@
-export function AssetPanel() {
-    const onDragStart = (e: React.DragEvent) => {
-        e.dataTransfer.setData(
-            "application/editor-entity",
-            JSON.stringify({
-                type: "Box",
-                preview: "/src/assets/placeholder.png",
-            })
-        );
-    };
+import { useState } from "react";
+import type { Asset } from "./types/Asset"
+type Props = {
+  onChangeValue: (selectedAsset: Asset) => void;
+  assets: Asset[];
+};
 
-    return (
-        <div className="asset-panel">
-            <div className="asset-panel-header">Assets</div>
+export function AssetPanel({ onChangeValue, assets }: Props) {
+  const [currentTag, setCurrentTag] = useState<string>("Tile");
 
-            <div className="asset-panel-content">
-                <div
-                    className="asset-item"
-                    draggable
-                    onDragStart={onDragStart}
-                >
-                    <img
-                        src="/src/assets/placeholder.png"
-                        alt="Box"
-                        width={48}
-                        height={48}
-                    />
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <>
+      <div className="editor-assets-tabs">
+        <span onClick={() => setCurrentTag("Tile")}>Tile</span>
+        <span onClick={() => setCurrentTag("Character")}>Character</span>
+      </div>
+      <div className="editor-assets-grid">
+        {Object.values(assets)
+          .filter(asset => asset.tag == currentTag)
+          .map(asset => (
+            <img src={asset.url} key={asset.id} className="asset-item" onClick={ () => {
+              onChangeValue(asset)
+            } } />
+          ))}
+      </div>
+    </>
+  );
 }

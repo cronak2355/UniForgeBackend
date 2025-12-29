@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
-import type { EditorEntity } from "./EditorLayout";
 import {EditorMode, CameraMode, TilingMode} from "./editorMode/editorModes"
-import type { Asset } from "../data/Asset"
+import type { Asset } from "./types/Asset"
+import type { EditorEntity } from "./types/Entity";
 
+1
 let gridGfx: Phaser.GameObjects.Graphics;
 type Props = {
     assets:Asset[];
@@ -92,8 +93,6 @@ function redrawGrid(scene: Phaser.Scene) {
     gridGfx.strokePath();
   }
 }
-import type { EditorEntity } from "./EditorState";
-
 
 
 class EditorScene extends Phaser.Scene {

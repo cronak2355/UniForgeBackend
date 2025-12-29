@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import Phaser from "phaser";
 import { EditorScene } from "./EditorScene";
-import type { EditorEntity } from "./EditorState";
+import type { EditorEntity } from "./types/Entity";
 
 type Props = {
     entities: EditorEntity[];
     onCreateEntity: (e: EditorEntity) => void;
-    onMoveEntity: (id: string, x: number, y: number) => void;
+        onMoveEntity: (id: string, x: number, y: number) => void;
 };
 
 export function CameraView({ entities, onCreateEntity, onMoveEntity }: Props) {
@@ -39,6 +39,7 @@ export function CameraView({ entities, onCreateEntity, onMoveEntity }: Props) {
         });
 
         resizeObserver.observe(containerRef.current);
+
 
         return () => {
             resizeObserver.disconnect();
@@ -78,9 +79,10 @@ export function CameraView({ entities, onCreateEntity, onMoveEntity }: Props) {
                     id: crypto.randomUUID(),
                     type: asset.type,
                     name: asset.type,
-                    preview: asset.preview,
                     x: e.clientX - rect.left,
                     y: e.clientY - rect.top,
+                    variables: [],
+                    events: []
                 });
             }}
         >

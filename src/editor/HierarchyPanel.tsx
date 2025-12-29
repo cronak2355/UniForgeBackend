@@ -1,9 +1,9 @@
-import type { EditorEntity } from "./EditorState";
+import type { EditorEntity } from "./types/Entity";
 
 type Props = {
     entities: EditorEntity[];
     selectedId: string | null;
-    onSelect: (id: string) => void;
+    onSelect: (entity: EditorEntity) => void;
 };
 
 export function HierarchyPanel({
@@ -20,7 +20,7 @@ export function HierarchyPanel({
                         "hierarchy-item" +
                         (e.id === selectedId ? " selected" : "")
                     }
-                    onClick={() => onSelect(e.id)}
+                    onClick={() => onSelect(e)}
                 >
                     {e.name}
                 </div>

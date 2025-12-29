@@ -1,11 +1,4 @@
-export type EditorEntity = {
-    id: string;
-    type: string;
-    name: string;
-    preview: string;
-    x: number;
-    y: number;
-};
+import type { EditorEntity } from "./types/Entity";
 
 export type SceneState = {
     entities: EditorEntity[];

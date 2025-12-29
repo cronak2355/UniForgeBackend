@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { EditorEntity } from "./EditorState";
+import type { EditorEntity } from "./types/Entity";
 
 export class EditorScene extends Phaser.Scene {
     private sprites = new Map<string, Phaser.GameObjects.Image>();
