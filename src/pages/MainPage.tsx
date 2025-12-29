@@ -348,18 +348,18 @@ const MainPage = () => {
                         gridColumn: '1 / -1',
                         padding: '60px 40px',
                         textAlign: 'center',
-                        backgroundColor: '#0a0a0a',
-                        border: '1px dashed #333',
+                        backgroundColor: '#161616',
+                        border: '1px dashed #444',
                         borderRadius: '4px'
                     }}>
                         <h3 style={{
-                            color: '#888',
+                            color: '#aaa',
                             fontSize: '1.1rem',
                             fontWeight: 500,
                             marginBottom: '8px'
                         }}>아직 프로젝트가 없습니다</h3>
                         <p style={{
-                            color: '#555',
+                            color: '#888',
                             fontSize: '0.9rem'
                         }}>상단의 '에디터'를 통해 새로운 게임을 만들어보세요!</p>
                     </div>
