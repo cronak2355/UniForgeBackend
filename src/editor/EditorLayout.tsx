@@ -1,21 +1,18 @@
 import React, { useRef, useState } from "react";
 import { PhaserCanvas } from "./PhaserCanvas";
 import { HierarchyPanel } from "./HierarchyPanel";
-import { InspectorPanel } from "./InspectorPanel";
+import { InspectorPanel } from "./inspector/InspectorPanel";
 import { AssetPanel } from "./AssetPanel";
-
-
-export type EditorEntity = {
-    id: string;
-    name: string;
-    x: number;
-    y: number;
-};
-
+import type { EditorEntity } from "./types/Entity";
 
 export default function EditorLayout() {
     const [entities, setEntities] = useState<EditorEntity[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const handleUpdateEntity = (updated: EditorEntity) => {
+        setEntities(prev =>
+            prev.map(e => (e.id === updated.id ? updated : e))
+        );
+    };
 
 
     return (
@@ -41,6 +38,7 @@ export default function EditorLayout() {
 
                 <InspectorPanel
                     entity={entities.find(e => e.id === selectedId) ?? null}
+                    onUpdateEntity={handleUpdateEntity}
                 />
             </div>
 
