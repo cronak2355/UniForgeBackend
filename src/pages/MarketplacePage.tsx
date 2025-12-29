@@ -157,7 +157,7 @@ const MarketplacePage = () => {
                                 border: '1px solid #333',
                                 borderRadius: '8px',
                                 minWidth: '200px',
-                                accessToken: '0 8px 24px rgba(0,0,0,0.5)',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                                 zIndex: 1000,
                                 overflow: 'hidden'
                             }}>
