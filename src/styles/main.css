@@ -890,6 +890,158 @@ footer {
     transform: translate(-50%, -50%);
 }
 
+/* Action Cards (New Modern Design) */
+.action-cards-container {
+    display: flex;
+    gap: 20px;
+    position: absolute;
+    bottom: -70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: max-content;
+}
+
+.action-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, #0a0a0a 0%, #111 100%);
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 20px 24px;
+    min-width: 280px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.action-card:hover::before {
+    opacity: 1;
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    border-color: #3b82f6;
+    box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6);
+    background: linear-gradient(135deg, #0f0f12 0%, #161620 100%);
+}
+
+.action-card.primary {
+    background: linear-gradient(135deg, #0a0a0a 0%, #111 100%);
+    border: 1px solid #2a2a2a;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.action-card.primary::before {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+}
+
+.action-card.primary:hover {
+    transform: translateY(-4px);
+    border-color: #3b82f6;
+    box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15), 0 8px 32px rgba(0, 0, 0, 0.6);
+    background: linear-gradient(135deg, #0f0f12 0%, #161620 100%);
+}
+
+.action-card.primary:hover::before {
+    opacity: 1;
+}
+
+.action-card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
+    border-radius: 12px;
+    font-size: 1.3rem;
+    color: #3b82f6;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    border: 1px solid #333;
+}
+
+.action-card:hover .action-card-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-color: #3b82f6;
+    transform: scale(1.05);
+}
+
+.action-card.primary .action-card-icon {
+    background: linear-gradient(135deg, #1e3a5f 0%, #234876 100%);
+    border-color: #3b82f6;
+}
+
+.action-card.primary:hover .action-card-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.action-card-content {
+    flex: 1;
+}
+
+.action-card-content h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+
+.action-card-content p {
+    font-size: 0.85rem;
+    color: #888;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.action-card:hover .action-card-content p {
+    color: #aaa;
+}
+
+.action-card.primary .action-card-content p {
+    color: #7aa2d6;
+}
+
+.action-card-arrow {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-card-arrow {
+    color: #3b82f6;
+    transform: translateX(4px);
+}
+
+.action-card.primary .action-card-arrow {
+    color: #3b82f6;
+}
+
 /* Old Navigation Cards (kept for reference) */
 .nav-cards-container {
     display: flex;

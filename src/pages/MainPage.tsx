@@ -263,20 +263,43 @@ const MainPage = () => {
                 </h1>
                 <p className="hero-subtitle">빈 캔버스에서 시작하거나, 수백 개의 템플릿을 활용해보세요.</p>
 
-                <div className="triangle-nav-container">
-                    <div className="triangle-nav-item left" onClick={() => navigate('/marketplace')}>
-                        <div className="triangle-nav-content">
-                            <span>구경하기</span>
+                <div className="action-cards-container">
+                    <div className="action-card" onClick={() => navigate('/marketplace')}>
+                        <div className="action-card-icon">
+                            <i className="fa-solid fa-compass"></i>
+                        </div>
+                        <div className="action-card-content">
+                            <h3>구경하기</h3>
+                            <p>다른 크리에이터들의 게임을 플레이해보세요</p>
+                        </div>
+                        <div className="action-card-arrow">
+                            <i className="fa-solid fa-arrow-right"></i>
                         </div>
                     </div>
-                    <div className="triangle-nav-item center" onClick={() => { }}>
-                        <div className="triangle-nav-content">
-                            <span>에디터</span>
+
+                    <div className="action-card primary" onClick={() => { }}>
+                        <div className="action-card-icon">
+                            <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div className="action-card-content">
+                            <h3>에디터</h3>
+                            <p>지금 바로 나만의 게임을 만들어보세요</p>
+                        </div>
+                        <div className="action-card-arrow">
+                            <i className="fa-solid fa-arrow-right"></i>
                         </div>
                     </div>
-                    <div className="triangle-nav-item right" onClick={() => navigate('/assets')}>
-                        <div className="triangle-nav-content">
-                            <span>에셋 스토어</span>
+
+                    <div className="action-card" onClick={() => navigate('/assets')}>
+                        <div className="action-card-icon">
+                            <i className="fa-solid fa-puzzle-piece"></i>
+                        </div>
+                        <div className="action-card-content">
+                            <h3>에셋 스토어</h3>
+                            <p>고퀄리티 에셋으로 게임을 빠르게 완성하세요</p>
+                        </div>
+                        <div className="action-card-arrow">
+                            <i className="fa-solid fa-arrow-right"></i>
                         </div>
                     </div>
                 </div>

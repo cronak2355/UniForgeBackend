@@ -14,7 +14,7 @@ const INITIAL_FORM_DATA: AuthFormData = {
 
 const AuthPage = () => {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, login, signup } = useAuth();
     const [mode, setMode] = useState<AuthMode>('login');
     const [formData, setFormData] = useState<AuthFormData>(INITIAL_FORM_DATA);
     const [showPassword, setShowPassword] = useState(false);
@@ -37,20 +37,15 @@ const AuthPage = () => {
 
         try {
             if (isLoginMode) {
-                await authService.login({
-                    email: formData.email,
-                    password: formData.password,
-                });
+                // AuthContext의 login 함수 사용 (상태 동기화)
+                await login(formData.email, formData.password);
             } else {
                 // 비밀번호 확인 체크
                 if (formData.password !== formData.confirmPassword) {
                     throw new Error('비밀번호가 일치하지 않습니다');
                 }
-                await authService.signup({
-                    email: formData.email,
-                    password: formData.password,
-                    name: formData.username,
-                });
+                // AuthContext의 signup 함수 사용 (상태 동기화)
+                await signup(formData.email, formData.password, formData.username);
             }
             navigate('/');
         } catch (err) {
@@ -58,7 +53,7 @@ const AuthPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [isLoginMode, formData, navigate]);
+    }, [isLoginMode, formData, navigate, login, signup]);
 
     const toggleMode = useCallback(() => {
         setMode(prev => prev === 'login' ? 'signup' : 'login');
