@@ -7,7 +7,7 @@ const MarketplacePage = () => {
     const navigate = useNavigate();
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const [selectedCategory, setSelectedCategory] = useState("Recommended");
+    const [selectedCategory, setSelectedCategory] = useState("추천");
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -26,30 +26,30 @@ const MarketplacePage = () => {
     };
 
     const CATEGORIES = [
-        { id: "Recommended", icon: "🔥" },
-        { id: "Trending", icon: "📈" },
-        { id: "New Arrivals", icon: "✨" },
+        { id: "추천", icon: "fa-solid fa-fire" },
+        { id: "급상승", icon: "fa-solid fa-chart-line" },
+        { id: "신규", icon: "fa-solid fa-sparkles" },
         { type: "divider" },
-        { id: "Action", icon: "⚔️" },
-        { id: "RPG", icon: "🛡️" },
-        { id: "Strategy", icon: "♟️" },
-        { id: "Puzzle", icon: "🧩" },
+        { id: "액션", icon: "fa-solid fa-khanda" },
+        { id: "RPG", icon: "fa-solid fa-shield-halved" },
+        { id: "전략", icon: "fa-solid fa-chess" },
+        { id: "퍼즐", icon: "fa-solid fa-puzzle-piece" },
         { type: "divider" },
-        { id: "3D Assets", icon: "🧊" },
-        { id: "2D Sprites", icon: "👾" },
-        { id: "Audio", icon: "🎵" },
-        { id: "VFX", icon: "✨" }
+        { id: "3D 에셋", icon: "fa-solid fa-cube" },
+        { id: "2D 스프라이트", icon: "fa-solid fa-image" },
+        { id: "오디오", icon: "fa-solid fa-music" },
+        { id: "VFX", icon: "fa-solid fa-wand-magic-sparkles" }
     ];
 
     const MARKET_ITEMS = [
-        { title: "Neon City Pack", author: "CyberArt", price: "Free", image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=400", rating: 4.8, type: "Asset" },
-        { title: "Fantasy Knight", author: "PixelForge", price: "$15.00", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=400", rating: 4.9, type: "Character" },
-        { title: "Space Shooter Template", author: "GameDevPro", price: "$49.99", image: "https://images.unsplash.com/photo-1614726365723-49cfae96ac6d?auto=format&fit=crop&q=80&w=400", rating: 4.7, type: "Template" },
-        { title: "Ultimate RPG UI", author: "InterfaceMaster", price: "$25.00", image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400", rating: 4.6, type: "UI" },
-        { title: "Forest Ambience", author: "SoundScape", price: "$10.00", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=400", rating: 4.9, type: "Audio" },
-        { title: "Low Poly Vehicles", author: "PolyWorks", price: "$12.00", image: "https://images.unsplash.com/photo-1555620950-c8d030999557?auto=format&fit=crop&q=80&w=400", rating: 4.5, type: "Asset" },
-        { title: "Dungeon Tileset", author: "TileMaster", price: "Free", image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=400", rating: 4.4, type: "Asset" },
-        { title: "Epic Orchestral", author: "ComposerX", price: "$30.00", image: "https://images.unsplash.com/photo-1507838153414-b4b713384ebd?auto=format&fit=crop&q=80&w=400", rating: 5.0, type: "Audio" },
+        { title: "Neon City Pack", author: "CyberArt", price: "무료", image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=400", rating: 4.8, type: "에셋" },
+        { title: "Fantasy Knight", author: "PixelForge", price: "₩15,000", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=400", rating: 4.9, type: "캐릭터" },
+        { title: "Space Shooter Template", author: "GameDevPro", price: "₩49,900", image: "https://images.unsplash.com/photo-1614726365723-49cfae96ac6d?auto=format&fit=crop&q=80&w=400", rating: 4.7, type: "템플릿" },
+        { title: "Ultimate RPG UI", author: "InterfaceMaster", price: "₩25,000", image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400", rating: 4.6, type: "UI" },
+        { title: "Forest Ambience", author: "SoundScape", price: "₩10,000", image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=400", rating: 4.9, type: "오디오" },
+        { title: "Low Poly Vehicles", author: "PolyWorks", price: "₩12,000", image: "https://images.unsplash.com/photo-1555620950-c8d030999557?auto=format&fit=crop&q=80&w=400", rating: 4.5, type: "에셋" },
+        { title: "Dungeon Tileset", author: "TileMaster", price: "무료", image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=400", rating: 4.4, type: "에셋" },
+        { title: "Epic Orchestral", author: "ComposerX", price: "₩30,000", image: "https://images.unsplash.com/photo-1507838153414-b4b713384ebd?auto=format&fit=crop&q=80&w=400", rating: 5.0, type: "오디오" },
     ];
 
     return (
@@ -80,7 +80,7 @@ const MarketplacePage = () => {
                         onClick={() => navigate('/main')}
                     >
                         <span className="gradient-text">Uniforge</span>
-                        <span style={{ fontSize: '0.9rem', color: '#666', marginLeft: '10px', fontWeight: 400 }}>Marketplace</span>
+                        <span style={{ fontSize: '0.9rem', color: '#666', marginLeft: '10px', fontWeight: 400 }}>마켓플레이스</span>
                     </div>
 
                     {/* Search Bar */}
@@ -97,7 +97,7 @@ const MarketplacePage = () => {
                         }}></i>
                         <input
                             type="text"
-                            placeholder="Search assets, games, and creators..."
+                            placeholder="에셋, 게임, 크리에이터 검색..."
                             style={{
                                 width: '100%',
                                 backgroundColor: '#111',
@@ -122,7 +122,7 @@ const MarketplacePage = () => {
                         onMouseEnter={e => e.currentTarget.style.color = 'white'}
                         onMouseLeave={e => e.currentTarget.style.color = '#888'}
                     >
-                        My Library
+                        내 라이브러리
                     </button>
 
                     <div style={{ position: 'relative' }} ref={dropdownRef}>
@@ -165,7 +165,7 @@ const MarketplacePage = () => {
                                     <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{user?.name || 'User'}</div>
                                     <div style={{ fontSize: '0.8rem', color: '#888' }}>{user?.email || 'guest@uniforge.com'}</div>
                                 </div>
-                                <button onClick={handleLogout} style={{ width: '100%', padding: '12px 16px', background: 'transparent', border: 'none', color: '#ef4444', textAlign: 'left', cursor: 'pointer' }}>Log Out</button>
+                                <button onClick={handleLogout} style={{ width: '100%', padding: '12px 16px', background: 'transparent', border: 'none', color: '#ef4444', textAlign: 'left', cursor: 'pointer' }}>로그아웃</button>
                             </div>
                         )}
                     </div>
@@ -220,7 +220,7 @@ const MarketplacePage = () => {
                                         }
                                     }}
                                 >
-                                    <span>{cat.icon}</span>
+                                    <i className={cat.icon} style={{ width: '20px', textAlign: 'center' }}></i>
                                     <span>{cat.id}</span>
                                 </button>
                             )
@@ -258,10 +258,10 @@ const MarketplacePage = () => {
                                 backgroundColor: '#2563eb', color: 'white', padding: '4px 12px',
                                 borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, marginBottom: '1rem',
                                 display: 'inline-block'
-                            }}>FEATURED</span>
+                            }}>추천</span>
                             <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontWeight: 700 }}>Cyberpunk Streets Vol.2</h2>
                             <p style={{ color: '#ccc', maxWidth: '600px', marginBottom: '1.5rem' }}>
-                                Create immersive dystopian cityscapes with over 200 high-fidelity assets. Includes modular buildings, neon signs, and detailed props.
+                                200개 이상의 고퀄리티 에셋으로 몰입감 넘치는 디스토피아 도시를 만들어보세요. 모듈형 건물, 네온 사인, 다양한 소품이 포함되어 있습니다.
                             </p>
                             <div style={{ display: 'flex', gap: '1rem' }}>
                                 <button style={{
@@ -269,14 +269,14 @@ const MarketplacePage = () => {
                                     padding: '12px 24px', borderRadius: '6px', fontWeight: 600,
                                     cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
                                 }}>
-                                    View Details
+                                    상세 보기
                                 </button>
                                 <button style={{
                                     backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)',
                                     padding: '12px 24px', borderRadius: '6px', fontWeight: 600,
                                     backdropFilter: 'blur(5px)', cursor: 'pointer'
                                 }}>
-                                    + Wishlist
+                                    + 찜하기
                                 </button>
                             </div>
                         </div>
@@ -284,11 +284,11 @@ const MarketplacePage = () => {
 
                     {/* Section Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{selectedCategory} Items</h2>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{selectedCategory} 아이템</h2>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                            <button className="sort-btn" style={{ padding: '6px 12px', borderRadius: '4px', background: '#111', border: '1px solid #333', color: '#888', cursor: 'pointer' }}>Popular</button>
-                            <button className="sort-btn" style={{ padding: '6px 12px', borderRadius: '4px', background: 'transparent', border: '1px solid transparent', color: '#666', cursor: 'pointer' }}>Newest</button>
-                            <button className="sort-btn" style={{ padding: '6px 12px', borderRadius: '4px', background: 'transparent', border: '1px solid transparent', color: '#666', cursor: 'pointer' }}>Price</button>
+                            <button className="sort-btn" style={{ padding: '6px 12px', borderRadius: '4px', background: '#111', border: '1px solid #333', color: '#888', cursor: 'pointer' }}>인기순</button>
+                            <button className="sort-btn" style={{ padding: '6px 12px', borderRadius: '4px', background: 'transparent', border: '1px solid transparent', color: '#666', cursor: 'pointer' }}>최신순</button>
+                            <button className="sort-btn" style={{ padding: '6px 12px', borderRadius: '4px', background: 'transparent', border: '1px solid transparent', color: '#666', cursor: 'pointer' }}>가격순</button>
                         </div>
                     </div>
 
