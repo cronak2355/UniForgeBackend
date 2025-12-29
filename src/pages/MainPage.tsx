@@ -81,6 +81,31 @@ const MainPage = () => {
                     </div>
                     <nav style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
+                            onClick={() => navigate('/explore')}
+                            style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#b0b0b0',
+                                fontSize: '1rem',
+                                fontWeight: 500,
+                                cursor: 'pointer',
+                                padding: '10px 16px',
+                                borderRadius: '8px',
+                                transition: 'all 0.2s',
+                                letterSpacing: '0.3px'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.color = '#fff';
+                                e.currentTarget.style.backgroundColor = '#1a1a1a';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.color = '#b0b0b0';
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                            }}
+                        >
+                            둘러보기
+                        </button>
+                        <button
                             onClick={() => navigate('/marketplace')}
                             style={{
                                 background: 'transparent',
@@ -264,7 +289,7 @@ const MainPage = () => {
                 <p className="hero-subtitle">빈 캔버스에서 시작하거나, 수백 개의 템플릿을 활용해보세요.</p>
 
                 <div className="action-cards-container">
-                    <div className="action-card" onClick={() => navigate('/marketplace')}>
+                    <div className="action-card" onClick={() => navigate('/explore')}>
                         <div className="action-card-icon">
                             <i className="fa-solid fa-compass"></i>
                         </div>
@@ -349,7 +374,7 @@ const MainPage = () => {
                             color: '#666',
                             fontSize: '0.9rem',
                             cursor: 'pointer'
-                        }} onClick={() => navigate('/marketplace')}>더보기 &gt;</span>
+                        }} onClick={() => navigate('/explore')}>더보기 &gt;</span>
                     </div>
                 </div>
 
