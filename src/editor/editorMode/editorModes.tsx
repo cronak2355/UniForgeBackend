@@ -5,21 +5,14 @@ import type { EditorEntity } from "../types/Entity";
 //가장 에디터 모드의 가장 틀이 되는 얘
 //모든 에디터 모드를 새로 만들 때는 얘를 상속받아서 만들어야 함.
 export abstract class EditorMode {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    enter(scene: Phaser.Scene) { }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    exit(scene: Phaser.Scene) { }
+    enter(scene: Phaser.Scene) { void scene; }
+    exit(scene: Phaser.Scene) { void scene; }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onPointerDown(scene: Phaser.Scene, p: Phaser.Input.Pointer) { }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onPointerMove(scene: Phaser.Scene, p: Phaser.Input.Pointer) { }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onPointerUp(scene: Phaser.Scene, p: Phaser.Input.Pointer) { }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    onScroll(scene: Phaser.Scene, deltaY: number) { }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    update(scene: Phaser.Scene, dt: number) { }
+    onPointerDown(scene: Phaser.Scene, p: Phaser.Input.Pointer) { void scene; void p; }
+    onPointerMove(scene: Phaser.Scene, p: Phaser.Input.Pointer) { void scene; void p; }
+    onPointerUp(scene: Phaser.Scene, p: Phaser.Input.Pointer) { void scene; void p; }
+    onScroll(scene: Phaser.Scene, deltaY: number) { void scene; void deltaY; }
+    update(scene: Phaser.Scene, dt: number) { void scene; void dt; }
 }
 //기본 에디터 모드
 //드래그를 했을 때, 씬 뷰가 움직이도록만 하는 모드임
