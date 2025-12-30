@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState } from "react";
 import Phaser from "phaser";
 import { EditorMode, CameraMode, TilingMode, DragDropMode } from "./editorMode/editorModes"
