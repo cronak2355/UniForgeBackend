@@ -5,14 +5,14 @@ import type { EditorEntity } from "../types/Entity";
 //가장 에디터 모드의 가장 틀이 되는 얘
 //모든 에디터 모드를 새로 만들 때는 얘를 상속받아서 만들어야 함.
 export abstract class EditorMode {
-    enter(_scene: Phaser.Scene) { }
-    exit(_scene: Phaser.Scene) { }
+    enter(_: Phaser.Scene) { }
+    exit(_: Phaser.Scene) { }
 
-    onPointerDown(_scene: Phaser.Scene, _p: Phaser.Input.Pointer) { }
-    onPointerMove(_scene: Phaser.Scene, _p: Phaser.Input.Pointer) { }
-    onPointerUp(_scene: Phaser.Scene, _p: Phaser.Input.Pointer) { }
-    onScroll(_scene: Phaser.Scene, _deltaY: number) { }
-    update(_scene: Phaser.Scene, _dt: number) { }
+    onPointerDown(_: Phaser.Scene, __: Phaser.Input.Pointer) { }
+    onPointerMove(_: Phaser.Scene, __: Phaser.Input.Pointer) { }
+    onPointerUp(_: Phaser.Scene, __: Phaser.Input.Pointer) { }
+    onScroll(_: Phaser.Scene, __: number) { }
+    update(_: Phaser.Scene, __: number) { }
 }
 //기본 에디터 모드
 //드래그를 했을 때, 씬 뷰가 움직이도록만 하는 모드임
