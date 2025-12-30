@@ -5,14 +5,14 @@ import type { EditorEntity } from "../types/Entity";
 //가장 에디터 모드의 가장 틀이 되는 얘
 //모든 에디터 모드를 새로 만들 때는 얘를 상속받아서 만들어야 함.
 export abstract class EditorMode {
-    enter() { }
-    exit() { }
+    enter(..._args: any[]) { }
+    exit(..._args: any[]) { }
 
-    onPointerDown() { }
-    onPointerMove() { }
-    onPointerUp() { }
-    onScroll() { }
-    update() { }
+    onPointerDown(..._args: any[]) { }
+    onPointerMove(..._args: any[]) { }
+    onPointerUp(..._args: any[]) { }
+    onScroll(..._args: any[]) { }
+    update(..._args: any[]) { }
 }
 //기본 에디터 모드
 //드래그를 했을 때, 씬 뷰가 움직이도록만 하는 모드임
