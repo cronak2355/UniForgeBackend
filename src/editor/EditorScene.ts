@@ -55,12 +55,13 @@ export class EditorScene extends Phaser.Scene {
    * 에셋 UI 만들고 나서 이 함수 호출해줘.
    */
   registerAssetUI(obj: Phaser.GameObjects.GameObject, assetId: string) {
-    (obj as any).setInteractive?.({ useHandCursor: true });
-    (obj as any).setScrollFactor?.(0);
-    (obj as any).setDepth?.(10000);
+    const sprite = obj as Phaser.GameObjects.Sprite;
+    sprite.setInteractive({ useHandCursor: true });
+    sprite.setScrollFactor(0);
+    sprite.setDepth(10000);
 
-    (obj as any).setData?.("uiType", "asset");
-    (obj as any).setData?.("assetId", assetId);
+    sprite.setData("uiType", "asset");
+    sprite.setData("assetId", assetId);
 
     this.assetGroup.add(obj);
   }

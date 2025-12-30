@@ -18,7 +18,7 @@ const MainPage = () => {
             setTitleWord(titleWords[index]);
         }, 2500);
         return () => clearInterval(interval);
-    }, []);
+    }, [titleWords]);
 
     // 더미 데이터: 인기 게임
     const POPULAR_GAMES = [

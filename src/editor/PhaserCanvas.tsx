@@ -14,54 +14,6 @@ type Props = {
     onSelectEntity?: (entity: EditorEntity) => void;
 };
 
-function loadImages(scene: Phaser.Scene, assets: Asset[]) {
-    return new Promise<void>((resolve, reject) => {
-        let pending = 0;
-
-        const onFileComplete = (key: string) => {
-            pending--;
-            if (pending === 0) {
-                cleanup();
-                resolve();
-            }
-        };
-
-        const onError = () => {
-            cleanup();
-            reject(new Error("asset load error"));
-        };
-
-        const cleanup = () => {
-            scene.load.off(Phaser.Loader.Events.FILE_COMPLETE, onFileComplete);
-            scene.load.off(Phaser.Loader.Events.FILE_LOAD_ERROR, onError);
-        };
-
-        // 이벤트 등록
-        scene.load.on(Phaser.Loader.Events.FILE_COMPLETE, onFileComplete);
-        scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, onError);
-
-        // 큐에 추가
-        for (let i = 0; i < assets.length; i++) {
-            const asset = assets[i];
-
-            // 이미 있으면 스킵
-            if (scene.textures.exists(asset.name)) continue;
-
-            scene.load.image(asset.name, asset.url);
-            pending++;
-        }
-
-        // 로드할 게 없으면 바로 끝
-        if (pending === 0) {
-            cleanup();
-            resolve();
-            return;
-        }
-
-        // 로더 시작
-        scene.load.start();
-    });
-}
 export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }: Props) {
     const ref = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<EditorScene | null>(null);
@@ -153,7 +105,7 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
         return () => {
             game.destroy(true);
         }
-    }, []);
+    }, [addEntity, assets]);
 
     useEffect(() => {
         if (sceneRef.current == null)
@@ -173,7 +125,7 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
             sceneRef.current?.setEditorMode(tm);
             setEditorMode(tm);
         }
-    }, [selected_asset])
+    }, [selected_asset, currentEditorMode])
     useEffect(() => {
         if (draggedAsset == null) {
             const cm = new CameraMode()
