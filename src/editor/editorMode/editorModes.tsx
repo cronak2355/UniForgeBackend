@@ -44,7 +44,7 @@ export class CameraMode extends EditorMode {
         this.prevY = worldPoint.y;
         //일단 비워둠    
     }
-    onPointerUp(scene: Phaser.Scene, p: Phaser.Input.Pointer): void {
+    onPointerUp(_scene: Phaser.Scene, _p: Phaser.Input.Pointer): void {
         this.isDrag = false;
         //일단 비워둠 나중에 기능 넣어야 하면 넣기
         this.prevX = 0;
@@ -132,7 +132,7 @@ export class TilingMode extends EditorMode {
                 break;
         }
     }
-    onPointerUp(scene: Phaser.Scene, p: Phaser.Input.Pointer) {
+    onPointerUp(_scene: Phaser.Scene, _p: Phaser.Input.Pointer) {
         this.isDrag = false;
         this.prevX = 0;
         this.prevY = 0;
@@ -150,11 +150,11 @@ export class DragDropMode extends EditorMode {
     private ghost: Phaser.GameObjects.Image | null = null;
 
     // enter/exit/update는 필요없다 했으니 비워둠
-    enter(scene: Phaser.Scene) { }
-    exit(scene: Phaser.Scene) { }
-    update(scene: Phaser.Scene, dt: number) { }
+    enter(_scene: Phaser.Scene) { }
+    exit(_scene: Phaser.Scene) { }
+    update(_scene: Phaser.Scene, _dt: number) { }
 
-    onPointerDown(scene: Phaser.Scene, p: Phaser.Input.Pointer) {
+    onPointerDown(_scene: Phaser.Scene, _p: Phaser.Input.Pointer) {
         // 굳이 할 일 없음. (원하면 여기서 ghost를 미리 만들 수도 있음)
     }
 
@@ -237,9 +237,9 @@ export class EntityEditMode implements EditorMode {
     private offsetY = 0;
 
     private snapToGrid = true;
-    enter(scene: Phaser.Scene): void { }
-    exit(scene: Phaser.Scene): void { }
-    update(scene: Phaser.Scene, dt: number): void { }
+    enter(_scene: Phaser.Scene): void { }
+    exit(_scene: Phaser.Scene): void { }
+    update(_scene: Phaser.Scene, _dt: number): void { }
     onPointerDown(scene: EditorScene, p: Phaser.Input.Pointer): void {
         const world = scene.cameras.main.getWorldPoint(p.x, p.y);
 
