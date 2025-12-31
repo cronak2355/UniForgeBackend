@@ -29,7 +29,7 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
 
     const changeEditorMode = (mode: EditorMode) => {
         setEditorMode(mode);
-        sceneRef.current?.setEditorMode(mode);
+        sceneRef.current!.setEditorMode(mode);
     }
     useEffect(() => {
         if (!ref.current) return;
@@ -114,16 +114,18 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
 
 
         return () => {
+            console.log("ㅇㄻㄴㅇㄹ")
             game.destroy(true);
         }
-    }, [addEntity, assets]);
+    }, []);
 
     useEffect(() => {
         if (sceneRef.current == null)
             return;
         if (selected_asset == null) {
             const cm = new CameraMode()
-            changeEditorMode(cm);
+            setEditorMode(cm);
+            sceneRef.current!.setEditorMode(cm);
         }
         else if (selected_asset?.tag == "Tile") {
             const tm = new TilingMode()
@@ -134,11 +136,14 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
             // ref를 통해 현재 모드 접근 (의존성 루프 방지)
             const tiling = modeRef.current as TilingMode;
             tm.curTilingType = tiling?.curTilingType; // 없을 수도 있으니 옵셔널 체이닝
-            changeEditorMode(tm);
+            setEditorMode(tm);
+            sceneRef.current?.setEditorMode(tm);
         }
     }, [selected_asset]) // currentEditorMode 의존성 제거
 
     useEffect(() => {
+        if (sceneRef.current == null)
+            return;
         if (draggedAsset == null) {
             const cm = new CameraMode()
             changeEditorMode(cm)
@@ -161,8 +166,7 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
                                 tm.tile = selected_asset!.idx;
                                 tm.base = sceneRef.current!.baselayer;
                                 tm.preview = sceneRef.current!.previewlayer;
-                                sceneRef.current?.setEditorMode(tm);
-                                setEditorMode(tm);
+                                changeEditorMode(tm);
                             }}
                         >
                             그리기
@@ -174,9 +178,7 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
                                 tm.tile = selected_asset!.idx;
                                 tm.base = sceneRef.current!.baselayer;
                                 tm.preview = sceneRef.current!.previewlayer;
-
-                                sceneRef.current?.setEditorMode(tm);
-                                setEditorMode(tm);
+                                changeEditorMode(tm);
                             }}>
                             지우기
                         </button>
@@ -188,7 +190,7 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
             <div ref={ref} onMouseLeave={() => {
                 if (!sceneRef.current)
                     return;
-                sceneRef.current.previewlayer.fill(-1)
+                sceneRef.current.previewlayer?.fill(-1)
             }} />
         </div>
     );

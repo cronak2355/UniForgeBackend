@@ -91,6 +91,9 @@ export class TilingMode extends EditorMode
     }
     onPointerMove(scene: Phaser.Scene, p: Phaser.Input.Pointer)
     {
+        const es = scene as EditorScene;
+        if (!es.ready)
+            return;
         const worldPoint = scene.cameras.main.getWorldPoint(p.x, p.y);
         worldPoint.x = worldPoint.x / 32;
         worldPoint.y = worldPoint.y / 32;
