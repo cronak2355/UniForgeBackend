@@ -77,13 +77,25 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
 
                 assets[i].idx = idx;
 
-                const img = new Image();
-                img.src = assets[i].url;
-                await img.decode();
-
                 const x = (idx % cols) * tileSize;
                 const y = Math.floor(idx / cols) * tileSize;
-                ctx.drawImage(img, x, y, tileSize, tileSize);
+
+                if (assets[i].url) {
+                    try {
+                        const img = new Image();
+                        img.src = assets[i].url;
+                        await img.decode();
+                        ctx.drawImage(img, x, y, tileSize, tileSize);
+                    } catch (e) {
+                        console.error(`Failed to load tile image: ${assets[i].name}`, e);
+                        // 실패 시 대체 색상
+                        ctx.fillStyle = '#ff00ff';
+                        ctx.fillRect(x, y, tileSize, tileSize);
+                    }
+                } else if (assets[i].color) {
+                    ctx.fillStyle = assets[i].color || '#ffffff';
+                    ctx.fillRect(x, y, tileSize, tileSize);
+                }
 
                 idx++;
             }
