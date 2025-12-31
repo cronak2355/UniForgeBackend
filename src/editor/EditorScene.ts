@@ -6,7 +6,7 @@ const tileSize = 32;
 
 export class EditorScene extends Phaser.Scene {
 
-  private ready = false;
+  public ready = false;
   private editorMode: EditorMode = new CameraMode();
 
   private map!: Phaser.Tilemaps.Tilemap;
@@ -18,7 +18,6 @@ export class EditorScene extends Phaser.Scene {
 
   public entityGroup!: Phaser.GameObjects.Group;
   public assetGroup!: Phaser.GameObjects.Group;
-
   // (선택) 드랍 완료 후 외부(React)로 알리고 싶으면 이 콜백 사용
   // onEntityMoved?: (id: string, x: number, y: number) => void;
 
@@ -79,6 +78,10 @@ export class EditorScene extends Phaser.Scene {
     this.assetGroup = this.add.group();
 
     const getCanvasPos = (clientX: number, clientY: number) => {
+      console.log("sys?", !!this.sys, "game?", !!this.sys?.game, "canvas?", !!this.sys?.game?.canvas);
+
+      if (!this.sys.game.canvas)
+        return;
       const rect = this.sys.game.canvas.getBoundingClientRect();
 
       const inside =
@@ -152,23 +155,26 @@ export class EditorScene extends Phaser.Scene {
 
       this.baselayer.setDepth(0);
       this.previewlayer.setDepth(1);
-    });
 
-    window.addEventListener("pointerdown", onWinPointerDown, { capture: true });
-    window.addEventListener("pointermove", onWinPointerMove, { capture: true });
-    window.addEventListener("pointerup", onWinPointerUp, { capture: true });
-    window.addEventListener("wheel", onWinWheel, { passive: false });
+      window.addEventListener("pointerdown", onWinPointerDown);
+      window.addEventListener("pointermove", onWinPointerMove, { capture: true });
+      window.addEventListener("pointerup", onWinPointerUp);
+      window.addEventListener("wheel", onWinWheel, { passive: false });
 
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       window.removeEventListener("pointerdown", onWinPointerDown);
       window.removeEventListener("pointermove", onWinPointerMove);
       window.removeEventListener("pointerup", onWinPointerUp);
       window.removeEventListener("wheel", onWinWheel);
+      });
+      this.events.once(Phaser.Scenes.Events.DESTROY, () => {
+      window.removeEventListener("pointerdown", onWinPointerDown);
+      window.removeEventListener("pointermove", onWinPointerMove);
+      window.removeEventListener("pointerup", onWinPointerUp);
+      window.removeEventListener("wheel", onWinWheel);
+      });
+      this.ready = true;
     });
-
-    // ✅ (선택) 테스트용 단축키
-    this.input.keyboard?.on("keydown-C", () => this.setCameraMode());
-    this.input.keyboard?.on("keydown-E", () => this.setEntityEditMode());
   }
 
   // -----------------------
