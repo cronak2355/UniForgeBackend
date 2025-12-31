@@ -12,11 +12,11 @@ export default function EditorLayout() {
     const [entities] = useState<EditorEntity[]>([]);
     const [selectedEntity, setSelectedEntity] = useState<EditorEntity | null>(null);
     const [assets] = useState<Asset[]>([
-        { id: 0, name: "testAsset1", tag: "Tile", url: "TestAsset.webp", idx: -1 },
-        { id: 1, name: "testAsset2", tag: "Tile", url: "TestAsset2.webp", idx: -1 },
-        { id: 2, name: "testAsset3", tag: "Tile", url: "TestAsset3.webp", idx: -1 },
-        { id: 3, name: "placeholder", tag: "Character", url: "placeholder.png", idx: -1 },
-        { id: 4, name: "dragon", tag: "Character", url: "RedDragon.webp", idx: -1 },
+        { id: 0, name: "testAsset1", tag: "Tile", url: "/TestAsset.webp", idx: -1 },
+        { id: 1, name: "testAsset2", tag: "Tile", url: "/TestAsset2.webp", idx: -1 },
+        { id: 2, name: "testAsset3", tag: "Tile", url: "/TestAsset3.webp", idx: -1 },
+        { id: 3, name: "placeholder", tag: "Character", url: "/placeholder.png", idx: -1 },
+        { id: 4, name: "dragon", tag: "Character", url: "/RedDragon.webp", idx: -1 },
     ]);
     const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
