@@ -97,9 +97,13 @@ export class EditorScene extends Phaser.Scene {
     };
 
     const feedPointer = (clientX: number, clientY: number) => {
-      const { x, y, inside } = getCanvasPos(clientX, clientY);
+      const result = getCanvasPos(clientX, clientY);
+      if (!result) {
+        return { p: this.input.activePointer, inside: false };
+      }
+      const { x, y, inside } = result;
 
-      const p = this.input.activePointer as Phaser.Input.Pointer & { x: number; y: number };
+      const p = this.input.activePointer;
       p.x = x;
       p.y = y;
 
@@ -162,16 +166,16 @@ export class EditorScene extends Phaser.Scene {
       window.addEventListener("wheel", onWinWheel, { passive: false });
 
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      window.removeEventListener("pointerdown", onWinPointerDown);
-      window.removeEventListener("pointermove", onWinPointerMove);
-      window.removeEventListener("pointerup", onWinPointerUp);
-      window.removeEventListener("wheel", onWinWheel);
+        window.removeEventListener("pointerdown", onWinPointerDown);
+        window.removeEventListener("pointermove", onWinPointerMove);
+        window.removeEventListener("pointerup", onWinPointerUp);
+        window.removeEventListener("wheel", onWinWheel);
       });
       this.events.once(Phaser.Scenes.Events.DESTROY, () => {
-      window.removeEventListener("pointerdown", onWinPointerDown);
-      window.removeEventListener("pointermove", onWinPointerMove);
-      window.removeEventListener("pointerup", onWinPointerUp);
-      window.removeEventListener("wheel", onWinWheel);
+        window.removeEventListener("pointerdown", onWinPointerDown);
+        window.removeEventListener("pointermove", onWinPointerMove);
+        window.removeEventListener("pointerup", onWinPointerUp);
+        window.removeEventListener("wheel", onWinWheel);
       });
       this.ready = true;
     });
@@ -270,8 +274,7 @@ export class EditorScene extends Phaser.Scene {
     ent.setInteractive({ useHandCursor: true });
 
     // id / assetId 저장
-    const cryptoWithUUID = crypto as Crypto & { randomUUID?: () => string };
-    ent.setData("id", cryptoWithUUID.randomUUID ? cryptoWithUUID.randomUUID() : `${Date.now()}_${Math.random()}`);
+    ent.setData("id", crypto.randomUUID());
     ent.setData("assetId", assetId);
 
     this.entityGroup.add(ent);

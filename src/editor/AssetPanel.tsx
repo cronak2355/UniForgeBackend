@@ -1,6 +1,18 @@
 import { useState } from "react";
 import type { Asset } from "./types/Asset";
 
+// Entry Style Colors
+const colors = {
+  bgPrimary: '#0d1117',
+  bgSecondary: '#161b22',
+  bgTertiary: '#21262d',
+  borderColor: '#30363d',
+  borderAccent: '#1f6feb',
+  accentLight: '#58a6ff',
+  textPrimary: '#f0f6fc',
+  textSecondary: '#8b949e',
+};
+
 type Props = {
   changeSelectedAsset: (selectedAsset: Asset | null) => void;
   assets: Asset[];
@@ -9,64 +21,118 @@ type Props = {
 
 export function AssetPanel({ changeSelectedAsset, assets, changeDraggAsset }: Props) {
   const [currentTag, setCurrentTag] = useState<string>("Tile");
+
   const onGlobalPointerUp = () => {
     changeDraggAsset(null);
-    window.removeEventListener("pointerup", onGlobalPointerUp)
-  }
+    window.removeEventListener("pointerup", onGlobalPointerUp);
+  };
+
+  const tabs = ["Tile", "Character"];
+
   return (
-    <>
-      <div className="editor-assets-tabs">
-        <span onClick={() => setCurrentTag("Tile")}>Tile</span>
-        <span onClick={() => setCurrentTag("Character")}>Character</span>
+    <div style={{ background: colors.bgSecondary }}>
+      {/* Tabs */}
+      <div style={{
+        display: 'flex',
+        borderBottom: `1px solid ${colors.borderColor}`,
+      }}>
+        {tabs.map((tab) => (
+          <div
+            key={tab}
+            onClick={() => setCurrentTag(tab)}
+            style={{
+              padding: '10px 20px',
+              fontSize: '12px',
+              fontWeight: 500,
+              color: currentTag === tab ? colors.accentLight : colors.textSecondary,
+              background: currentTag === tab ? colors.bgPrimary : 'transparent',
+              borderBottom: currentTag === tab ? `2px solid ${colors.borderAccent}` : '2px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={(e) => {
+              if (currentTag !== tab) {
+                e.currentTarget.style.color = colors.textPrimary;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentTag !== tab) {
+                e.currentTarget.style.color = colors.textSecondary;
+              }
+            }}
+          >
+            {tab}
+          </div>
+        ))}
       </div>
 
+      {/* Asset Grid */}
       <div
-        className="editor-assets-grid"
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '16px',
+          background: colors.bgPrimary,
+          minHeight: '100px',
+          maxHeight: '140px',
+          overflowY: 'auto',
+        }}
         onClick={(e) => {
-          // 👉 진짜 배경 클릭일 때만
-          if (e.target !== e.currentTarget) return;
-
-          changeSelectedAsset(null);
+          if (e.target === e.currentTarget) {
+            changeSelectedAsset(null);
+          }
         }}
       >
         {assets
-          .filter(asset => asset.tag === currentTag)
-          .map(asset => (
-            <img
+          .filter((asset) => asset.tag === currentTag)
+          .map((asset) => (
+            <div
               key={asset.id}
-              src={asset.url}
-              className="asset-item"
-              draggable={false}
+              style={{
+                width: '56px',
+                height: '56px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: colors.bgSecondary,
+                border: `2px solid ${colors.borderColor}`,
+                borderRadius: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = colors.borderAccent;
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = colors.borderColor;
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
               onPointerDown={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-
-                // 포인터를 이 img가 "캡처"해서 이후 up/move를 계속 받게 함
-                // (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-
                 if (asset.tag === "Tile") return;
                 window.addEventListener("pointerup", onGlobalPointerUp);
                 changeDraggAsset(asset);
               }}
-
-              onPointerUp={() => {
-                console.log("pointer up");
-
-
-                // 선택사항: 명시적으로 해제
-                //try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-              }}
-
-              onPointerCancel={() => {
-                // OS 제스처/창밖/모바일 등으로 캔슬될 때도 안전하게 종료
-                changeDraggAsset(null);
-              }}
-              onClick={() => {
-                changeSelectedAsset(asset);
-              }}
-            />
+              onPointerUp={() => console.log("pointer up")}
+              onPointerCancel={() => changeDraggAsset(null)}
+              onClick={() => changeSelectedAsset(asset)}
+            >
+              <img
+                src={asset.url}
+                alt={asset.name}
+                draggable={false}
+                style={{
+                  maxWidth: '44px',
+                  maxHeight: '44px',
+                  objectFit: 'contain',
+                }}
+              />
+            </div>
           ))}
       </div>
-    </>
+    </div>
   );
 }

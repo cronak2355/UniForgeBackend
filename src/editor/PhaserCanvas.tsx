@@ -153,45 +153,114 @@ export function PhaserCanvas({ assets, selected_asset, addEntity, draggedAsset }
         mode.asset = draggedAsset;
         changeEditorMode(mode);
     }, [draggedAsset])
+    // Entry Style Colors
+    const colors = {
+        bgPrimary: '#0d1117',
+        bgSecondary: '#161b22',
+        bgTertiary: '#21262d',
+        borderColor: '#30363d',
+        borderAccent: '#1f6feb',
+        accentLight: '#58a6ff',
+        textPrimary: '#f0f6fc',
+        textSecondary: '#8b949e',
+    };
+
     return (
-        <div className="flex-1 p-2">
-            <div className="border border-white px-2 py-1 mb-2 w-fit d-flex justify-content-left">
-                <div className="editor-item px-1">Camera</div>
-                {currentEditorMode instanceof TilingMode &&
-                    <div className="border border-white mx-1">
+        <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '12px',
+            overflow: 'hidden',
+        }}>
+            {/* Toolbar */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '12px',
+                padding: '8px 12px',
+                background: colors.bgSecondary,
+                border: `2px solid ${colors.borderColor}`,
+                borderRadius: '6px',
+            }}>
+                <span style={{
+                    fontSize: '12px',
+                    color: colors.textSecondary,
+                    padding: '4px 8px',
+                }}>
+                    Camera
+                </span>
+
+                {currentEditorMode instanceof TilingMode && (
+                    <div style={{
+                        display: 'flex',
+                        gap: '4px',
+                        marginLeft: '8px',
+                        paddingLeft: '8px',
+                        borderLeft: `1px solid ${colors.borderColor}`,
+                    }}>
                         <button
                             onClick={() => {
-                                const tm = new TilingMode()
-                                tm.curTilingType = currentEditorMode.curTilingType == "drawing" ? "" : "drawing"
+                                const tm = new TilingMode();
+                                tm.curTilingType = currentEditorMode.curTilingType === "drawing" ? "" : "drawing";
                                 tm.tile = selected_asset!.idx;
                                 tm.base = sceneRef.current!.baselayer;
                                 tm.preview = sceneRef.current!.previewlayer;
                                 changeEditorMode(tm);
+                            }}
+                            style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                background: currentEditorMode.curTilingType === "drawing" ? colors.borderAccent : colors.bgTertiary,
+                                border: `1px solid ${colors.borderColor}`,
+                                borderRadius: '4px',
+                                color: colors.textPrimary,
+                                cursor: 'pointer',
                             }}
                         >
                             그리기
                         </button>
                         <button
                             onClick={() => {
-                                const tm = new TilingMode()
-                                tm.curTilingType = currentEditorMode.curTilingType == "erase" ? "" : "erase"
+                                const tm = new TilingMode();
+                                tm.curTilingType = currentEditorMode.curTilingType === "erase" ? "" : "erase";
                                 tm.tile = selected_asset!.idx;
                                 tm.base = sceneRef.current!.baselayer;
                                 tm.preview = sceneRef.current!.previewlayer;
                                 changeEditorMode(tm);
-                            }}>
+                            }}
+                            style={{
+                                padding: '6px 12px',
+                                fontSize: '12px',
+                                background: currentEditorMode.curTilingType === "erase" ? '#da3633' : colors.bgTertiary,
+                                border: `1px solid ${colors.borderColor}`,
+                                borderRadius: '4px',
+                                color: colors.textPrimary,
+                                cursor: 'pointer',
+                            }}
+                        >
                             지우기
                         </button>
                     </div>
-                }
-
+                )}
             </div>
 
-            <div ref={ref} onMouseLeave={() => {
-                if (!sceneRef.current)
-                    return;
-                sceneRef.current.previewlayer?.fill(-1)
-            }} />
+            {/* Phaser Canvas Container */}
+            <div
+                ref={ref}
+                style={{
+                    flex: 1,
+                    background: colors.bgPrimary,
+                    border: `2px solid ${colors.borderColor}`,
+                    borderRadius: '6px',
+                    overflow: 'hidden',
+                }}
+                onMouseLeave={() => {
+                    if (!sceneRef.current) return;
+                    sceneRef.current.previewlayer?.fill(-1);
+                }}
+            />
         </div>
     );
 }
