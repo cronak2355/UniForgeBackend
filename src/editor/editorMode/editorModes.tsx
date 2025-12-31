@@ -1,10 +1,11 @@
-import type { Asset } from "../types/Asset";
+﻿import type { Asset } from "../types/Asset";
 //import { assetToEntity } from "../utils/assetToEntity"
 import { EditorScene } from "../EditorScene";
 import type { EditorEntity } from "../types/Entity";
+import { Scene } from "phaser";
 
-//가장 에디터 모드의 가장 틀이 되는 얘
-//모든 에디터 모드를 새로 만들 때는 얘를 상속받아서 만들어야 함.
+//媛???먮뵒??紐⑤뱶??媛??????섎뒗 ??
+//紐⑤뱺 ?먮뵒??紐⑤뱶瑜??덈줈 留뚮뱾 ?뚮뒗 ?섎? ?곸냽諛쏆븘??留뚮뱾?댁빞 ??
 export abstract class EditorMode {
     enter(_scene: Phaser.Scene) { }
     exit(_scene: Phaser.Scene) { }
@@ -15,9 +16,9 @@ export abstract class EditorMode {
     onScroll(_scene: Phaser.Scene, _deltaY: number) { }
     update(_scene: Phaser.Scene, _dt: number) { }
 }
-//기본 에디터 모드
-//드래그를 했을 때, 씬 뷰가 움직이도록만 하는 모드임
-//우선 가장 기본적인것만 추가했음 나중에 추가해야하면 알아서 추가 하도록
+//湲곕낯 ?먮뵒??紐⑤뱶
+//?쒕옒洹몃? ?덉쓣 ?? ??酉곌? ?吏곸씠?꾨줉留??섎뒗 紐⑤뱶??
+//?곗꽑 媛??湲곕낯?곸씤寃껊쭔 異붽??덉쓬 ?섏쨷??異붽??댁빞?섎㈃ ?뚯븘??異붽? ?섎룄濡?
 export class CameraMode extends EditorMode {
     private isDrag: boolean = false;
     private prevX: number = 0;
@@ -43,11 +44,11 @@ export class CameraMode extends EditorMode {
 
         this.prevX = worldPoint.x;
         this.prevY = worldPoint.y;
-        //일단 비워둠    
+        //?쇰떒 鍮꾩썙??   
     }
     onPointerUp(_scene: Phaser.Scene, _p: Phaser.Input.Pointer): void {
         this.isDrag = false;
-        //일단 비워둠 나중에 기능 넣어야 하면 넣기
+        //?쇰떒 鍮꾩썙???섏쨷??湲곕뒫 ?ｌ뼱???섎㈃ ?ｊ린
         this.prevX = 0;
         this.prevY = 0;
     }
@@ -112,13 +113,13 @@ export class TilingMode extends EditorMode {
                 }
                 else {
                     if (!Number.isInteger(this.lastX) && !Number.isInteger(this.lastY)) {
-                        //초기값 설정해주기
+                        //珥덇린媛??ㅼ젙?댁＜湲?
                         this.lastX = Math.floor(worldPoint.x)
                         this.lastY = Math.floor(worldPoint.y)
                         this.preview.putTileAt(this.tile, this.lastX, this.lastY);
                         return;
                     }
-                    //마지막 좌표와 달라졌을 때, 원래 있던 타일을 없애고, 타일을 새로 만듦.
+                    //留덉?留?醫뚰몴? ?щ씪議뚯쓣 ?? ?먮옒 ?덈뜕 ??쇱쓣 ?놁븷怨? ??쇱쓣 ?덈줈 留뚮벀.
                     if (this.lastX != worldPoint.x || this.lastY != worldPoint.y) {
                         this.lastX = Math.floor(worldPoint.x)
                         this.lastY = Math.floor(worldPoint.y)
@@ -150,17 +151,17 @@ export class TilingMode extends EditorMode {
 }
 
 export class DragDropMode extends EditorMode {
-    public asset: Asset | null = null; // ✅ 외부에서 현재 드래그 에셋 주입
+    public asset: Asset | null = null; // ???몃??먯꽌 ?꾩옱 ?쒕옒洹??먯뀑 二쇱엯
 
     private ghost: Phaser.GameObjects.Image | null = null;
 
-    // enter/exit/update는 필요없다 했으니 비워둠
+    // enter/exit/update???꾩슂?녿떎 ?덉쑝??鍮꾩썙??
     enter(_scene: Phaser.Scene) { }
     exit(_scene: Phaser.Scene) { }
     update(_scene: Phaser.Scene, _dt: number) { }
 
     onPointerDown(_scene: Phaser.Scene, _p: Phaser.Input.Pointer) {
-        // 굳이 할 일 없음. (원하면 여기서 ghost를 미리 만들 수도 있음)
+        // 援녹씠 ?????놁쓬. (?먰븯硫??ш린??ghost瑜?誘몃━ 留뚮뱾 ?섎룄 ?덉쓬)
     }
 
     onPointerMove(scene: Phaser.Scene, p: Phaser.Input.Pointer) {
@@ -171,14 +172,14 @@ export class DragDropMode extends EditorMode {
 
         const wp = scene.cameras.main.getWorldPoint(p.x, p.y);
 
-        // ghost 없으면 생성
+        // ghost ?놁쑝硫??앹꽦
         if (!this.ghost) {
             this.ghost = scene.add.image(wp.x, wp.y, key);
             this.ghost.setAlpha(0.6);
             this.ghost.setDepth(9999);
             this.ghost.setOrigin(0.5, 0.5);
         } else {
-            // 있으면 위치만 갱신
+            // ?덉쑝硫??꾩튂留?媛깆떊
             this.ghost.setPosition(wp.x, wp.y);
         }
     }
@@ -191,46 +192,52 @@ export class DragDropMode extends EditorMode {
 
         const wp = scene.cameras.main.getWorldPoint(p.x, p.y);
 
-        // ✅ 실제 생성
+        // ???ㅼ젣 ?앹꽦
         const created = scene.add.image(wp.x, wp.y, key);
         created.setDepth(10);
         created.setOrigin(0.5, 0.5);
         created.setInteractive();
-        // (선택) EditorScene에 entityGroups 같은 컨테이너가 있으면 거기에 넣기
+        // (?좏깮) EditorScene??entityGroups 媛숈? 而⑦뀒?대꼫媛 ?덉쑝硫?嫄곌린???ｊ린
         const es = scene as EditorScene;
 
+        const entity: EditorEntity = {
+
+            id: crypto.randomUUID(),
+            type: this.asset!.tag,
+            name: this.asset!.name,
+            x: created.x,
+            y: created.y,
+            variables: [],
+            events: [],
+        };
+
+        // Notify React side immediately about the created entity so Hierarchy updates
+        es.onSelectEntity?.(entity);
+
         created.on("pointerdown", () => {
-            console.log("🟢 [DragDropMode] object clicked");
-
-            console.log("asset:", this.asset);
-            const entity: EditorEntity = {
-
-                id: crypto.randomUUID(),
-                type: this.asset!.tag,
-                name: this.asset!.name,
-                x: created.x,
-                y: created.y,
-                variables: [],
-                events: [],
-            };
-
-            es.onSelectEntity?.(entity);
+            // On click, just set selection in core if available (do not re-add)
+            try {
+                (es as any).editorCore?.setSelectedEntity?.(entity);
+            } catch (e) {
+                // ignore
+            }
         });
         if (es.entityGroup) es.entityGroup.add(created);
 
-        // ✅ ghost 제거
         if (this.ghost) {
             this.ghost.destroy();
             this.ghost = null;
         }
-
-        // (선택) 여기서 모드 종료/asset 비우기 하고 싶으면:
-        // this.asset = null;
-        // scene.input.setDefaultCursor('default');
+        // return to camera mode after drop
+        this.asset = null;
+        es.setCameraMode();
+        es.editorCore?.setDraggedAsset(null);
+        // sync core + FSM so React UI switches to CameraMode
+        es.editorCore?.sendContextToEditorModeStateMachine({ currentMode: new CameraMode(), mouse: "mouseup" });
     }
 
     onScroll(_scene: Phaser.Scene, _deltaY: number) {
-        // 드래그 드랍만 할 거면 스크롤 무시
+        // ?쒕옒洹??쒕엻留???嫄곕㈃ ?ㅽ겕濡?臾댁떆
     }
 }
 
@@ -281,14 +288,14 @@ export class EntityEditMode implements EditorMode {
 
         this.dragging = false;
 
-        // ✅ 여기서만 React/상태 갱신 콜백 걸면 좋음(드래그 중엔 X)
+        // ???ш린?쒕쭔 React/?곹깭 媛깆떊 肄쒕갚 嫄몃㈃ 醫뗭쓬(?쒕옒洹?以묒뿏 X)
         // const id = (this.selected as any).getData?.("id");
         // scene.onEntityMoved?.(id, (this.selected as any).x, (this.selected as any).y);
     }
 
     onScroll(_scene: EditorScene, _deltaY: number): void {
-        // 엔티티 모드에서는 스크롤을 막고 싶으면 그냥 return
-        // 카메라 줌도 같이 허용하고 싶으면 여기서 카메라 줌 로직 호출
+        // ?뷀떚??紐⑤뱶?먯꽌???ㅽ겕濡ㅼ쓣 留됯퀬 ?띠쑝硫?洹몃깷 return
+        // 移대찓??以뚮룄 媛숈씠 ?덉슜?섍퀬 ?띠쑝硫??ш린??移대찓??以?濡쒖쭅 ?몄텧
     }
 
     // --------- util ---------
@@ -351,3 +358,4 @@ export class EntityEditMode implements EditorMode {
         return { x: sx, y: sy };
     }
 }
+

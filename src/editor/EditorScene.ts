@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { EditorMode, CameraMode, EntityEditMode } from "./editorMode/editorModes";
 import type { EditorEntity } from "./types/Entity";
+import type { EditorState, EditorContext } from "./EditorCore";
 
 const tileSize = 32;
 
@@ -8,6 +9,8 @@ export class EditorScene extends Phaser.Scene {
 
   public ready = false;
   private editorMode: EditorMode = new CameraMode();
+  // optional reference to EditorState (injected by PhaserCanvas)
+  public editorCore?: EditorState;
 
   private map!: Phaser.Tilemaps.Tilemap;
   private tileset!: Phaser.Tilemaps.Tileset;
@@ -78,7 +81,6 @@ export class EditorScene extends Phaser.Scene {
     this.assetGroup = this.add.group();
 
     const getCanvasPos = (clientX: number, clientY: number) => {
-      console.log("sys?", !!this.sys, "game?", !!this.sys?.game, "canvas?", !!this.sys?.game?.canvas);
 
       if (!this.sys.game.canvas)
         return;
@@ -114,6 +116,25 @@ export class EditorScene extends Phaser.Scene {
       const { p, inside } = feedPointer(e.clientX, e.clientY);
       if (!inside) return;
 
+      // send context to core FSM
+      const ctx: EditorContext = {
+        currentMode: this.editorMode,
+        currentSelectedAsset: this.editorCore?.getSelectedAsset() ?? undefined,
+        currentDraggingAsset: this.editorCore?.getDraggedAsset() ?? undefined,
+        currentSelecedEntity: this.editorCore?.getSelectedEntity() ?? undefined,
+        mouse: "mousedown",
+      };
+
+      // If nothing is being dragged and no entity is selected, return to CameraMode
+      const noDragged = !this.editorCore?.getDraggedAsset();
+      const noSelectedEntity = !this.editorCore?.getSelectedEntity();
+      if (noDragged && noSelectedEntity) {
+        this.setCameraMode();
+        const cm: EditorContext = { currentMode: new CameraMode(), mouse: "mouseup" };
+        this.editorCore?.sendContextToEditorModeStateMachine(cm);
+      }
+      
+
       // ✅ 1) 에셋 UI 클릭/드래그 시작이면 -> 엔티티 모드로 진입 + 생성(+드래그 시작)
       if (this.tryEnterEntityEditFromAsset(p)) return;
 
@@ -122,23 +143,44 @@ export class EditorScene extends Phaser.Scene {
 
       // ✅ 3) 그 외는 현재 모드에 위임
       this.editorMode.onPointerDown(this, p);
+      this.editorCore?.sendContextToEditorModeStateMachine(ctx);
     };
 
     const onWinPointerMove = (e: PointerEvent) => {
       const { p, inside } = feedPointer(e.clientX, e.clientY);
       if (!inside) return;
 
+      // update core FSM with mouse move
+      const ctx: EditorContext = {
+        currentMode: this.editorMode,
+        currentSelectedAsset: this.editorCore?.getSelectedAsset() ?? undefined,
+        currentDraggingAsset: this.editorCore?.getDraggedAsset() ?? undefined,
+        currentSelecedEntity: this.editorCore?.getSelectedEntity() ?? undefined,
+        mouse: "mousemove",
+      };
+      
       this.editorMode.onPointerMove(this, p);
+      this.editorCore?.sendContextToEditorModeStateMachine(ctx);
     };
 
     const onWinPointerUp = (e: PointerEvent) => {
       const { p } = feedPointer(e.clientX, e.clientY);
+      // allow mode to transition before snapshotting context
       this.editorMode.onPointerUp(this, p);
+      const ctx: EditorContext = {
+        currentMode: this.editorMode,
+        currentSelectedAsset: this.editorCore?.getSelectedAsset() ?? undefined,
+        currentDraggingAsset: this.editorCore?.getDraggedAsset() ?? undefined,
+        currentSelecedEntity: this.editorCore?.getSelectedEntity() ?? undefined,
+        mouse: "mouseup",
+      };
+      this.editorCore?.sendContextToEditorModeStateMachine(ctx);
     };
 
     const onWinWheel = (e: WheelEvent) => {
-      const { inside } = getCanvasPos(e.clientX, e.clientY);
-      if (!inside) return;
+      const result = getCanvasPos(e.clientX, e.clientY);
+      if (!result) return;
+      if (!result.inside) return;
 
       e.preventDefault();
       this.editorMode.onScroll(this, e.deltaY);

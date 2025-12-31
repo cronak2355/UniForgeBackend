@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HierarchyPanel } from "./HierarchyPanel";
 import { InspectorPanel } from "./inspector/InspectorPanel";
 import { AssetPanel } from "./AssetPanel";
 import type { EditorEntity } from "./types/Entity"
-import type { Asset } from "./types/Asset";
+// Asset type imported via snapshot in hook; no direct type import needed here
 import { PhaserCanvas } from "./PhaserCanvas";
 import "./styles.css";
+import { EditorCoreProvider, useEditorCoreSnapshot, useEditorCore } from "../contexts/EditorCoreContext";
+import type { EditorContext } from "./EditorCore";
+import { CameraMode, DragDropMode } from "./editorMode/editorModes";
 
 // Entry Style Color Palette
 const colors = {
@@ -21,33 +24,42 @@ const colors = {
 };
 
 export default function EditorLayout() {
-    const [entities] = useState<EditorEntity[]>([]);
-    const [selectedEntity, setSelectedEntity] = useState<EditorEntity | null>(null);
-    const [assets] = useState<Asset[]>([
-        { id: 0, name: "testAsset1", tag: "Tile", url: "TestAsset.webp", idx: -1 },
-        { id: 1, name: "testAsset2", tag: "Tile", url: "TestAsset2.webp", idx: -1 },
-        { id: 2, name: "testAsset3", tag: "Tile", url: "TestAsset3.webp", idx: -1 },
-        { id: 3, name: "placeholder", tag: "Character", url: "placeholder.png", idx: -1 },
-        { id: 4, name: "dragon", tag: "Character", url: "RedDragon.webp", idx: -1 },
-    ]);
-    const [draggedgAsset, setDraggedgAsset] = useState<Asset | null>(null);
-    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    return (
+        <EditorCoreProvider>
+            <EditorLayoutInner />
+        </EditorCoreProvider>
+    );
+}
 
-    const changeSelectedAsset = (asset: Asset | null) => {
-        if (asset == selectedAsset) {
-            setSelectedAsset(null);
+function EditorLayoutInner() {
+    const { core, assets, entities, selectedAsset, draggedAsset, selectedEntity } = useEditorCoreSnapshot();
+    const coreDirect = useEditorCore();
+
+    const changeSelectedAssetHandler = (a: any) => {
+        core.setSelectedAsset(a);
+        const cm = new CameraMode();
+        const ctx: EditorContext = { currentMode: cm, currentSelectedAsset: a ?? undefined, mouse: "mousemove" };
+        core.sendContextToEditorModeStateMachine(ctx);
+    };
+
+    const changeDraggedAssetHandler = (a: any) => {
+        core.setDraggedAsset(a);
+        if (a == null) {
+            const cm = new CameraMode();
+            core.sendContextToEditorModeStateMachine({ currentMode: cm, mouse: "mouseup" });
             return;
         }
-        setSelectedAsset(asset);
+        const dm = new DragDropMode();
+        dm.asset = a;
+        core.sendContextToEditorModeStateMachine({ currentMode: dm, currentDraggingAsset: a, mouse: "mousedown" });
     };
 
-    const changeDraggAsset = (asset: Asset | null, options?: { defer?: boolean }) => {
-        if (options?.defer) {
-            requestAnimationFrame(() => setDraggedgAsset(asset));
-        } else {
-            setDraggedgAsset(asset);
-        }
-    };
+    const [localSelectedEntity, setLocalSelectedEntity] = useState<EditorEntity | null>(selectedEntity);
+
+    // keep local selection in sync with core selection
+    useEffect(() => {
+        setLocalSelectedEntity(selectedEntity);
+    }, [selectedEntity]);
 
     return (
         <div style={{
@@ -153,11 +165,17 @@ export default function EditorLayout() {
                         Hierarchy
                     </div>
                     <div style={{ flex: 1, padding: '8px', overflowY: 'auto' }}>
-                        <HierarchyPanel
-                            entities={entities}
-                            selectedId={selectedEntity?.id ?? null}
-                            onSelect={setSelectedEntity}
-                        />
+                            <HierarchyPanel
+                                entities={entities}
+                                selectedId={selectedEntity?.id ?? null}
+                                onSelect={(e) => {
+                                    core.setSelectedEntity(e as any);
+                                    setLocalSelectedEntity(e as any);
+                                    const cm = new CameraMode();
+                                    const ctx: EditorContext = { currentMode: cm, currentSelecedEntity: e as any, mouse: "mousedown" };
+                                    core.sendContextToEditorModeStateMachine(ctx);
+                                }}
+                            />
                     </div>
                 </div>
 
@@ -172,10 +190,11 @@ export default function EditorLayout() {
                     <PhaserCanvas
                         assets={assets}
                         selected_asset={selectedAsset}
-                        draggedAsset={draggedgAsset}
+                        draggedAsset={draggedAsset}
                         addEntity={(entity) => {
-                            console.log("🟣 [EditorLayout] selected entity:", entity);
-                            setSelectedEntity(entity);
+                            console.log("🟣 [EditorLayout] new entity:", entity);
+                            core.addEntity(entity as any);
+                            core.setSelectedEntity(entity as any);
                         }}
                     />
                 </div>
@@ -205,9 +224,10 @@ export default function EditorLayout() {
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto' }}>
                         <InspectorPanel
-                            entity={selectedEntity}
+                            entity={localSelectedEntity}
                             onUpdateEntity={(updatedEntity) => {
-                                setSelectedEntity(updatedEntity);
+                                core.setSelectedEntity(updatedEntity as any);
+                                setLocalSelectedEntity(updatedEntity);
                             }}
                         />
                     </div>
@@ -220,8 +240,8 @@ export default function EditorLayout() {
             }}>
                 <AssetPanel
                     assets={assets}
-                    changeSelectedAsset={changeSelectedAsset}
-                    changeDraggAsset={changeDraggAsset}
+                    changeSelectedAsset={(a) => changeSelectedAssetHandler(a)}
+                    changeDraggAsset={(a) => changeDraggedAssetHandler(a)}
                 />
             </div>
         </div>
