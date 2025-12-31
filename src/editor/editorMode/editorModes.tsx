@@ -1,5 +1,5 @@
 import type { Asset } from "../types/Asset";
-import { assetToEntity } from "../utils/assetToEntity"
+//import { assetToEntity } from "../utils/assetToEntity"
 import { EditorScene } from "../EditorScene";
 import type { EditorEntity } from "../types/Entity";
 
