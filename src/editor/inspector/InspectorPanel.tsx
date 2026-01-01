@@ -3,9 +3,9 @@ import type { EditorEntity } from "../types/Entity";
 import { EventSection } from "./EventSection";
 import type { EditorEvent } from "../types/Event";
 import { InspectorScroll } from "./InspectorScroll";
+import { colors } from "../constants/colors";
 import { ComponentSection } from "./ComponentSection";
 import type { EditorComponent } from "../types/Component";
-
 
 // Entry Style Colors
 const colors = {

@@ -5,6 +5,7 @@ import { AssetPanel } from "./AssetPanel";
 import type { EditorEntity } from "./types/Entity"
 // Asset type imported via snapshot in hook; no direct type import needed here
 import { PhaserCanvas } from "./PhaserCanvas";
+import { colors } from "./constants/colors";
 import "./styles.css";
 import { EditorCoreProvider, useEditorCoreSnapshot, useEditorCore } from "../contexts/EditorCoreContext";
 import type { EditorContext } from "./EditorCore";
@@ -76,28 +77,50 @@ function EditorLayoutInner() {
                 height: '48px',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 padding: '0 16px',
                 background: colors.bgSecondary,
                 borderBottom: `1px solid ${colors.borderColor}`,
             }}>
-                {/* Logo with Cube Icon */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {/* Blue Cube SVG Icon */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" fill={colors.borderAccent} />
-                        <path d="M12 2L3 7L12 12L21 7L12 2Z" fill={colors.accentLight} />
-                        <path d="M12 12V22L3 17V7L12 12Z" fill={colors.borderAccent} opacity="0.8" />
-                        <path d="M12 12V22L21 17V7L12 12Z" fill={colors.borderAccent} opacity="0.6" />
-                    </svg>
-                    <span style={{
-                        fontSize: '15px',
-                        fontWeight: 600,
-                        color: colors.textPrimary,
-                        letterSpacing: '0.3px',
-                    }}>
-                        Uniforge
-                    </span>
+                {/* Logo */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
+                    <div style={{ fontSize: '1.25rem' }}>
+                        <span className="gradient-text">Uniforge</span>
+                    </div>
                 </div>
+
+                {/* Profile Icon */}
+                <button
+                    style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        border: `2px solid ${colors.borderColor}`,
+                        backgroundColor: colors.bgTertiary,
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'border-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = colors.accentLight}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = colors.borderColor}
+                >
+                    <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={colors.textSecondary}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                </button>
             </div>
 
             {/* ===== TOP MENU BAR ===== */}
@@ -141,7 +164,7 @@ function EditorLayoutInner() {
                 flex: 1,
                 overflow: 'hidden',
             }}>
-                {/* LEFT PANEL - Hierarchy */}
+                {/* LEFT PANEL - Hierarchy (전체 높이) */}
                 <div style={{
                     width: '200px',
                     background: colors.bgSecondary,
@@ -179,7 +202,7 @@ function EditorLayoutInner() {
                     </div>
                 </div>
 
-                {/* CENTER - Phaser Canvas */}
+                {/* CENTER - Viewport + Assets */}
                 <div style={{
                     flex: 1,
                     display: 'flex',
@@ -199,7 +222,19 @@ function EditorLayoutInner() {
                     />
                 </div>
 
-                {/* RIGHT PANEL - Inspector */}
+                    {/* Asset Panel (하단) */}
+                    <div style={{
+                        borderTop: `2px solid ${colors.borderAccent}`,
+                    }}>
+                        <AssetPanel
+                            assets={assets}
+                            changeSelectedAsset={changeSelectedAsset}
+                            changeDraggedAsset={changeDraggedAsset}
+                        />
+                    </div>
+                </div>
+
+                {/* RIGHT PANEL - Inspector (전체 높이) */}
                 <div style={{
                     width: '280px',
                     background: colors.bgSecondary,
