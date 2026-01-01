@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { HierarchyPanel } from "./HierarchyPanel";
 import { InspectorPanel } from "./inspector/InspectorPanel";
 import { AssetPanel } from "./AssetPanel";
@@ -10,6 +11,7 @@ import "./styles.css";
 
 export default function EditorLayout() {
     const [entities] = useState<EditorEntity[]>([]);
+    const navigate = useNavigate();
     const [selectedEntity, setSelectedEntity] = useState<EditorEntity | null>(null);
     const [assets, setAssets] = useState<Asset[]>([
         { id: 0, name: "colorTile", tag: "Tile", url: "", idx: -1, color: "#4ade80" },
@@ -62,7 +64,15 @@ export default function EditorLayout() {
                 borderBottom: `1px solid ${colors.borderColor}`,
             }}>
                 {/* Logo */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3rem',
+                        cursor: 'pointer'
+                    }}
+                    onClick={() => navigate('/main')}
+                >
                     <div style={{ fontSize: '1.25rem' }}>
                         <span className="gradient-text">Uniforge</span>
                     </div>
