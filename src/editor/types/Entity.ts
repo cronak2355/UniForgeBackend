@@ -8,6 +8,7 @@ export type EditorEntity = {
     name: string;
     x: number;
     y: number;
+    z: number;  // 기본값 0, Phaser에서는 depth로 사용
     variables: EditorVariable[];
     events: EditorEvent[];
     components: EditorComponent[];
