@@ -21,6 +21,7 @@ export interface GameEntity {
     rotation: number;
     scaleX: number;
     scaleY: number;
+    scaleZ: number;  // 3D 확장성 지원
     components: EditorComponent[];
 }
 
@@ -33,6 +34,7 @@ export interface CreateEntityOptions {
     rotation?: number;
     scaleX?: number;
     scaleY?: number;
+    scaleZ?: number;  // 3D 확장성 지원
     components?: EditorComponent[];
 }
 
@@ -104,6 +106,7 @@ export class GameCore {
             rotation: options.rotation ?? 0,
             scaleX: options.scaleX ?? 1,
             scaleY: options.scaleY ?? 1,
+            scaleZ: options.scaleZ ?? 1,
             components: options.components ?? [],
         };
 
@@ -408,6 +411,7 @@ export class GameCore {
                 rotation: entityData.rotation,
                 scaleX: entityData.scaleX,
                 scaleY: entityData.scaleY,
+                scaleZ: entityData.scaleZ,
                 components: entityData.components,
             });
         }
