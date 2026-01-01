@@ -240,6 +240,7 @@ export class DragDropMode extends EditorMode {
             name: this.asset!.name,
             x: created.x,
             y: created.y,
+            z: 0,
             variables: [],
             events: [],
             components: [],

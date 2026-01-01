@@ -463,6 +463,7 @@ export class EditorScene extends Phaser.Scene {
       name: "Entity",
       x: transform.x ?? world.x,
       y: transform.y ?? world.y,
+      z: 0,
       variables: [],
       events: [],
       components: [],
