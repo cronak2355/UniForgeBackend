@@ -393,6 +393,8 @@ export class EditorScene extends Phaser.Scene {
   }
 
   redrawGrid() {
+    if (!this.gridGfx || !this.cameras?.main) return;
+
     const cam = this.cameras.main;
     const view = cam.worldView;
 
