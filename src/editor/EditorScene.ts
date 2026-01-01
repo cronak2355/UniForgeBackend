@@ -3,6 +3,10 @@ import { EditorMode, CameraMode, EntityEditMode, DragDropMode, TilingMode } from
 import type { EditorEntity } from "./types/Entity";
 import type { EditorState, EditorContext } from "./EditorCore";
 import type { EditorComponent, AutoRotateComponent, PulseComponent } from "./types/Component";
+import { editorCore } from "./EditorCore";
+import { EventBus } from "./core/events/EventBus";
+import { RuleEngine } from "./core/events/RuleEngine";
+import { KeyboardAdapter } from "./core/events/adapters/KeyboardAdapter";
 
 const tileSize = 32;
 
@@ -21,6 +25,8 @@ export class EditorScene extends Phaser.Scene {
 
   private map!: Phaser.Tilemaps.Tilemap;
   private tileset!: Phaser.Tilemaps.Tileset;
+  // private transformGizmo!: TransformGizmo;
+  private keyboardAdapter!: KeyboardAdapter;
   private gridGfx!: Phaser.GameObjects.Graphics;
 
   public baselayer!: Phaser.Tilemaps.TilemapLayer;
@@ -225,12 +231,17 @@ export class EditorScene extends Phaser.Scene {
       const { p, inside } = feedPointer(e.clientX, e.clientY);
       if (!inside) return;
 
+      // 드래그 중에는 현재 선택된 엔티티를 유지 (포인터가 엔티티 바깥으로 나가도 선택 해제 안 함)
+      const currentEntity = this.editorCore?.getSelectedEntity();
+      const entityUnderPointer = this.getEntityUnderPointer(p);
+
       // update core FSM with refreshed context after pointer move
       const ctx: EditorContext = {
         currentMode: this.editorMode,
         currentSelectedAsset: this.editorCore?.getSelectedAsset() ?? undefined,
         currentDraggingAsset: this.editorCore?.getDraggedAsset() ?? undefined,
-        currentSelecedEntity: this.getEntityUnderPointer(p),
+        // 드래그 중(EntityEditMode)이면 기존 선택 유지, 아니면 포인터 아래 엔티티
+        currentSelecedEntity: entityUnderPointer ?? currentEntity ?? undefined,
         mouse: "mousemove",
       };
       this.editorCore?.sendContextToEditorModeStateMachine(ctx);
@@ -305,9 +316,39 @@ export class EditorScene extends Phaser.Scene {
         window.removeEventListener("pointerup", onWinPointerUp);
         window.removeEventListener("wheel", onWinWheel);
       });
+
+      // --- EAC 시스템 초기화 ---
+      this.keyboardAdapter = new KeyboardAdapter(this);
+
+      EventBus.on((event) => {
+        // 씬에 있는 모든 엔티티에 대해 룰 체크
+        // editorCore.getEntities()는 Map<string, EditorEntity>을 반환
+        editorCore.getEntities().forEach((entity) => {
+          if (!entity.rules || entity.rules.length === 0) return;
+
+          // ActionContext 생성
+          const moduleMap: any = {};
+          if (entity.modules) {
+            entity.modules.forEach(m => {
+              moduleMap[m.type] = m;
+            });
+          }
+
+          const ctx = {
+            entityId: entity.id,
+            modules: moduleMap,
+            eventData: event.data || {},
+            globals: { scene: this }
+          };
+
+          RuleEngine.handleEvent(event, ctx);
+        });
+      });
+
       this.ready = true;
     });
   }
+
 
   // -----------------------
   // ?뷀떚??媛깆떊 (以묒슂)
@@ -349,6 +390,9 @@ export class EditorScene extends Phaser.Scene {
   // update / grid
   // -----------------------
   update(time: number, delta: number) {
+    // -------------------------
+
+    // 1) Grid
     this.redrawGrid();
 
     // Optimized Component System Loop
@@ -459,14 +503,15 @@ export class EditorScene extends Phaser.Scene {
     const transform = best as Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform;
     return {
       id: id as string,
-      type: "Unknown",
+      type: "Unknown" as any,
       name: "Entity",
       x: transform.x ?? world.x,
       y: transform.y ?? world.y,
       z: 0,
-      variables: [],
-      events: [],
+      variables: {},
+      events: {},
       components: [],
+      rules: [],
       modules: [],
     };
   }

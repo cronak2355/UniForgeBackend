@@ -1,13 +1,12 @@
-import { VariableSection } from "./VariableSection";
+import React, { useState, useEffect } from "react";
+import { PresetManager } from "../presets/PresetManager";
 import type { EditorEntity } from "../types/Entity";
-import { EventSection } from "./EventSection";
-import type { EditorEvent } from "../types/Event";
-import { InspectorScroll } from "./InspectorScroll";
 import { colors } from "../constants/colors";
 import { ComponentSection } from "./ComponentSection";
 import { ModuleSection } from "./ModuleSection";
-import type { EditorModule } from "../types/Module";
 
+// TransformEditor가 없으므로 간단히 숫자 입력 필드로 대체하거나 생략.
+// 여기서는 기본 Transform UI를 직접 구현합니다.
 
 type Props = {
   entity: EditorEntity | null;
@@ -15,7 +14,17 @@ type Props = {
 };
 
 export function InspectorPanel({ entity, onUpdateEntity }: Props) {
-  if (!entity) {
+  const [localEntity, setLocalEntity] = useState<EditorEntity | null>(null);
+
+  useEffect(() => {
+    if (entity) {
+      setLocalEntity({ ...entity });
+    } else {
+      setLocalEntity(null);
+    }
+  }, [entity]);
+
+  if (!localEntity) {
     return (
       <div style={{
         padding: '24px 16px',
@@ -28,179 +37,138 @@ export function InspectorPanel({ entity, onUpdateEntity }: Props) {
     );
   }
 
-  const handleAddEvent = () => {
-    onUpdateEntity({
-      ...entity,
-      events: [
-        ...entity.events,
-        {
-          id: crypto.randomUUID(),
-          trigger: "OnStart",
-          action: "ShowText",
-        },
-      ],
-    });
+  const handleUpdate = (updated: EditorEntity) => {
+    setLocalEntity(updated);
+    onUpdateEntity(updated);
   };
 
-  const handleUpdateEvent = (updatedEvent: EditorEvent) => {
-    onUpdateEntity({
-      ...entity,
-      events: entity.events.map((e) =>
-        e.id === updatedEvent.id ? updatedEvent : e
-      ),
-    });
+  const handlePresetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const presetId = e.target.value;
+    if (!presetId) return;
+
+    const updatedEntity = PresetManager.applyPreset(localEntity, presetId);
+    handleUpdate(updatedEntity);
+  };
+
+  const updateTransform = (key: 'x' | 'y' | 'z', value: number) => {
+    const updated = { ...localEntity, [key]: value };
+    handleUpdate(updated);
+  };
+
+  const sectionStyle = {
+    padding: '16px',
+    borderBottom: `1px solid ${colors.borderColor}`,
+  };
+
+  const titleStyle = {
+    margin: '0 0 12px 0',
+    color: '#ddd',
+    fontSize: '14px',
+    fontWeight: 600,
+  };
+
+  const inputStyle = {
+    background: '#1e1e1e',
+    border: '1px solid #3e3e3e',
+    color: '#fff',
+    padding: '4px 8px',
+    borderRadius: '4px',
+    width: '60px',
+    fontSize: '12px'
+  };
+
+  const labelStyle = {
+    color: '#aaa',
+    fontSize: '12px',
+    marginRight: '8px',
+    width: '15px'
+  };
+
+  const rowStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '8px'
   };
 
   return (
-    <div style={{ padding: '12px' }}>
-      {/* Basic Section */}
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{
-          fontSize: '11px',
-          fontWeight: 600,
-          color: colors.accentLight,
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-          marginBottom: '8px',
-          paddingBottom: '6px',
-          borderBottom: `1px solid ${colors.borderColor}`,
-        }}>
-          Basic
-        </div>
+    <div style={{
+      width: '300px',
+      background: '#2d2d2d',
+      borderLeft: '1px solid #3e3e3e',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      overflowY: 'auto'
+    }}>
 
-        {/* Name Row */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '6px 0',
-          gap: '8px',
-        }}>
-          <span style={{
-            flex: '0 0 70px',
-            fontSize: '12px',
-            color: colors.textSecondary,
-          }}>
-            Name
-          </span>
-          <span style={{
-            fontSize: '13px',
-            color: colors.textPrimary,
-          }}>
-            {entity.name}
-          </span>
-        </div>
+      {/* Role (Preset) Section */}
+      <div style={sectionStyle}>
+        <div style={titleStyle}>Role (Preset)</div>
+        <select
+          style={{
+            width: '100%',
+            padding: '8px',
+            background: '#1e1e1e',
+            border: '1px solid #3e3e3e',
+            color: '#fff',
+            borderRadius: '4px'
+          }}
+          onChange={handlePresetChange}
+          defaultValue=""
+        >
+          <option value="" disabled>Select Role...</option>
+          {PresetManager.getAvailablePresets().map(preset => (
+            <option key={preset.id} value={preset.id}>
+              {preset.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-        {/* Position Row */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          padding: '6px 0',
-          gap: '8px',
-        }}>
-          <span style={{
-            flex: '0 0 70px',
-            fontSize: '12px',
-            color: colors.textSecondary,
-          }}>
-            Position
-          </span>
-          <span style={{
-            fontSize: '13px',
-            color: colors.textPrimary,
-          }}>
-            X: {entity.x} &nbsp; Y: {entity.y}
-          </span>
+      {/* Transform Section */}
+      <div style={sectionStyle}>
+        <div style={titleStyle}>Transform</div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>X</span>
+          <input
+            type="number"
+            style={inputStyle}
+            value={localEntity.x}
+            onChange={(e) => updateTransform('x', parseFloat(e.target.value))}
+          />
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Y</span>
+          <input
+            type="number"
+            style={inputStyle}
+            value={localEntity.y}
+            onChange={(e) => updateTransform('y', parseFloat(e.target.value))}
+          />
+        </div>
+        <div style={rowStyle}>
+          <span style={labelStyle}>Z</span>
+          <input
+            type="number"
+            style={inputStyle}
+            value={localEntity.z}
+            onChange={(e) => updateTransform('z', parseFloat(e.target.value))}
+          />
         </div>
       </div>
 
-      {/* Variables & Events */}
-      <InspectorScroll>
-        <div style={{ marginBottom: '16px' }}>
-          <VariableSection
-            variables={entity.variables}
-            onAdd={() => {
-              onUpdateEntity({
-                ...entity,
-                variables: [
-                  ...entity.variables,
-                  {
-                    id: crypto.randomUUID(),
-                    name: "newVar",
-                    type: "int",
-                    value: 0,
-                  },
-                ],
-              });
-            }}
-            onUpdate={(updatedVar) => {
-              onUpdateEntity({
-                ...entity,
-                variables: entity.variables.map((v) =>
-                  v.id === updatedVar.id ? updatedVar : v
-                ),
-              });
-            }}
-          />
-        </div>
+      {/* Module Section */}
+      <ModuleSection
+        entity={localEntity}
+        onUpdateEntity={handleUpdate}
+      />
 
-        <div style={{ opacity: 0.6 }}>
-          <EventSection
-            events={entity.events}
-            onAdd={handleAddEvent}
-            onUpdate={handleUpdateEvent}
-          />
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <ComponentSection
-            components={entity.components || []}
-            onAdd={(comp) => {
-              onUpdateEntity({
-                ...entity,
-                components: [...(entity.components || []), comp],
-              });
-            }}
-            onUpdate={(updatedComp) => {
-              onUpdateEntity({
-                ...entity,
-                components: (entity.components || []).map((c) =>
-                  c.id === updatedComp.id ? updatedComp : c
-                ),
-              });
-            }}
-            onRemove={(id) => {
-              onUpdateEntity({
-                ...entity,
-                components: (entity.components || []).filter((c) => c.id !== id),
-              });
-            }}
-          />
-        </div>
-        <div style={{ marginBottom: "16px" }}>
-          <ModuleSection
-            modules={entity.modules || []}
-            onAdd={(mod) => {
-              onUpdateEntity({
-                ...entity,
-                modules: [...(entity.modules || []), mod],
-              });
-            }}
-            onUpdate={(updatedMod) => {
-              onUpdateEntity({
-                ...entity,
-                modules: (entity.modules || []).map((m) =>
-                  m.id === updatedMod.id ? updatedMod : m
-                ),
-              });
-            }}
-            onRemove={(id) => {
-              onUpdateEntity({
-                ...entity,
-                modules: (entity.modules || []).filter((m) => m.id !== id),
-              });
-            }}
-          />
-        </div>
-      </InspectorScroll>
+      {/* Visual Component Section */}
+      <ComponentSection
+        entity={localEntity}
+        onUpdateEntity={handleUpdate}
+      />
+
     </div>
   );
 }

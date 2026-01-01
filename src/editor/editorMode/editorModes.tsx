@@ -236,14 +236,15 @@ export class DragDropMode extends EditorMode {
         const entity: EditorEntity = {
 
             id: created.getData("id"),
-            type: this.asset!.tag,
+            type: this.asset!.tag as any,
             name: this.asset!.name,
             x: created.x,
             y: created.y,
             z: 0,
-            variables: [],
-            events: [],
+            variables: {},
+            events: {},
             components: [],
+            rules: [],
             modules: [],
         };
 
@@ -295,6 +296,15 @@ export class EntityEditMode implements EditorMode {
         const pos = this.getXY(target);
         this.offsetX = world.x - pos.x;
         this.offsetY = world.y - pos.y;
+
+        // 드래그 시작 시점에 선택된 엔티티를 즉시 인스펙터에 표시
+        const id = (target as any).getData?.("id");
+        if (id && scene.editorCore) {
+            const entity = scene.editorCore.getEntities().get(id);
+            if (entity) {
+                scene.editorCore.setSelectedEntity(entity);
+            }
+        }
     }
 
     onPointerMove(scene: EditorScene, p: Phaser.Input.Pointer): void {

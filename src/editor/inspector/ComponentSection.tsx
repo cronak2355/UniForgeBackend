@@ -18,14 +18,29 @@ const colors = {
     danger: '#da3633',
 };
 
+import type { EditorEntity } from "../types/Entity"; // Import 추가
+
+// ...
+
 type Props = {
-    components: EditorComponent[];
-    onAdd: (comp: EditorComponent) => void;
-    onUpdate: (comp: EditorComponent) => void;
-    onRemove: (id: string) => void;
+    entity: EditorEntity;
+    onUpdateEntity: (entity: EditorEntity) => void;
 };
 
-export const ComponentSection = memo(function ComponentSection({ components, onAdd, onUpdate, onRemove }: Props) {
+export const ComponentSection = memo(function ComponentSection({ entity, onUpdateEntity }: Props) {
+    const components = entity.components || [];
+
+    const onAdd = (comp: EditorComponent) => {
+        onUpdateEntity({ ...entity, components: [...components, comp] });
+    };
+
+    const onUpdate = (comp: EditorComponent) => {
+        onUpdateEntity({ ...entity, components: components.map(c => c.id === comp.id ? comp : c) });
+    };
+
+    const onRemove = (id: string) => {
+        onUpdateEntity({ ...entity, components: components.filter(c => c.id !== id) });
+    };
 
     const handleAdd = (type: ComponentType) => {
         const def = ComponentDefaults[type];

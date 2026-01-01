@@ -1,17 +1,24 @@
 import type { EditorVariable } from "./Variable";
 import type { EditorEvent } from "./Event";
 import type { EditorComponent } from "./Component";
+import type { GameRule } from "../core/events/RuleEngine";
 import type { EditorModule } from "./Module";
 
-export type EditorEntity = {
+export interface EditorEntity {
     id: string;
-    type: string;
+    type: "sprite" | "container" | "nineSlice";
     name: string;
     x: number;
     y: number;
-    z: number;  // 기본값 0, Phaser에서는 depth로 사용
-    variables: EditorVariable[];
-    events: EditorEvent[];
-    components: EditorComponent[];
-    modules: EditorModule[];  // StatusModule, KineticModule 등
-};
+    z: number;
+    texture?: string;
+    variables: Record<string, any>;
+    events: Record<string, string>;
+    components: any[];
+
+    /** EAC 시스템을 위한 게임 규칙 목록 */
+    rules: GameRule[];
+
+    /** 기능별 모듈 목록 */
+    modules: EditorModule[];
+}  // StatusModule, KineticModule 등
