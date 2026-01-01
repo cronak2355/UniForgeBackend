@@ -4,4 +4,4 @@
 
 [36mvite v7.3.0 [32mbuilding client environment for production...[36m[39m
 transforming...
-[32m??[39m 67 modules transformed.
+[32m??[39m 30 modules transformed.

@@ -1,71 +1,47 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HierarchyPanel } from "./HierarchyPanel";
 import { InspectorPanel } from "./inspector/InspectorPanel";
 import { AssetPanel } from "./AssetPanel";
-import type { EditorEntity } from "./types/Entity";
-import { EditorCanvas } from "./EditorCanvas";
-import { RunTimeCanvas } from "./RunTimeCanvas";
-import "./styles.css";
-import { EditorCoreProvider, useEditorCoreSnapshot } from "../contexts/EditorCoreContext";
-import type { EditorContext } from "./EditorCore";
-import { CameraMode, DragDropMode } from "./editorMode/editorModes";
+import type { EditorEntity } from "./types/Entity"
 import type { Asset } from "./types/Asset";
-
-// Entry Style Color Palette
-const colors = {
-    bgPrimary: '#0d1117',      // 메인 배경 (깊은 검정)
-    bgSecondary: '#161b22',    // 패널 배경
-    bgTertiary: '#21262d',     // 호버/입력 배경
-    borderColor: '#30363d',    // 기본 테두리
-    borderAccent: '#1f6feb',   // 파란색 액센트 테두리
-    accentBlue: '#1f6feb',     // 주 파란색
-    accentLight: '#58a6ff',    // 밝은 파란색
-    textPrimary: '#f0f6fc',    // 기본 텍스트
-    textSecondary: '#8b949e',  // 부가 텍스트
-};
+import { EditorCanvas } from "./EditorCanvas";
+import { colors } from "./constants/colors";
+import "./styles.css";
 
 export default function EditorLayout() {
-    return (
-        <EditorCoreProvider>
-            <EditorLayoutInner />
-        </EditorCoreProvider>
-    );
-}
-
-type Mode = "dev" | "run";
-
-function EditorLayoutInner() {
-    const { core, assets, entities, selectedAsset, draggedAsset, selectedEntity } = useEditorCoreSnapshot();
+    const [entities] = useState<EditorEntity[]>([]);
     const navigate = useNavigate();
+    const [selectedEntity, setSelectedEntity] = useState<EditorEntity | null>(null);
+    const [assets, setAssets] = useState<Asset[]>([
+        { id: 0, name: "colorTile", tag: "Tile", url: "", idx: -1, color: "#4ade80" },
+        { id: 1, name: "placeholder", tag: "Character", url: "/placeholder.png", idx: -1 },
+        { id: 2, name: "dragon", tag: "Character", url: "/RedDragon.webp", idx: -1 },
+    ]);
+    const [draggedAsset, setDraggedAsset] = useState<Asset | null>(null);
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
 
-    const [mode, setMode] = useState<Mode>("dev");
-
-    const changeSelectedAssetHandler = (a: Asset | null) => {
-        core.setSelectedAsset(a);
-        const cm = new CameraMode();
-        const ctx: EditorContext = { currentMode: cm, currentSelectedAsset: a ?? undefined, mouse: "mousemove" };
-        core.sendContextToEditorModeStateMachine(ctx);
-    };
-
-    const changeDraggedAssetHandler = (a: Asset | null) => {
-        core.setDraggedAsset(a);
-        if (a == null) {
-            const cm = new CameraMode();
-            core.sendContextToEditorModeStateMachine({ currentMode: cm, mouse: "mouseup" });
+    const changeSelectedAsset = (asset: Asset | null) => {
+        if (asset == selectedAsset) {
+            setSelectedAsset(null);
             return;
         }
-        const dm = new DragDropMode();
-        dm.asset = a;
-        core.sendContextToEditorModeStateMachine({ currentMode: dm, currentDraggingAsset: a, mouse: "mousedown" });
+        setSelectedAsset(asset);
     };
 
-    const [localSelectedEntity, setLocalSelectedEntity] = useState<EditorEntity | null>(selectedEntity);
+    const changeDraggedAsset = (asset: Asset | null, options?: { defer?: boolean }) => {
+        if (options?.defer) {
+            requestAnimationFrame(() => setDraggedAsset(asset));
+        } else {
+            setDraggedAsset(asset);
+        }
+    };
 
-    // keep local selection in sync with core selection
-    useEffect(() => {
-        setLocalSelectedEntity(selectedEntity);
-    }, [selectedEntity]);
+    const handleUpdateAssetColor = (assetId: number, color: string) => {
+        setAssets(prev => prev.map(asset =>
+            asset.id === assetId ? { ...asset, color } : asset
+        ));
+    };
 
     return (
         <div style={{
@@ -82,51 +58,58 @@ function EditorLayoutInner() {
                 height: '48px',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 padding: '0 16px',
                 background: colors.bgSecondary,
                 borderBottom: `1px solid ${colors.borderColor}`,
             }}>
-                {/* Logo with Cube Icon - Clickable */}
+                {/* Logo */}
                 <div
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3rem',
+                        cursor: 'pointer'
+                    }}
                     onClick={() => navigate('/main')}
                 >
-                    {/* Blue Cube SVG Icon */}
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2L3 7V17L12 22L21 17V7L12 2Z" fill={colors.borderAccent} />
-                        <path d="M12 2L3 7L12 12L21 7L12 2Z" fill={colors.accentLight} />
-                        <path d="M12 12V22L3 17V7L12 12Z" fill={colors.borderAccent} opacity="0.8" />
-                        <path d="M12 12V22L21 17V7L12 12Z" fill={colors.borderAccent} opacity="0.6" />
-                    </svg>
-                    <span style={{
-                        fontSize: '15px',
-                        fontWeight: 600,
-                        color: colors.textPrimary,
-                        letterSpacing: '0.3px',
-                    }}>
-                        Uniforge
-                    </span>
+                    <div style={{ fontSize: '1.25rem' }}>
+                        <span className="gradient-text">Uniforge</span>
+                    </div>
                 </div>
-                <div style={{ marginLeft: 'auto' }}>
-                    <button
-                        type="button"
-                        style={{
-                            padding: '6px 12px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            background: colors.borderAccent,
-                            border: `1px solid ${colors.borderColor}`,
-                            borderRadius: '6px',
-                            color: colors.textPrimary,
-                            cursor: 'pointer',
-                        }}
-                        onClick={() => {
-                            setMode((prev) => (prev === "dev" ? "run" : "dev"));
-                        }}
+
+                {/* Profile Icon */}
+                <button
+                    style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        border: `2px solid ${colors.borderColor}`,
+                        backgroundColor: colors.bgTertiary,
+                        cursor: 'pointer',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'border-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.borderColor = colors.accentLight}
+                    onMouseLeave={(e) => e.currentTarget.style.borderColor = colors.borderColor}
+                >
+                    <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke={colors.textSecondary}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                     >
-                        {mode === "dev" ? "실행" : "편집"}
-                    </button>
-                </div>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                </button>
             </div>
 
             {/* ===== TOP MENU BAR ===== */}
@@ -170,7 +153,7 @@ function EditorLayoutInner() {
                 flex: 1,
                 overflow: 'hidden',
             }}>
-                {/* LEFT PANEL - Hierarchy */}
+                {/* LEFT PANEL - Hierarchy (전체 높이) */}
                 <div style={{
                     width: '200px',
                     background: colors.bgSecondary,
@@ -197,18 +180,12 @@ function EditorLayoutInner() {
                         <HierarchyPanel
                             entities={entities}
                             selectedId={selectedEntity?.id ?? null}
-                            onSelect={(e) => {
-                                core.setSelectedEntity(e as any);
-                                setLocalSelectedEntity(e as any);
-                                const cm = new CameraMode();
-                                const ctx: EditorContext = { currentMode: cm, currentSelecedEntity: e as any, mouse: "mousedown" };
-                                core.sendContextToEditorModeStateMachine(ctx);
-                            }}
+                            onSelect={setSelectedEntity}
                         />
                     </div>
                 </div>
 
-                {/* CENTER - Phaser Canvas */}
+                {/* CENTER - Viewport + Assets */}
                 <div style={{
                     flex: 1,
                     display: 'flex',
@@ -216,23 +193,32 @@ function EditorLayoutInner() {
                     background: colors.bgPrimary,
                     overflow: 'hidden',
                 }}>
-                    {mode === "dev" ? (
+                    {/* Phaser Canvas (뷰포트) */}
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
                         <EditorCanvas
                             assets={assets}
                             selected_asset={selectedAsset}
                             draggedAsset={draggedAsset}
-                            addEntity={(entity) => {
-                                console.log("? [EditorLayout] new entity:", entity);
-                                core.addEntity(entity as any);
-                                core.setSelectedEntity(entity as any);
+                            addEntity={(entity: EditorEntity) => {
+                                setSelectedEntity(entity);
                             }}
                         />
-                    ) : (
-                        <RunTimeCanvas />
-                    )}
+                    </div>
+
+                    {/* Asset Panel (하단) */}
+                    <div style={{
+                        borderTop: `2px solid ${colors.borderAccent}`,
+                    }}>
+                        <AssetPanel
+                            assets={assets}
+                            changeSelectedAsset={changeSelectedAsset}
+                            changeDraggedAsset={changeDraggedAsset}
+                            onUpdateAssetColor={handleUpdateAssetColor}
+                        />
+                    </div>
                 </div>
 
-                {/* RIGHT PANEL - Inspector */}
+                {/* RIGHT PANEL - Inspector (전체 높이) */}
                 <div style={{
                     width: '280px',
                     background: colors.bgSecondary,
@@ -257,26 +243,13 @@ function EditorLayoutInner() {
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto' }}>
                         <InspectorPanel
-                            entity={localSelectedEntity}
+                            entity={selectedEntity}
                             onUpdateEntity={(updatedEntity) => {
-                                core.addEntity(updatedEntity as any);
-                                core.setSelectedEntity(updatedEntity as any);
-                                setLocalSelectedEntity(updatedEntity);
+                                setSelectedEntity(updatedEntity);
                             }}
                         />
                     </div>
                 </div>
-            </div>
-
-            {/* ===== BOTTOM - Asset Panel ===== */}
-            <div style={{
-                borderTop: `2px solid ${colors.borderAccent}`,
-            }}>
-                <AssetPanel
-                    assets={assets}
-                    changeSelectedAsset={(a) => changeSelectedAssetHandler(a)}
-                    changeDraggedAsset={(a) => changeDraggedAssetHandler(a)}
-                />
             </div>
         </div>
     );
