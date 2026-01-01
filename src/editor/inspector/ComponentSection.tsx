@@ -1,4 +1,4 @@
-import { EditorComponent, ComponentType, ComponentDefaults } from "../types/Component";
+import { EditorComponent, ComponentDefaults } from "../types/Component";
 import { colors } from "../constants/colors";
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
 };
 
 export function ComponentSection({ components, onAdd, onUpdate, onDelete }: Props) {
-    const handleAddComponent = (type: ComponentType) => {
+    const handleAddComponent = (type: "AutoRotate" | "Pulse") => {
         const defaults = ComponentDefaults[type];
         const newComponent: EditorComponent = {
             ...defaults,
