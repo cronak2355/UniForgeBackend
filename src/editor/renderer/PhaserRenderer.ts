@@ -70,6 +70,7 @@ export class PhaserRenderer implements IRenderer {
     onPointerMove?: (worldX: number, worldY: number, worldZ: number) => void;
     onPointerUp?: (worldX: number, worldY: number, worldZ: number) => void;
     onScroll?: (deltaY: number) => void;
+    onUpdateCallback?: (time: number, delta: number) => void;
 
     // ===== Lifecycle =====
 
@@ -122,6 +123,9 @@ export class PhaserRenderer implements IRenderer {
     onUpdate(_time: number, _delta: number): void {
         if (this.gridVisible) {
             this.redrawGrid();
+        }
+        if (this.onUpdateCallback) {
+            this.onUpdateCallback(_time, _delta);
         }
     }
 
@@ -183,7 +187,7 @@ export class PhaserRenderer implements IRenderer {
     // ===== Entity Management - ID 동기화 보장 =====
 
     spawn(id: string, type: string, x: number, y: number, z: number = 0, options?: SpawnOptions): void {
-        if (!this.scene) {
+        if (!this.scene || !this.scene.textures) {
             console.error("[PhaserRenderer] Cannot spawn: scene not initialized");
             return;
         }

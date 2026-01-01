@@ -7,6 +7,7 @@
 
 import type { IRenderer } from "../renderer/IRenderer";
 import type { EditorComponent, AutoRotateComponent, PulseComponent } from "../types/Component";
+import type { EditorVariable } from "../types/Variable";
 
 /**
  * 게임 엔티티 데이터 구조 (순수 JavaScript 객체)
@@ -18,10 +19,13 @@ export interface GameEntity {
     x: number;
     y: number;
     z: number;  // 기본값 0, Phaser에서는 depth로 사용
-    rotation: number;
+    rotationX: number;
+    rotationY: number;
+    rotationZ: number;
     scaleX: number;
     scaleY: number;
-    scaleZ: number;  // 3D 확장성 지원
+    scaleZ: number;
+    variables: EditorVariable[];
     components: EditorComponent[];
 }
 
@@ -31,11 +35,18 @@ export interface GameEntity {
 export interface CreateEntityOptions {
     name?: string;
     z?: number;
-    rotation?: number;
+    rotationX?: number;
+    rotationY?: number;
+    rotationZ?: number;
     scaleX?: number;
     scaleY?: number;
-    scaleZ?: number;  // 3D 확장성 지원
+    scaleZ?: number;
+    variables?: EditorVariable[];
     components?: EditorComponent[];
+    texture?: string;
+    width?: number;
+    height?: number;
+    color?: number;
 }
 
 /**
@@ -80,6 +91,7 @@ export class GameCore {
      * @param type 엔티티 타입
      * @param x X 좌표
      * @param y Y 좌표
+     * @param z Z 좌표
      * @param options 추가 옵션
      * @returns 생성 성공 여부
      */
@@ -103,10 +115,13 @@ export class GameCore {
             x,
             y,
             z: options.z ?? 0,
-            rotation: options.rotation ?? 0,
+            rotationX: options.rotationX ?? 0,
+            rotationY: options.rotationY ?? 0,
+            rotationZ: options.rotationZ ?? 0,
             scaleX: options.scaleX ?? 1,
             scaleY: options.scaleY ?? 1,
             scaleZ: options.scaleZ ?? 1,
+            variables: options.variables ?? [],
             components: options.components ?? [],
         };
 
@@ -114,7 +129,12 @@ export class GameCore {
         this.entities.set(id, entity);
 
         // 2. 렌더러에 스폰 요청
-        this.renderer.spawn(id, type, x, y, entity.z);
+        this.renderer.spawn(id, type, x, y, entity.z, {
+            texture: options.texture,
+            width: options.width,
+            height: options.height,
+            color: options.color,
+        });
 
         // 3. 컴포넌트 런타임 등록
         this.registerComponentRuntimes(entity);
@@ -142,7 +162,7 @@ export class GameCore {
             entity.z = z;
         }
 
-        this.renderer.update(id, x, y, entity.z, entity.rotation);
+        this.renderer.update(id, x, y, entity.z, entity.rotationZ);
         this.notify();
     }
 
@@ -153,7 +173,7 @@ export class GameCore {
         const entity = this.entities.get(id);
         if (!entity) return;
 
-        entity.rotation = rotation;
+        entity.rotationZ = rotation;
         this.renderer.update(id, entity.x, entity.y, entity.z, rotation);
         this.notify();
     }
@@ -328,8 +348,9 @@ export class GameCore {
         switch (comp.type) {
             case "AutoRotate": {
                 const c = comp as AutoRotateComponent;
-                entity.rotation += c.speed * dt;
-                this.renderer.update(entity.id, entity.x, entity.y, entity.z, entity.rotation);
+                console.log(`skrr ${c.speed}`)
+                entity.rotationZ += c.speed * dt;
+                this.renderer.update(entity.id, entity.x, entity.y, entity.z, entity.rotationZ);
                 break;
             }
 
@@ -408,7 +429,7 @@ export class GameCore {
             this.createEntity(entityData.id, entityData.type, entityData.x, entityData.y, {
                 name: entityData.name,
                 z: entityData.z,
-                rotation: entityData.rotation,
+                rotationZ: entityData.rotationZ,
                 scaleX: entityData.scaleX,
                 scaleY: entityData.scaleY,
                 scaleZ: entityData.scaleZ,

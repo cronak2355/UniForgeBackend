@@ -1,50 +1,140 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef } from "react";
-import Phaser from "phaser";
 import { useEditorCoreSnapshot } from "../contexts/EditorCoreContext";
-import RunTimeScene from "./RunTimeScene";
+import { GameCore } from "./core/GameCore";
+import { PhaserRenderer } from "./renderer/PhaserRenderer";
+import type { Asset } from "./types/Asset";
+import type { TilePlacement } from "./EditorCore";
+
+const TILE_SIZE = 32;
+const TILESET_COLS = 16;
+
+async function buildTilesetCanvas(assets: Asset[]): Promise<HTMLCanvasElement | null> {
+    // 타일 에셋을 하나의 캔버스로 합쳐 타일셋 텍스처를 만든다.
+    const tileAssets = assets.filter((asset) => asset.tag === "Tile");
+    if (tileAssets.length === 0) return null;
+
+    const tilesetcanvas = document.createElement("canvas");
+    tilesetcanvas.width = TILE_SIZE * TILESET_COLS;
+    tilesetcanvas.height = Math.ceil(tileAssets.length / TILESET_COLS) * TILE_SIZE;
+
+    const ctx = tilesetcanvas.getContext("2d");
+    if (!ctx) throw new Error("no 2d context");
+
+    let idx = 0;
+    for (const asset of tileAssets) {
+        asset.idx = idx;
+
+        const img = new Image();
+        img.src = asset.url;
+        await img.decode();
+
+        const x = (idx % TILESET_COLS) * TILE_SIZE;
+        const y = Math.floor(idx / TILESET_COLS) * TILE_SIZE;
+        ctx.drawImage(img, x, y, TILE_SIZE, TILE_SIZE);
+
+        idx++;
+    }
+
+    return tilesetcanvas;
+}
+
+function indexTiles(tiles: TilePlacement[]) {
+    // 타일 배열을 좌표 키 맵으로 변환해 diff 계산에 사용한다.
+    const map = new Map<string, TilePlacement>();
+    for (const t of tiles) {
+        map.set(`${t.x},${t.y}`, t);
+    }
+    return map;
+}
 
 export function RunTimeCanvas() {
     const ref = useRef<HTMLDivElement>(null);
-    const sceneRef = useRef<RunTimeScene | null>(null);
-    const gameRef = useRef<Phaser.Game | null>(null);
-    const { core, assets, tiles } = useEditorCoreSnapshot();
+    const rendererRef = useRef<PhaserRenderer | null>(null);
+    const gameCoreRef = useRef<GameCore | null>(null);
+    const prevTilesRef = useRef<Map<string, TilePlacement>>(new Map());
+    const { assets, tiles, entities } = useEditorCoreSnapshot();
 
     useEffect(() => {
+        // 런타임 렌더러/게임코어 초기화 (최초 1회)
         if (!ref.current) return;
-        if (gameRef.current) return;
+        if (rendererRef.current) return;
 
-        const scene = new RunTimeScene();
-        sceneRef.current = scene;
-        scene.editorCore = core;
+        const renderer = new PhaserRenderer();
+        rendererRef.current = renderer;
+        const gameCore = new GameCore(renderer);
+        gameCoreRef.current = gameCore;
 
-        const config: Phaser.Types.Core.GameConfig = {
-            type: Phaser.AUTO,
-            scale: { mode: Phaser.Scale.RESIZE },
-            parent: ref.current,
-            scene: [scene],
-            audio: {
-                noAudio: true
+        let active = true;
+
+        (async () => {
+            // 렌더러 초기화 후 텍스처/타일셋/초기 상태를 로드한다.
+            await renderer.init(ref.current as HTMLElement);
+            if (!active) return;
+
+            for (const asset of assets) {
+                // 타일은 타일셋 캔버스로 처리하므로 비타일만 로드한다.
+                if (asset.tag === "Tile") continue;
+                await renderer.loadTexture(asset.name, asset.url);
             }
-        };
 
-        const game = new Phaser.Game(config);
-        gameRef.current = game;
+            const tilesetCanvas = await buildTilesetCanvas(assets);
+            if (tilesetCanvas) {
+                // 타일셋 텍스처 등록 후 타일맵 생성
+                renderer.addCanvasTexture("tiles", tilesetCanvas);
+                renderer.initTilemap("tiles");
+            }
 
-        scene.events.once(Phaser.Scenes.Events.CREATE, async () => {
-            await scene.buildTilesetTexture();
-            scene.buildWorldFromCore();
-        });
+            for (const t of tiles) {
+                // 저장된 타일 배치 복원
+                renderer.setTile(t.x, t.y, t.tile);
+            }
+
+            for (const e of entities) {
+                // 저장된 엔티티 생성
+                gameCore.createEntity(e.id, e.type, e.x, e.y, {
+                    name: e.name,
+                    texture: e.name,
+                    variables: e.variables,
+                    components: e.components,
+                });
+            }
+
+            // 런타임 업데이트 루프 연결 (컴포넌트 처리)
+            renderer.onUpdateCallback = (time, delta) => {
+                gameCore.update(time, delta);
+            };
+        })();
 
         return () => {
-            game.destroy(true);
+            // 언마운트 시 리소스 정리
+            active = false;
+            gameCoreRef.current?.destroy();
+            renderer.onUpdateCallback = undefined;
+            renderer.destroy();
+            rendererRef.current = null;
+            gameCoreRef.current = null;
         };
     }, []);
 
     useEffect(() => {
-        const scene = sceneRef.current;
-        if (!scene) return;
-        scene.applyTiles(tiles);
+        // 타일 변경사항만 반영 (추가/삭제 diff)
+        const renderer = rendererRef.current;
+        if (!renderer) return;
+
+        const nextTiles = indexTiles(tiles);
+        const prevTiles = prevTilesRef.current;
+
+        for (const [key, prev] of prevTiles.entries()) {
+            if (!nextTiles.has(key)) {
+                renderer.removeTile(prev.x, prev.y);
+            }
+        }
+
+        for (const t of nextTiles.values()) {
+            renderer.setTile(t.x, t.y, t.tile);
+        }
+
+        prevTilesRef.current = nextTiles;
     }, [tiles]);
 
     // Entry Style Colors
@@ -85,8 +175,6 @@ export function RunTimeCanvas() {
                 }}>
                     InGame Camera
                 </span>
-
-                
             </div>
 
             {/* Phaser Canvas Container */}
@@ -103,4 +191,3 @@ export function RunTimeCanvas() {
         </div>
     );
 }
-

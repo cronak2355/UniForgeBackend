@@ -139,7 +139,7 @@ export class EditorScene extends Phaser.Scene {
 
     const getCanvasPos = (clientX: number, clientY: number) => {
 
-      if (!this.sys.game.canvas)
+      if (!this.sys?.game?.canvas)
         return;
       const rect = this.sys.game.canvas.getBoundingClientRect();
 
@@ -156,20 +156,28 @@ export class EditorScene extends Phaser.Scene {
     };
 
     const feedPointer = (clientX: number, clientY: number) => {
-      const result = getCanvasPos(clientX, clientY);
-      if (!result) {
-        return { p: this.input.activePointer, inside: false };
+      try {
+        if (!this.input?.activePointer) {
+          return { p: null as unknown as Phaser.Input.Pointer, inside: false };
+        }
+        const result = getCanvasPos(clientX, clientY);
+        if (!result) {
+          return { p: this.input.activePointer, inside: false };
+        }
+        const { x, y, inside } = result;
+
+        const p = this.input.activePointer;
+        p.x = x;
+        p.y = y;
+
+        return { p: this.input.activePointer, inside };
+      } catch {
+        return { p: null as unknown as Phaser.Input.Pointer, inside: false };
       }
-      const { x, y, inside } = result;
-
-      const p = this.input.activePointer;
-      p.x = x;
-      p.y = y;
-
-      return { p: this.input.activePointer, inside };
     };
 
     const onWinPointerDown = (e: PointerEvent) => {
+      if (!this.ready) return;
       const { p, inside } = feedPointer(e.clientX, e.clientY);
       if (!inside) return;
 
@@ -228,6 +236,7 @@ export class EditorScene extends Phaser.Scene {
     };
 
     const onWinPointerMove = (e: PointerEvent) => {
+      if (!this.ready) return;
       const { p, inside } = feedPointer(e.clientX, e.clientY);
       if (!inside) return;
 
@@ -252,6 +261,7 @@ export class EditorScene extends Phaser.Scene {
     };
 
     const onWinPointerUp = (e: PointerEvent) => {
+      if (!this.ready) return;
       const { p } = feedPointer(e.clientX, e.clientY);
       // allow mode to transition before snapshotting context
       this.editorMode.onPointerUp(this, p);
@@ -268,6 +278,7 @@ export class EditorScene extends Phaser.Scene {
     };
 
     const onWinWheel = (e: WheelEvent) => {
+      if (!this.ready) return;
       const result = getCanvasPos(e.clientX, e.clientY);
       if (!result) return;
       if (!result.inside) return;
@@ -426,6 +437,8 @@ export class EditorScene extends Phaser.Scene {
   }
 
   redrawGrid() {
+    if (!this.gridGfx || !this.cameras?.main) return;
+
     const cam = this.cameras.main;
     const view = cam.worldView;
 
