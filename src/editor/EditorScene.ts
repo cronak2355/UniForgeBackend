@@ -150,20 +150,24 @@ export class EditorScene extends Phaser.Scene {
     };
 
     const feedPointer = (clientX: number, clientY: number) => {
-      if (!this.input?.activePointer) {
+      try {
+        if (!this.input?.activePointer) {
+          return { p: null as unknown as Phaser.Input.Pointer, inside: false };
+        }
+        const result = getCanvasPos(clientX, clientY);
+        if (!result) {
+          return { p: this.input.activePointer, inside: false };
+        }
+        const { x, y, inside } = result;
+
+        const p = this.input.activePointer;
+        p.x = x;
+        p.y = y;
+
+        return { p: this.input.activePointer, inside };
+      } catch {
         return { p: null as unknown as Phaser.Input.Pointer, inside: false };
       }
-      const result = getCanvasPos(clientX, clientY);
-      if (!result) {
-        return { p: this.input.activePointer, inside: false };
-      }
-      const { x, y, inside } = result;
-
-      const p = this.input.activePointer;
-      p.x = x;
-      p.y = y;
-
-      return { p: this.input.activePointer, inside };
     };
 
     const onWinPointerDown = (e: PointerEvent) => {
