@@ -10,10 +10,16 @@ export interface EditorContext {
     mouse: "mousedown" | "mouseup" | "mousemove" | "click";
 }
 
+export type TilePlacement = {
+    x: number;
+    y: number;
+    tile: number;
+};
+
 export class EditorState {
     private assets: Asset[] = [];
     private entities: Map<string, EditorEntity> = new Map();
-    private tiles: Map<number, any> = new Map();
+    private tiles: Map<string, TilePlacement> = new Map();
 
     private selectedAsset: Asset | null = null;
     private draggedAsset: Asset | null = null;
@@ -24,13 +30,11 @@ export class EditorState {
     private listeners: (() => void)[] = [];
 
     constructor() {
-        // Initialize with some mock data if needed
         this.assets = [
-            { id: 1, name: 'Grass', tag: 'Tile', color: '#4ade80', idx: 0, url: '' },
-            { id: 2, name: 'Water', tag: 'Tile', color: '#60a5fa', idx: 1, url: '' },
-            { id: 3, name: 'Stone', tag: 'Tile', color: '#9ca3af', idx: 2, url: '' },
-            { id: 4, name: 'Player', tag: 'Character', url: '/cube.svg', idx: 3, color: '' },
-            { id: 5, name: 'Enemy', tag: 'Character', url: '/cube.svg', idx: 4, color: '' },
+            { id: 0, name: "test1", tag: "Tile", url: "TestAsset.webp", idx: -1 },
+            { id: 1, name: "test2", tag: "Tile", url: "TestAsset2.webp", idx: -1 },
+            { id: 2, name: "test3", tag: "Tile", url: "TestAsset3.webp", idx: -1 },
+            { id: 3, name: "dragon", tag: "Character", url: "RedDragon.webp", idx: -1 },
         ];
     }
 
@@ -76,6 +80,19 @@ export class EditorState {
         }
         this.entities.set(entity.id, entity);
         this.notify();
+    }
+
+    setTile(x: number, y: number, tile: number) {
+        const key = `${x},${y}`;
+        this.tiles.set(key, { x, y, tile });
+        this.notify();
+    }
+
+    removeTile(x: number, y: number) {
+        const key = `${x},${y}`;
+        if (this.tiles.delete(key)) {
+            this.notify();
+        }
     }
 
     sendContextToEditorModeStateMachine(ctx: EditorContext) {
