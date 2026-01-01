@@ -200,10 +200,14 @@ export class KineticModule implements IModule {
     /**
      * 점프 실행
      */
-    jump(): void {
+    /**
+     * 점프 실행
+     * @param force 점프 힘 (없으면 기본값 사용)
+     */
+    jump(force?: number): void {
         if (!this.canJump()) return;
 
-        this.data.velocity.y = -this.data.jumpForce;
+        this.data.velocity.y = -(force ?? this.data.jumpForce);
         this.data.isGrounded = false;
         this.data.currentJumps++;
     }

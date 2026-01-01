@@ -1,21 +1,50 @@
-import { EditorComponent, ComponentDefaults } from "../types/Component";
-import { colors } from "../constants/colors";
+import { memo } from "react";
+import type {
+    EditorComponent,
+    ComponentType,
+    AutoRotateComponent,
+    PulseComponent
+} from "../types/Component";
+import { ComponentDefaults } from "../types/Component";
 
-type Props = {
-    components: EditorComponent[];
-    onAdd: (component: EditorComponent) => void;
-    onUpdate: (component: EditorComponent) => void;
-    onDelete: (id: string) => void;
+const colors = {
+    bgPrimary: '#0d1117',
+    borderColor: '#30363d',
+    accentLight: '#58a6ff',
+    textPrimary: '#f0f6fc',
+    textSecondary: '#8b949e',
+    btnBg: '#21262d',
+    btnHover: '#30363d',
+    danger: '#da3633',
 };
 
-export function ComponentSection({ components, onAdd, onUpdate, onDelete }: Props) {
-    const handleAddComponent = (type: "AutoRotate" | "Pulse") => {
-        const defaults = ComponentDefaults[type];
-        const newComponent: EditorComponent = {
-            ...defaults,
-            id: crypto.randomUUID(),
-        } as EditorComponent;
-        onAdd(newComponent);
+import type { EditorEntity } from "../types/Entity"; // Import 추가
+
+// ...
+
+type Props = {
+    entity: EditorEntity;
+    onUpdateEntity: (entity: EditorEntity) => void;
+};
+
+export const ComponentSection = memo(function ComponentSection({ entity, onUpdateEntity }: Props) {
+    const components = entity.components || [];
+
+    const onAdd = (comp: EditorComponent) => {
+        onUpdateEntity({ ...entity, components: [...components, comp] });
+    };
+
+    const onUpdate = (comp: EditorComponent) => {
+        onUpdateEntity({ ...entity, components: components.map(c => c.id === comp.id ? comp : c) });
+    };
+
+    const onRemove = (id: string) => {
+        onUpdateEntity({ ...entity, components: components.filter(c => c.id !== id) });
+    };
+
+    const handleAdd = (type: ComponentType) => {
+        const def = ComponentDefaults[type];
+        onAdd({ ...def, id: crypto.randomUUID() } as EditorComponent);
     };
 
     return (

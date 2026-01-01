@@ -9,14 +9,28 @@ import type {
 import { ModuleDefaults } from "../types/Module";
 import { colors } from "../constants/colors";
 
+import type { EditorEntity } from "../types/Entity"; // Import 추가
+
 type Props = {
-    modules: EditorModule[];
-    onAdd: (mod: EditorModule) => void;
-    onUpdate: (mod: EditorModule) => void;
-    onRemove: (id: string) => void;
+    entity: EditorEntity;
+    onUpdateEntity: (entity: EditorEntity) => void;
 };
 
-export const ModuleSection = memo(function ModuleSection({ modules, onAdd, onUpdate, onRemove }: Props) {
+export const ModuleSection = memo(function ModuleSection({ entity, onUpdateEntity }: Props) {
+    const modules = entity.modules || [];
+
+    const onAdd = (mod: EditorModule) => {
+        onUpdateEntity({ ...entity, modules: [...modules, mod] });
+    };
+
+    const onUpdate = (mod: EditorModule) => {
+        onUpdateEntity({ ...entity, modules: modules.map(m => m.id === mod.id ? mod : m) });
+    };
+
+    const onRemove = (id: string) => {
+        onUpdateEntity({ ...entity, modules: modules.filter(m => m.id !== id) });
+    };
+
     const handleAdd = (type: ModuleType) => {
         const def = ModuleDefaults[type];
         onAdd({ ...def, id: crypto.randomUUID() } as EditorModule);

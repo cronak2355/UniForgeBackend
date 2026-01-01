@@ -62,8 +62,11 @@ function EditorLayoutInner() {
     const [localSelectedEntity, setLocalSelectedEntity] = useState<EditorEntity | null>(selectedEntity);
 
     // keep local selection in sync with core selection
+    // 드래그 중에도 이전 선택을 유지 (selectedEntity가 null이 아닐 때만 업데이트)
     useEffect(() => {
-        setLocalSelectedEntity(selectedEntity);
+        if (selectedEntity !== null) {
+            setLocalSelectedEntity(selectedEntity);
+        }
     }, [selectedEntity]);
 
     return (
