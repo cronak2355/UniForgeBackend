@@ -1,5 +1,4 @@
-﻿import type { Asset } from "../types/Asset";
-//import { assetToEntity } from "../utils/assetToEntity"
+import type { Asset } from "../types/Asset";
 import { EditorScene } from "../EditorScene";
 import type { EditorEntity } from "../types/Entity";
 import { Scene } from "phaser";

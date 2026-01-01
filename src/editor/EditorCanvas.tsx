@@ -7,6 +7,7 @@ import { EditorState, type EditorContext } from "./EditorCore";
 import type { Asset } from "./types/Asset"
 import type { EditorEntity } from "./types/Entity";
 import { EditorScene } from "./EditorScene";
+import { colors } from "./constants/colors";
 
 type Props = {
     assets: Asset[];
@@ -43,9 +44,8 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset }
 
         // addEntity = hierarchy/inspector update on new entities
         scene.onSelectEntity = (entity) => {
-            console.log("[PhaserCanvas] received entity:", entity);
-            addEntity(entity);
-            core.setSelectedEntity(entity);
+            console.log("🔵 [PhaserCanvas] received entity:", entity);
+            addEntity(entity); // or onSelectEntity(entity)
         };
 
         const config: Phaser.Types.Core.GameConfig = {
@@ -165,17 +165,6 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset }
         const ctx: EditorContext = { currentMode: mode, currentDraggingAsset: draggedAsset, mouse: "mousemove" };
         core.sendContextToEditorModeStateMachine(ctx);
     }, [draggedAsset])
-    // Entry Style Colors
-    const colors = {
-        bgPrimary: '#0d1117',
-        bgSecondary: '#161b22',
-        bgTertiary: '#21262d',
-        borderColor: '#30363d',
-        borderAccent: '#1f6feb',
-        accentLight: '#58a6ff',
-        textPrimary: '#f0f6fc',
-        textSecondary: '#8b949e',
-    };
 
     return (
         <div style={{
@@ -263,7 +252,7 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset }
                 ref={ref}
                 style={{
                     flex: 1,
-                    background: colors.bgPrimary,
+                    background: colors.bgViewport,
                     border: `2px solid ${colors.borderColor}`,
                     borderRadius: '6px',
                     overflow: 'hidden',
