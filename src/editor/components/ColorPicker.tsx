@@ -28,8 +28,9 @@ export function ColorPicker({ currentColor, onColorChange, onClose, anchorRect }
         };
     }, [onClose]);
 
-    // Calculate position
-    const top = anchorRect.top + anchorRect.height + 4;
+    // Calculate position - position ABOVE the asset
+    const pickerHeight = 200; // approximate height of the picker
+    const top = anchorRect.top - pickerHeight - 8;
     const left = anchorRect.left;
 
     const presetColors = [

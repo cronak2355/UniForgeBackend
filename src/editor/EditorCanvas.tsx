@@ -147,6 +147,52 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Update tileset when asset colors change
+    useEffect(() => {
+        const scene = sceneRef.current;
+        if (!scene || !scene.ready) return;
+
+        const tileSize = 32;
+        const cols = 16;
+
+        // Count tiles
+        let tileCount = 0;
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].tag === "Tile") tileCount++;
+        }
+        if (tileCount === 0) return;
+
+        const tilesetcanvas = document.createElement("canvas");
+        tilesetcanvas.width = tileSize * cols;
+        tilesetcanvas.height = Math.ceil(tileCount / cols) * tileSize;
+
+        const ctx = tilesetcanvas.getContext("2d");
+        if (!ctx) return;
+
+        let idx = 0;
+        for (let i = 0; i < assets.length; i++) {
+            if (assets[i].tag !== "Tile") continue;
+
+            assets[i].idx = idx;
+            const x = (idx % cols) * tileSize;
+            const y = Math.floor(idx / cols) * tileSize;
+
+            if (assets[i].color) {
+                ctx.fillStyle = assets[i].color || '#ffffff';
+                ctx.fillRect(x, y, tileSize, tileSize);
+            }
+
+            idx++;
+        }
+
+        // Update the texture
+        const tilesetKey = "tiles";
+        if (scene.textures.exists(tilesetKey)) {
+            scene.textures.remove(tilesetKey);
+        }
+        scene.textures.addCanvas(tilesetKey, tilesetcanvas);
+    }, [assets]);
+
     useEffect(() => {
         if (sceneRef.current == null)
             return;
