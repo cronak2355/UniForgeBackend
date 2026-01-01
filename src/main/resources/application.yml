@@ -50,3 +50,14 @@ management:
   health:
     redis:
       enabled: false
+
+cloud:
+  aws:
+    s3:
+      bucket: uniforge-data
+    region:
+       static: ap-northeast-2
+    # 이하 환경변수로 설정해야 됨
+    # credentials:
+    #   access-key: ACCESS_KEY 
+    #   secret-key: SECRET_KEY
