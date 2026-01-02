@@ -9,11 +9,15 @@ export interface GenerateAssetRequest {
     asset_type: 'character' | 'object' | 'tile' | 'effect';
     width?: number;
     height?: number;
+    image?: string; // Base64 encoded image
+    strength?: number; // 0.0 to 1.0 (Refine strength)
+    mode?: 'text-to-image' | 'image-to-image' | 'remove_background';
 }
 
 export interface GenerateAssetResponse {
     success: boolean;
     asset_url?: string;
+    image?: string; // Base64 for direct return
     asset_id?: string;
     asset_type?: string;
     prompt?: string;
@@ -42,9 +46,6 @@ export async function checkEndpointStatus(): Promise<EndpointStatusResponse> {
     }
 }
 
-/**
- * SageMaker를 통한 AI 에셋 생성
- */
 export async function generateAsset(request: GenerateAssetRequest): Promise<GenerateAssetResponse> {
     try {
         const response = await fetch(`${API_BASE_URL}/generate-asset`, {
@@ -56,6 +57,9 @@ export async function generateAsset(request: GenerateAssetRequest): Promise<Gene
                 asset_type: request.asset_type,
                 width: request.width || 512,
                 height: request.height || 512,
+                image: request.image,
+                strength: request.strength,
+                mode: request.mode,
             }),
         });
 

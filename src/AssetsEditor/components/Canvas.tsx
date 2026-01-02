@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useAssetsEditor } from '../context/AssetsEditorContext';
 
 export function Canvas() {
-  const { 
-    canvasRef, 
-    initEngine, 
+  const {
+    canvasRef,
+    initEngine,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
@@ -14,7 +14,7 @@ export function Canvas() {
     zoom,
     setZoom
   } = useAssetsEditor();
-  
+
   const [isPanning, setIsPanning] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const lastPanPos = useRef({ x: 0, y: 0 });
@@ -25,6 +25,17 @@ export function Canvas() {
   useEffect(() => {
     initEngine();
   }, [initEngine]);
+
+  // Center Canvas on Mount
+  useEffect(() => {
+    if (wrapperRef.current) {
+      const { width, height } = wrapperRef.current.getBoundingClientRect();
+      setPanOffset({
+        x: (width - displaySize) / 2,
+        y: (height - displaySize) / 2,
+      });
+    }
+  }, []); // Run once on mount
 
   // 키보드 이벤트 (화살표)
   useEffect(() => {
@@ -48,46 +59,48 @@ export function Canvas() {
           break;
       }
     };
-    
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // 마우스 휠 줌 (마우스 포인터 기준)
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    
-    const delta = e.deltaY > 0 ? -1 : 1;
-    const newZoom = Math.max(2, Math.min(20, zoom + delta));
-    if (newZoom === zoom) return;
-    
-    const rect = wrapperRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    
-    // wrapper 기준 마우스 위치 (고정된 좌표)
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    
-    // 캔버스 왼쪽 상단 기준 마우스 위치
-    const canvasMouseX = mouseX - panOffset.x;
-    const canvasMouseY = mouseY - panOffset.y;
-    
-    // 현재 줌에서 픽셀 좌표
-    const pixelX = canvasMouseX / zoom;
-    const pixelY = canvasMouseY / zoom;
-    
-    // 새 줌에서 같은 픽셀의 캔버스 위치
-    const newCanvasMouseX = pixelX * newZoom;
-    const newCanvasMouseY = pixelY * newZoom;
-    
-    // panOffset 조정 (마우스 화면 위치 고정)
-    setPanOffset({
-      x: mouseX - newCanvasMouseX,
-      y: mouseY - newCanvasMouseY,
-    });
-    
-    setZoom(newZoom);
-  };
+  // 마우스 휠 줌 (Passive: false 설정)
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+
+      const factor = 0.1;
+      const delta = e.deltaY > 0 ? -factor : factor; // +/- 10%
+      const newZoom = Math.max(0.1, Math.min(20, zoom * (1 + delta)));
+      if (newZoom === zoom) return;
+
+      const rect = wrapper.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const canvasMouseX = mouseX - panOffset.x;
+      const canvasMouseY = mouseY - panOffset.y;
+
+      const pixelX = canvasMouseX / zoom;
+      const pixelY = canvasMouseY / zoom;
+
+      const newCanvasMouseX = pixelX * newZoom;
+      const newCanvasMouseY = pixelY * newZoom;
+
+      setPanOffset({
+        x: mouseX - newCanvasMouseX,
+        y: mouseY - newCanvasMouseY,
+      });
+
+      setZoom(newZoom);
+    };
+
+    wrapper.addEventListener('wheel', handleWheel, { passive: false });
+    return () => wrapper.removeEventListener('wheel', handleWheel);
+  }, [zoom, panOffset, setZoom]);
 
   // 패닝 시작 (우클릭 / 휠클릭)
   const handleWrapperPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -125,7 +138,7 @@ export function Canvas() {
     const handleGlobalPointerUp = () => {
       handlePointerUp();
     };
-    
+
     window.addEventListener('pointerup', handleGlobalPointerUp);
     return () => window.removeEventListener('pointerup', handleGlobalPointerUp);
   }, [handlePointerUp]);
@@ -134,10 +147,9 @@ export function Canvas() {
   const checkerSize = Math.max(8, zoom);
 
   return (
-    <div 
+    <div
       ref={wrapperRef}
       className="absolute inset-0 overflow-hidden"
-      onWheel={handleWheel}
       onPointerDown={handleWrapperPointerDown}
       onPointerMove={handleWrapperPointerMove}
       onPointerUp={handleWrapperPointerUp}
@@ -171,12 +183,12 @@ export function Canvas() {
             backgroundColor: '#2a2a2a',
           }}
         />
-        
+
         {/* 캔버스 테두리 */}
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none border border-neutral-600"
         />
-        
+
         {/* 메인 캔버스 */}
         <canvas
           ref={canvasRef}

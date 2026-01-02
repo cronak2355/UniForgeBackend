@@ -1,37 +1,92 @@
 @import "tailwindcss";
 
-/* 커스텀 스크롤바 */
+:root {
+  --color-bg-base: #030712;
+  /* Gray 950/Black */
+  --color-glass: rgba(15, 23, 42, 0.7);
+  /* Slate 900 70% */
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-accent-primary: #3b82f6;
+  /* Blue 500 */
+  --color-accent-hover: #60a5fa;
+  /* Blue 400 */
+  --color-text-primary: #f8fafc;
+  /* Slate 50 */
+  --color-text-secondary: #94a3b8;
+  /* Slate 400 */
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  /* Prevent page scroll */
+}
+
+/* Glass Utility Class */
+.glass-panel {
+  background: var(--color-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: var(--shadow-glass);
+  /* rounded-2xl removed for Square aesthetic */
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
-}
-::-webkit-scrollbar-thumb {
-  background: #262626;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #404040;
+  background: transparent;
 }
 
-/* Range input 스타일 */
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Range Input Styling */
 input[type="range"] {
   -webkit-appearance: none;
-  appearance: none;
   background: transparent;
   cursor: pointer;
 }
+
 input[type="range"]::-webkit-slider-track {
-  background: #262626;
+  background: #334155;
   height: 4px;
+  border-radius: 2px;
 }
+
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  appearance: none;
-  background: #3b82f6;
-  height: 12px;
-  width: 12px;
+  background: var(--color-accent-primary);
+  height: 14px;
+  width: 14px;
   border-radius: 50%;
-  margin-top: -4px;
+  margin-top: -5px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  /* Subtle Glow */
+  transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Grid Background Pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
 }

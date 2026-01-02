@@ -48,6 +48,19 @@ export class PixelEngine {
     this.render();
   }
 
+  getCanvas(): HTMLCanvasElement {
+    return this.viewCanvas;
+  }
+
+  setCanvas(canvas: HTMLCanvasElement): void {
+    this.viewCanvas = canvas;
+    const viewCtx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!viewCtx) throw new Error('Failed to get view canvas context');
+    this.viewCtx = viewCtx;
+    this.viewCtx.imageSmoothingEnabled = false;
+    this.render();
+  }
+
   // ==================== 프레임 API ====================
 
   get maxFrames(): number {
@@ -305,9 +318,8 @@ export class PixelEngine {
           a: imageData.data[idx + 3],
         };
 
-        if (color.a > 0) {
-          this.setPixelWithHistory(x, y, color);
-        }
+        // Always set the pixel, effectively overwriting/clearing previous content
+        this.setPixelWithHistory(x, y, color);
       }
     }
 

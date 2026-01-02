@@ -30,10 +30,8 @@ export function LeftToolbar() {
     getFrameThumbnail,
   } = useAssetsEditor();
 
-  // 썸네일 캐시 (프레임 변경 시 업데이트)
   const [thumbnails, setThumbnails] = useState<(string | null)[]>([]);
 
-  // 프레임 변경 시 썸네일 업데이트
   useEffect(() => {
     const newThumbnails = frames.map((_, index) => getFrameThumbnail(index));
     setThumbnails(newThumbnails);
@@ -61,295 +59,165 @@ export function LeftToolbar() {
     } : { r: 0, g: 0, b: 0, a: 255 };
   };
 
+  // Modern Palette Colors
+  const paletteColors = [
+    '#000000', '#ffffff', '#9ca3af', '#4b5563',
+    '#ef4444', '#f97316', '#eab308', '#22c55e',
+    '#14b8a6', '#3b82f6', '#8b5cf6', '#d946ef',
+    '#be185d', '#881337', '#4c1d95', '#1e3a8a',
+  ];
+
   return (
-    <div className="w-[200px] bg-black border-r border-neutral-800 flex flex-col overflow-hidden">
-      {/* Frames Panel */}
-      <div className="p-3 border-b border-neutral-800">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-neutral-500">Frames</span>
-          <span className="text-[10px] text-neutral-600">{frames.length}/{maxFrames}</span>
+    <div className="h-full flex flex-col w-[260px] ml-4 transition-all duration-300 gap-4">
+
+      {/* 1. Frames (Top Block) */}
+      <div className="glass-panel p-4 border border-white/10 bg-black/40 flex flex-col gap-3 shrink-0">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold text-white/90 uppercase tracking-widest">Frames</h3>
+          <span className="text-[10px] bg-white/10 px-1.5 py-0.5 text-white/60">
+            {frames.length} / {maxFrames}
+          </span>
         </div>
 
-        {/* Frame Thumbnails */}
-        <div className="space-y-1.5 mb-2 max-h-[200px] overflow-y-auto">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x">
           {frames.map((frame, index) => (
             <div
               key={frame.id}
               onClick={() => selectFrame(index)}
-              className={`group relative flex items-center gap-2 p-1.5 cursor-pointer transition-colors ${currentFrameIndex === index
-                  ? 'bg-[#2563eb]/20 border border-[#2563eb]'
-                  : 'bg-neutral-900 border border-neutral-800 hover:border-neutral-700'
-                }`}
+              className={`
+                        snap-start shrink-0 w-16 h-16 border-2 cursor-pointer relative overflow-hidden group
+                        transition-all duration-200
+                        ${currentFrameIndex === index ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.4)] z-10' : 'border-white/10 hover:border-white/30'}
+                    `}
             >
-              {/* Thumbnail */}
-              <div
-                className="w-10 h-10 bg-neutral-800 flex-shrink-0"
+              <div className="absolute inset-0 bg-[#1a1a1a]"
                 style={{
-                  backgroundImage: `
-                    linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
-                    linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
-                    linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
-                    linear-gradient(-45deg, transparent 75%, #3a3a3a 75%)
-                  `,
+                  backgroundImage: 'linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%)',
                   backgroundSize: '8px 8px',
-                  backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px',
-                  backgroundColor: '#2a2a2a',
+                  backgroundPosition: '0 0, 4px 4px'
                 }}
-              >
-                {thumbnails[index] && (
-                  <img
-                    src={thumbnails[index]!}
-                    alt={`Frame ${index + 1}`}
-                    className="w-full h-full"
-                    style={{ imageRendering: 'pixelated' }}
-                  />
-                )}
-              </div>
+              />
+              {thumbnails[index] && (
+                <img src={thumbnails[index]!} className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+              )}
 
-              {/* Frame Info */}
-              <div className="flex-1 min-w-0">
-                <div className="text-xs text-white truncate">Frame {index + 1}</div>
-                <div className="text-[10px] text-neutral-500">{pixelSize}×{pixelSize}</div>
-              </div>
-
-              {/* Frame Actions (on hover) */}
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex gap-0.5 transition-opacity">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    duplicateFrame(index);
-                  }}
-                  disabled={frames.length >= maxFrames}
-                  className="w-5 h-5 flex items-center justify-center bg-neutral-800 hover:bg-neutral-700 text-[10px] text-neutral-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="Duplicate"
-                >
-                  📋
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteFrame(index);
-                  }}
-                  disabled={frames.length <= 1}
-                  className="w-5 h-5 flex items-center justify-center bg-neutral-800 hover:bg-red-900/50 text-[10px] text-neutral-400 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="Delete"
-                >
-                  🗑
-                </button>
+              {/* Hover Actions */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity backdrop-blur-[1px]">
+                <button onClick={(e) => { e.stopPropagation(); duplicateFrame(index); }} disabled={frames.length >= maxFrames} className="text-xs text-white hover:text-blue-400 disabled:opacity-50 p-1 hover:bg-white/10">📋</button>
+                <button onClick={(e) => { e.stopPropagation(); deleteFrame(index); }} disabled={frames.length <= 1} className="text-xs text-white hover:text-red-400 disabled:opacity-50 p-1 hover:bg-white/10">🗑</button>
               </div>
             </div>
           ))}
-        </div>
 
-        {/* Add Frame Button */}
-        <button
-          onClick={addFrame}
-          disabled={frames.length >= maxFrames}
-          className="w-full py-1.5 text-xs bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 flex items-center justify-center gap-1 text-neutral-400 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <span className="text-[#3b82f6]">+</span> Add frame
-        </button>
-      </div>
-
-      {/* Canvas Size */}
-      <div className="p-3 border-b border-neutral-800">
-        <div className="text-xs text-neutral-500 mb-2">Canvas</div>
-        <div className="flex gap-1">
-          {([128, 256, 512] as const).map((size) => (
-            <button
-              key={size}
-              onClick={() => setPixelSize(size)}
-              className={`flex-1 py-1.5 text-xs transition-colors ${pixelSize === size
-                  ? 'bg-[#2563eb] text-white'
-                  : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-                }`}
-            >
-              {size}px
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tools */}
-      <div className="p-3 border-b border-neutral-800">
-        <div className="text-xs text-neutral-500 mb-2">Tools</div>
-        <div className="grid grid-cols-4 gap-1">
-          {tools.map((tool) => (
-            <button
-              key={tool.id}
-              onClick={() => setCurrentTool(tool.id as typeof currentTool)}
-              className={`aspect-square flex items-center justify-center text-sm transition-colors ${currentTool === tool.id
-                  ? 'bg-[#2563eb] text-white'
-                  : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-                }`}
-              title={tool.label}
-            >
-              {tool.icon}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Brush Size */}
-      <div className="p-3 border-b border-neutral-800">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-neutral-500">Brush Size</span>
-          <span className="text-xs text-neutral-400 font-mono">{brushSize}px</span>
-        </div>
-        <input
-          type="range"
-          min="1"
-          max="16"
-          value={brushSize}
-          onChange={(e) => setBrushSize(Number(e.target.value))}
-          className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#2563eb]"
-        />
-        <div className="flex gap-1 mt-2">
-          {[1, 2, 4, 8].map((size) => (
-            <button
-              key={size}
-              onClick={() => setBrushSize(size)}
-              className={`flex-1 py-1 text-[10px] transition-colors ${brushSize === size
-                  ? 'bg-[#2563eb] text-white'
-                  : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-                }`}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Undo / Redo */}
-      <div className="p-3 border-b border-neutral-800">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-neutral-500">History</span>
-          <span className="text-[10px] text-neutral-600">
-            {historyState.undoCount} / {historyState.redoCount}
-          </span>
-        </div>
-        <div className="flex gap-1">
+          {/* Add Button */}
           <button
-            onClick={undo}
-            disabled={!canUndo}
-            className={`flex-1 py-1.5 text-xs flex items-center justify-center gap-1 transition-colors ${canUndo
-                ? 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-                : 'bg-neutral-900/50 text-neutral-600 border border-neutral-800/50 cursor-not-allowed'
-              }`}
-            title="Undo (Ctrl+Z)"
+            onClick={addFrame}
+            disabled={frames.length >= maxFrames}
+            className="shrink-0 w-16 h-16 border border-dashed border-white/20 flex flex-col items-center justify-center gap-1 text-white/40 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all disabled:opacity-30 disabled:cursor-not-allowed group"
           >
-            <span>↩</span> Undo
-          </button>
-          <button
-            onClick={redo}
-            disabled={!canRedo}
-            className={`flex-1 py-1.5 text-xs flex items-center justify-center gap-1 transition-colors ${canRedo
-                ? 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-                : 'bg-neutral-900/50 text-neutral-600 border border-neutral-800/50 cursor-not-allowed'
-              }`}
-            title="Redo (Ctrl+Shift+Z)"
-          >
-            Redo <span>↪</span>
+            <span className="text-xl group-hover:scale-110 transition-transform">+</span>
           </button>
         </div>
       </div>
 
-      {/* Color */}
-      <div className="p-3 border-b border-neutral-800">
-        <div className="text-xs text-neutral-500 mb-2">Color</div>
+      {/* 2. Tools & Color Picker (Middle Block) */}
+      <div className="glass-panel p-4 border border-white/10 bg-black/40 space-y-4 shrink-0">
+        <h3 className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-3">Tools</h3>
+        <div className="grid grid-cols-4 gap-2">
+          {tools.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setCurrentTool(t.id as any)}
+              className={`
+                            aspect-square flex items-center justify-center text-xl transition-all border border-transparent
+                            ${currentTool === t.id
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                  : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white hover:border-white/10'}
+                        `}
+              title={t.label}
+            >
+              {t.icon}
+            </button>
+          ))}
+        </div>
 
-        {/* Current Color Display */}
-        <div className="flex gap-2 mb-3">
-          <div
-            className="w-10 h-10 border border-neutral-700"
-            style={{ backgroundColor: rgbaToHex(currentColor) }}
-          />
-          <div className="flex-1">
+        <div className="h-px bg-white/5 my-2" />
+
+        {/* Current Color Input */}
+        <div className="flex items-center gap-3 bg-white/5 p-2 border border-white/5">
+          <div className="w-8 h-8 shadow-inner border border-white/10" style={{ backgroundColor: rgbaToHex(currentColor) }} />
+          <div className="flex-1 relative">
             <input
               type="color"
               value={rgbaToHex(currentColor)}
               onChange={(e) => setCurrentColor(hexToRgba(e.target.value))}
-              className="w-full h-10 cursor-pointer bg-neutral-900 border border-neutral-800"
+              className="w-full h-6 bg-transparent cursor-pointer opacity-0 absolute inset-0 z-10"
             />
+            <div className="text-xs font-mono text-white/60 uppercase pointer-events-none">{rgbaToHex(currentColor)}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Palette & Brush (Bottom Block) */}
+      <div className="glass-panel p-4 border border-white/10 bg-black/40 flex-1 overflow-y-auto space-y-6">
+
+        {/* Palette */}
+        <div>
+          <h3 className="text-xs font-semibold text-white/60 mb-2 uppercase tracking-widest">Palette</h3>
+          <div className="grid grid-cols-6 gap-2">
+            {paletteColors.map(c => (
+              <button
+                key={c}
+                onClick={() => setCurrentColor(hexToRgba(c))}
+                className="w-full aspect-square border border-white/10 hover:scale-110 transition-transform shadow-sm hover:border-white/50"
+                style={{ backgroundColor: c }}
+              />
+            ))}
           </div>
         </div>
 
-        {/* Color Palette */}
-        <div className="grid grid-cols-8 gap-0.5">
-          {[
-            '#000000', '#ffffff', '#9ca3af', '#6b7280',
-            '#ef4444', '#f97316', '#eab308', '#22c55e',
-            '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899',
-            '#1e3a8a', '#065f46', '#7c2d12', '#4c1d95',
-          ].map((color) => (
+        {/* Brush Size */}
+        <div>
+          <div className="flex justify-between mb-2">
+            <h3 className="text-xs font-semibold text-white/60 uppercase tracking-widest">Size</h3>
+            <span className="text-xs text-blue-400 font-mono">{brushSize}px</span>
+          </div>
+          <input
+            type="range"
+            min="1" max="16"
+            value={brushSize}
+            onChange={(e) => setBrushSize(Number(e.target.value))}
+            className="w-full h-1 bg-white/10 appearance-none cursor-pointer"
+          />
+        </div>
+
+        {/* History & Actions */}
+        <div className="space-y-2 pt-4 border-t border-white/5">
+          <div className="flex gap-2">
             <button
-              key={color}
-              onClick={() => setCurrentColor(hexToRgba(color))}
-              className="aspect-square border border-neutral-800 hover:border-[#3b82f6] transition-colors"
-              style={{ backgroundColor: color }}
-            />
-          ))}
+              onClick={undo} disabled={!canUndo}
+              className="flex-1 py-2 bg-white/5 text-xs text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors"
+            >
+              Undo
+            </button>
+            <button
+              onClick={redo} disabled={!canRedo}
+              className="flex-1 py-2 bg-white/5 text-xs text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors"
+            >
+              Redo
+            </button>
+          </div>
+
+          <button
+            onClick={clearCanvas}
+            className="w-full py-2 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40 transition-all text-xs"
+          >
+            Clear
+          </button>
         </div>
+
       </div>
 
-      {/* Shortcuts Guide */}
-      <div className="p-3 border-t border-neutral-800 flex-1 overflow-y-auto">
-        <div className="text-xs text-neutral-500 mb-2">Shortcuts</div>
-        <div className="space-y-1 text-[10px]">
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Pan</span>
-            <span className="text-neutral-400">RMB Drag</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Zoom</span>
-            <span className="text-neutral-400">Scroll</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Move</span>
-            <span className="text-neutral-400">Arrow Keys</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Reset View</span>
-            <span className="text-neutral-400">Home</span>
-          </div>
-          <div className="border-t border-neutral-800 my-1.5" />
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Pen</span>
-            <span className="text-neutral-400">P</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Eraser</span>
-            <span className="text-neutral-400">E</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Picker</span>
-            <span className="text-neutral-400">O</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Fill</span>
-            <span className="text-neutral-400">B</span>
-          </div>
-          <div className="border-t border-neutral-800 my-1.5" />
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Undo</span>
-            <span className="text-neutral-400">Ctrl+Z</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-500">Redo</span>
-            <span className="text-neutral-400">Ctrl+Shift+Z</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="p-3 border-t border-neutral-800">
-        <button
-          onClick={clearCanvas}
-          className="w-full py-1.5 text-xs bg-neutral-900 hover:bg-red-900/50 border border-neutral-800 hover:border-red-800 text-neutral-400 hover:text-red-400 transition-colors"
-        >
-          Clear Frame
-        </button>
-      </div>
     </div>
   );
 }

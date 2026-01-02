@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { PixelEngine, type RGBA, type PixelSize } from '../engine/PixelEngine';
 import type { Frame } from '../engine/FrameManager';
+import { generateAsset } from '../services/SagemakerService';
 
 export type Tool = 'brush' | 'eraser' | 'eyedropper' | 'fill';
 
@@ -92,6 +93,8 @@ interface AssetsEditorContextType {
   featherAmount: number;
   setFeatherAmount: (amount: number) => void;
 
+
+
   // Export
   downloadWebP: (filename: string) => Promise<void>;
   saveToLibrary: (name: string, type: Asset['type'], stats: Asset['stats']) => Promise<void>;
@@ -100,6 +103,7 @@ interface AssetsEditorContextType {
   assets: Asset[];
   deleteAsset: (id: string) => void;
   loadAsset: (id: string) => void;
+  triggerBackgroundRemoval: () => void;
 }
 
 const AssetsEditorContext = createContext<AssetsEditorContextType | null>(null);
@@ -110,12 +114,13 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
 
   const [currentTool, setCurrentTool] = useState<Tool>('brush');
   const [currentColor, setCurrentColor] = useState<RGBA>({ r: 255, g: 255, b: 255, a: 255 });
-  const [pixelSize, setPixelSizeState] = useState<PixelSize>(128);
-  const [zoom, setZoomState] = useState(8);
+  const [pixelSize, setPixelSizeState] = useState<PixelSize>(512);
+  const [zoom, setZoomState] = useState(1);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const [featherAmount, setFeatherAmount] = useState(0);
+
   const [originalAIImage, setOriginalAIImage] = useState<ImageBitmap | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -152,11 +157,19 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setZoom = useCallback((newZoom: number) => {
-    setZoomState(Math.min(20, Math.max(2, newZoom)));
+    setZoomState(Math.min(20, Math.max(0.1, newZoom)));
   }, []);
 
   const initEngine = useCallback(() => {
-    if (!canvasRef.current || engineRef.current) return;
+    if (!canvasRef.current) return;
+
+    if (engineRef.current) {
+      if (engineRef.current.getCanvas() !== canvasRef.current) {
+        engineRef.current.setCanvas(canvasRef.current);
+      }
+      return;
+    }
+
     engineRef.current = new PixelEngine(canvasRef.current, pixelSize, 50);
     updateHistoryState();
     syncFrameState();
@@ -359,7 +372,15 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
       const isMac = navigator.platform.toUpperCase().includes('MAC');
       const modKey = isMac ? e.metaKey : e.ctrlKey;
 
-      if (modKey && e.key === 'z') {
+      // Ignore if typing in an input/textarea
+      if (
+        document.activeElement instanceof HTMLInputElement ||
+        document.activeElement instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      if (modKey && (e.code === 'KeyZ' || e.key.toLowerCase() === 'z')) {
         e.preventDefault();
         if (e.shiftKey) {
           redo();
@@ -375,6 +396,238 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
 
   // ==================== AI Image ====================
 
+  // Main Image Processing Logic (Simplified: Just Load & Resize)
+  const processAndApplyImage = useCallback(async (baseImage: ImageBitmap, feather: number) => {
+    if (!engineRef.current) return;
+
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = pixelSize;
+    tempCanvas.height = pixelSize;
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+    if (!tempCtx) return;
+
+    tempCtx.imageSmoothingEnabled = false;
+    tempCtx.drawImage(baseImage, 0, 0, pixelSize, pixelSize);
+
+    const imageData = tempCtx.getImageData(0, 0, pixelSize, pixelSize);
+    engineRef.current.applyAIImage(imageData);
+    syncFrameState();
+  }, [pixelSize, syncFrameState]);
+
+
+  // Manual Background Removal Trigger (with Hybrid AI + Algorithm Fallback)
+  const triggerBackgroundRemoval = useCallback(async () => {
+    if (!engineRef.current || !canvasRef.current) return;
+
+    setIsLoading(true);
+
+    const w = pixelSize;
+    const h = pixelSize;
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = w;
+    tempCanvas.height = h;
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+    if (!tempCtx) {
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      let processSuccess = false;
+
+      // ---------------------------------------------------------
+      // A. Try AI Semantic Segmentation (Titan Image Generator v2)
+      // ---------------------------------------------------------
+      try {
+        const sourceCanvas = canvasRef.current;
+        const base64Image = sourceCanvas.toDataURL('image/png').split(',')[1];
+
+        // Note: generateAsset handles response errors by throwing or returning success:false
+        const result = await generateAsset({
+          mode: 'remove_background',
+          image: base64Image,
+          prompt: 'background removal',
+          asset_type: 'character',
+        });
+
+        if (result.success && result.image) {
+          console.log("AI Background Removal Successful");
+          const cleanBase64 = result.image;
+          const blob = await (await fetch(`data:image/png;base64,${cleanBase64}`)).blob();
+          const bitmap = await createImageBitmap(blob);
+          tempCtx.drawImage(bitmap, 0, 0, w, h);
+          processSuccess = true;
+        } else {
+          throw new Error(result.error || "AI returned failure status");
+        }
+
+      } catch (aiError) {
+        console.warn("AI Background Removal Failed (ContentFilter/Error), falling back to algorithm:", aiError);
+        // Don't alert yet, try fallback.
+
+        // ---------------------------------------------------------
+        // B. Fallback: Robust Flood Fill Algorithm (Frontend)
+        // ---------------------------------------------------------
+
+        // 1. Get current data
+        tempCtx.drawImage(canvasRef.current, 0, 0);
+        const imageData = tempCtx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+
+        // --- Algorithm Helpers ---
+        const detectBackgroundColor = (data: Uint8ClampedArray, w: number, h: number) => {
+          const candidates: number[] = [];
+          for (let x = 0; x < w; x += 5) { candidates.push(x); candidates.push((h - 1) * w + x); }
+          for (let y = 0; y < h; y += 5) { candidates.push(y * w); candidates.push(y * w + w - 1); }
+          const colorGeneric = (r: number, g: number, b: number) =>
+            `${Math.floor(r / 15)},${Math.floor(g / 15)},${Math.floor(b / 15)}`;
+          const counts: Record<string, { count: number, color: { r: number, g: number, b: number, a: number } }> = {};
+          for (const idx of candidates) {
+            if (idx >= data.length / 4) continue;
+            const r = data[idx * 4];
+            const g = data[idx * 4 + 1];
+            const b = data[idx * 4 + 2];
+            const a = data[idx * 4 + 3];
+            if (a === 0) continue;
+            const key = colorGeneric(r, g, b);
+            if (!counts[key]) counts[key] = { count: 0, color: { r, g, b, a } };
+            counts[key].count++;
+          }
+          let maxCount = 0; let winner = null;
+          for (const key in counts) {
+            if (counts[key].count > maxCount) { maxCount = counts[key].count; winner = counts[key].color; }
+          }
+          return winner;
+        };
+
+        const removeBackgroundAlg = (data: Uint8ClampedArray, w: number, h: number, bgColor: { r: number, g: number, b: number }) => {
+          const isGreenDominant = bgColor.g > bgColor.r + 30 && bgColor.g > bgColor.b + 30;
+          const tolerance = isGreenDominant ? 100 : 60;
+          const visited = new Uint8Array(w * h);
+          const stack: number[] = [];
+          for (let x = 0; x < w; x++) { stack.push(x); stack.push((h - 1) * w + x); visited[x] = 1; visited[(h - 1) * w + x] = 1; }
+          for (let y = 1; y < h - 1; y++) { stack.push(y * w); stack.push(y * w + w - 1); visited[y * w] = 1; visited[y * w + w - 1] = 1; }
+          const isMatch = (idx: number) => {
+            const r = data[idx * 4]; const g = data[idx * 4 + 1]; const b = data[idx * 4 + 2];
+            const dist = Math.abs(r - bgColor.r) + Math.abs(g - bgColor.g) + Math.abs(b - bgColor.b);
+            return dist < tolerance * 3;
+          };
+          let writePtr = 0;
+          for (let i = 0; i < stack.length; i++) { if (isMatch(stack[i])) stack[writePtr++] = stack[i]; }
+          stack.length = writePtr;
+          while (stack.length > 0) {
+            const idx = stack.pop()!;
+            data[idx * 4 + 3] = 0;
+            const x = idx % w; const y = Math.floor(idx / w);
+            const neighbors = [{ nx: x + 1, ny: y }, { nx: x - 1, ny: y }, { nx: x, ny: y + 1 }, { nx: x, ny: y - 1 }];
+            for (const { nx, ny } of neighbors) {
+              if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                const nIdx = ny * w + nx;
+                if (visited[nIdx] === 0) { visited[nIdx] = 1; if (isMatch(nIdx)) stack.push(nIdx); }
+              }
+            }
+          }
+        };
+
+        const removeNoiseAlg = (data: Uint8ClampedArray, w: number, h: number) => {
+          const visited = new Uint8Array(w * h);
+          const islands: number[][] = [];
+          for (let i = 0; i < w * h; i++) {
+            if (data[i * 4 + 3] > 0 && visited[i] === 0) {
+              const stack = [i]; const island = []; visited[i] = 1;
+              while (stack.length > 0) {
+                const curr = stack.pop()!; island.push(curr);
+                const x = curr % w; const y = Math.floor(curr / w);
+                const neighbors = [{ nx: x + 1, ny: y }, { nx: x - 1, ny: y }, { nx: x, ny: y + 1 }, { nx: x, ny: y - 1 }];
+                for (const { nx, ny } of neighbors) {
+                  if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                    const nIdx = ny * w + nx;
+                    if (visited[nIdx] === 0 && data[nIdx * 4 + 3] > 0) { visited[nIdx] = 1; stack.push(nIdx); }
+                  }
+                }
+              }
+              islands.push(island);
+            }
+          }
+          if (islands.length === 0) return;
+          islands.sort((a, b) => b.length - a.length);
+          const largest = new Set(islands[0]);
+          for (let i = 0; i < w * h; i++) { if (!largest.has(i)) data[i * 4 + 3] = 0; }
+        };
+
+        const bgColor = detectBackgroundColor(data, w, h);
+        if (bgColor) {
+          removeBackgroundAlg(data, w, h, bgColor);
+          removeNoiseAlg(data, w, h);
+          tempCtx.putImageData(imageData, 0, 0);
+          processSuccess = true;
+          console.warn('⚠️ AI Safety Block: Fell back to algorithmic removal.');
+          console.log("Fallback Algorithm Success");
+        } else {
+          console.warn("Fallback failed: No uniform background detected");
+          alert("배경 제거 실패: AI가 차단되었고, 단색 배경도 감지되지 않았습니다.");
+        }
+      }
+
+      // ---------------------------------------------------------
+      // C. Smart Crop & Scaling (Universal)
+      // ---------------------------------------------------------
+      if (processSuccess) {
+        const imageData = tempCtx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+
+        const getBounds = (data: Uint8ClampedArray, w: number, h: number) => {
+          let minX = w, minY = h, maxX = 0, maxY = 0;
+          let hasPixels = false;
+          for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+              const idx = (y * w + x) * 4;
+              if (data[idx + 3] > 0) {
+                if (x < minX) minX = x; if (x > maxX) maxX = x;
+                if (y < minY) minY = y; if (y > maxY) maxY = y;
+                hasPixels = true;
+              }
+            }
+          }
+          return { minX, minY, maxX, maxY, hasPixels };
+        };
+
+        const b = getBounds(data, w, h);
+        if (b.hasPixels) {
+          const contentW = b.maxX - b.minX + 1;
+          const contentH = b.maxY - b.minY + 1;
+          const cCanvas = document.createElement('canvas');
+          cCanvas.width = contentW; cCanvas.height = contentH;
+          cCanvas.getContext('2d')?.putImageData(tempCtx.getImageData(b.minX, b.minY, contentW, contentH), 0, 0);
+
+          tempCtx.clearRect(0, 0, w, h);
+          const safePadding = 2;
+          const targetSize = w - (safePadding * 2);
+          const scale = Math.min(targetSize / contentW, targetSize / contentH);
+          const dstW = Math.floor(contentW * scale);
+          const dstH = Math.floor(contentH * scale);
+          const offX = Math.floor((w - dstW) / 2);
+          const offY = Math.floor((h - dstH) / 2);
+
+          tempCtx.imageSmoothingEnabled = false;
+          tempCtx.drawImage(cCanvas, 0, 0, contentW, contentH, offX, offY, dstW, dstH);
+          const finalData = tempCtx.getImageData(0, 0, w, h);
+          engineRef.current.applyAIImage(finalData);
+          syncFrameState();
+        } else {
+          console.warn("Image empty after processing");
+        }
+      }
+
+    } catch (e) {
+      console.error("Critical Error in Background Removal:", e);
+      alert("오류 발생: " + (e instanceof Error ? e.message : "알 수 없는 오류"));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pixelSize, syncFrameState]);
+
+  // Load Image (Trigger)
   const loadAIImage = useCallback(async (blob: Blob) => {
     if (!engineRef.current) return;
 
@@ -382,153 +635,26 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
     try {
       const imageBitmap = await createImageBitmap(blob);
       setOriginalAIImage(imageBitmap);
-      // Reset feather to 0 or keep? Let's reset to 0 for new image
-      setFeatherAmount(0);
+      setFeatherAmount(0); // Reset feather
+
+      // Just Load, DO NOT Remove Background Automatically
+      await processAndApplyImage(imageBitmap, 0);
+
+    } catch (e) {
+      console.error("Failed to load/process AI image", e);
     } finally {
       setIsLoading(false);
     }
-  }, []); // Remove dependencies triggered by state implementation detail
+  }, [processAndApplyImage]);
 
-  // Real-time processing effect
+  // Re-process when feather changes
   useEffect(() => {
-    if (!originalAIImage || !engineRef.current) return;
-
-    const processAIImage = () => {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = pixelSize;
-      tempCanvas.height = pixelSize;
-      const tempCtx = tempCanvas.getContext('2d');
-      if (!tempCtx) return;
-
-      tempCtx.imageSmoothingEnabled = false;
-      tempCtx.drawImage(originalAIImage, 0, 0, pixelSize, pixelSize);
-
-      const imageData = tempCtx.getImageData(0, 0, pixelSize, pixelSize);
-      const data = imageData.data;
-      const width = pixelSize;
-      const height = pixelSize;
-
-      // 1. Global Green Chroma Key (Fixed Tolerance)
-      // We assume AI generates "Solid Bright Green".
-      // Hardcode a good tolerance (e.g., equivalent to old slider ~60)
-      const tolerance = 60; // Fairly aggressive
-      const strictness = 100 - tolerance; // 40
-      const threshold = Math.max(10, tolerance * 2);
-
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        if (data[i + 3] === 0) continue; // Already transparent
-
-        // Green logic: G dominant and significantly bright
-        if (g > 100 && g > r + 40 && g > b + 40) {
-          // Dynamic Threshold Check
-          if (g > r + strictness && g > b + strictness) {
-            data[i + 3] = 0; // Alpha 0
-          }
-        }
-      }
-
-      // 2. Feather (Erosion)
-      // "Shave off" white/green edges
-      if (featherAmount > 0) {
-        // Create a copy to read neighbors from
-        const originalAlpha = new Uint8Array(width * height);
-        for (let i = 0; i < width * height; i++) {
-          originalAlpha[i] = data[i * 4 + 3];
-        }
-
-        // Simple erosion: Valid pixel if all neighbors are opaque (or neighbor alpha > 0)
-        // We can do 'featherAmount' passes or use distance field.
-        // Given pixel art, 'featherAmount' as 'pixels' makes sense.
-        // But 0-10 range: 1 = 1px erosion?
-        // Maybe just 1 pass is enough, but check neighbors distance?
-        // Let's implement multi-pass erosion for simplicity if amount is integer.
-
-        const passes = Math.ceil(featherAmount / 2); // 0-5 passes for slider 0-10?
-        // Or just strictly follow amount. Slider 0-10 -> 0-3px?
-        // User wants "slightly shave". 
-        // Let's interpret slider 0-100 as "Threshold of neighbor transparency"? No.
-        // Let's try: Feather 1 = remove pixels adjacent to transparency.
-        // Feather 2 = remove pixels adjacent to transparency (2 layers deep).
-
-        // Using 2 buffers
-        let currentAlpha = originalAlpha;
-        const iterations = Math.floor(featherAmount / 20) + 1; // 0-20: 1px, 20-40: 2px...
-        // Actually user requested "Feather intensity bar".
-        // Let's use threshold-based erosion on alpha?
-        // No, pixel art is binary alpha usually.
-
-        // Let's stick to simple neighbor check.
-        // For 'featherAmount' (0-10), we erode that many pixels? No, too much.
-        // Let's scale: Slider 0-100.
-        // 0: No erosion.
-        // 1-30: 1 pixel erosion.
-        // 31-60: 2 pixels.
-        // 61-100: 3 pixels.
-
-        const erosionSteps = Math.floor(featherAmount / 25); // 0, 1, 2, 3, 4
-
-        if (erosionSteps > 0) {
-          let src = originalAlpha;
-          let dst = new Uint8Array(width * height);
-
-          for (let step = 0; step < erosionSteps; step++) {
-            for (let y = 0; y < height; y++) {
-              for (let x = 0; x < width; x++) {
-                const idx = y * width + x;
-                if (src[idx] === 0) {
-                  dst[idx] = 0;
-                  continue;
-                }
-
-                // Check 4 neighbors
-                let isEdge = false;
-                const neighbors = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]];
-                for (const [nx, ny] of neighbors) {
-                  if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
-                    // Boundary is "transparent" -> remove edge pixels at frame boundary? 
-                    // Usually no, keep frame boundary.
-                    continue;
-                  }
-                  const nIdx = ny * width + nx;
-                  if (src[nIdx] === 0) {
-                    isEdge = true;
-                    break;
-                  }
-                }
-
-                if (isEdge) {
-                  dst[idx] = 0; // Erode
-                } else {
-                  dst[idx] = 255;
-                }
-              }
-            }
-            // Swap for next iteration
-            src = new Uint8Array(dst);
-          }
-
-          // Apply back to data
-          for (let i = 0; i < width * height; i++) {
-            data[i * 4 + 3] = src[i];
-          }
-        }
-      }
-
-      engineRef.current?.applyAIImage(imageData);
-      // Do not update history on every frame of slider? 
-      // It's fine for "Real-time" preview, but history might get spammed.
-      // Ideally we only update history on "MouseUp" of slider. 
-      // But for now, let's just apply.
-      // syncFrameState is needed for thumbnails.
-      syncFrameState();
-    };
-
-    processAIImage();
-  }, [originalAIImage, featherAmount, pixelSize, syncFrameState]); // Removed history update to avoid spam
+    if (!originalAIImage) return;
+    const timer = setTimeout(() => {
+      processAndApplyImage(originalAIImage, featherAmount);
+    }, 100); // 100ms debounce
+    return () => clearTimeout(timer);
+  }, [featherAmount, originalAIImage, processAndApplyImage]);
 
   // Manual cleanup when changing images?
   // Not needed, state replacement handles it.
@@ -642,12 +768,14 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
         setIsLoading,
         featherAmount,
         setFeatherAmount,
+
         // Export
         downloadWebP,
         saveToLibrary,
         assets,
         deleteAsset,
         loadAsset,
+        triggerBackgroundRemoval,
       }}
     >
       {children}

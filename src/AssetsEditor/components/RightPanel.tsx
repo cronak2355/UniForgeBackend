@@ -37,6 +37,7 @@ export function RightPanel() {
     getWorkCanvas,
     featherAmount,
     setFeatherAmount,
+    triggerBackgroundRemoval,
   } = useAssetsEditor();
 
   // ==================== State ====================
@@ -110,46 +111,6 @@ export function RightPanel() {
   };
 
   /**
-   * 스프라이트 시트를 프레임별로 분할
-   * @param img - 로드된 Image 객체 (예: 512x128)
-   * @param frameCount - 프레임 개수 (기본 4)
-   * @returns ImageData 배열
-   */
-  const splitSpriteSheet = (
-    img: HTMLImageElement,
-    frameCount: number = 4
-  ): ImageData[] => {
-    const frameWidth = Math.floor(img.width / frameCount);
-    const frameHeight = img.height;
-    const frames: ImageData[] = [];
-
-    for (let i = 0; i < frameCount; i++) {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = frameWidth;
-      tempCanvas.height = frameHeight;
-      const ctx = tempCanvas.getContext('2d');
-
-      if (ctx) {
-        // 픽셀아트 보존 설정
-        ctx.imageSmoothingEnabled = false;
-
-        // 스프라이트 시트에서 i번째 프레임 추출
-        ctx.drawImage(
-          img,
-          i * frameWidth, 0,      // source x, y
-          frameWidth, frameHeight, // source width, height
-          0, 0,                    // dest x, y
-          frameWidth, frameHeight  // dest width, height
-        );
-
-        frames.push(ctx.getImageData(0, 0, frameWidth, frameHeight));
-      }
-    }
-
-    return frames;
-  };
-
-  /**
    * ImageData 배열을 에디터 프레임에 적용
    */
   const applyFramesToEditor = async (frameDataList: ImageData[]) => {
@@ -176,47 +137,6 @@ export function RightPanel() {
   // ==================== Handlers ====================
 
   /**
-   * AI 애니메이션 생성 (SageMaker 연동 - 4프레임 스프라이트 시트)
-   */
-  const handleGenerateAIAnimation = async () => {
-    if (!aiPrompt.trim()) return;
-
-    const userPrompt = aiPrompt;
-    addChatMessage('user', `🎬 ${userPrompt}`);
-    setAiPrompt('');
-    setIsLoading(true);
-
-    try {
-      // TODO: SageMaker에서 스프라이트 시트 생성 지원 시 구현
-      // 현재는 단일 이미지 생성 후 로컬 애니메이션 적용
-      const result = await generateAsset({
-        prompt: userPrompt,
-        asset_type: assetType === 'effect' ? 'object' : assetType,
-        width: pixelSize,
-        height: pixelSize,
-      });
-
-      if (!result.success) {
-        throw new Error(result.error || result.message || 'AI 생성 실패');
-      }
-
-      if (result.asset_url) {
-        const blob = await fetchAssetAsBlob(result.asset_url);
-        await loadAIImage(blob);
-        addChatMessage('ai', '✨ 이미지 생성 완료! Animate 탭에서 애니메이션을 추가하세요.');
-      } else {
-        throw new Error('이미지 URL이 없습니다');
-      }
-
-    } catch (error) {
-      console.error('AI Animation Error:', error);
-      addChatMessage('ai', `❌ 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
    * AI 단일 이미지 생성 (SageMaker 연동)
    */
   const handleGenerateSingle = async () => {
@@ -226,6 +146,7 @@ export function RightPanel() {
     addChatMessage('user', `✨ ${userPrompt}`);
     setAiPrompt('');
     setIsLoading(true);
+
 
     try {
       // SageMaker API 호출
@@ -251,6 +172,55 @@ export function RightPanel() {
     } catch (error) {
       console.error('AI Single Error:', error);
       addChatMessage('ai', `❌ 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * AI Refine (Image-to-Image)
+   * 현재 캔버스 내용을 바탕으로 AI가 다듬기
+   */
+  const handleRefine = async () => {
+    if (!aiPrompt.trim()) return;
+
+    const sourceCanvas = getWorkCanvas();
+    if (!sourceCanvas) {
+      alert('캔버스 내용을 가져올 수 없습니다.');
+      return;
+    }
+
+    const base64Image = sourceCanvas.toDataURL('image/png').split(',')[1]; // Remove data:image/png;base64, prefix
+
+    const userPrompt = aiPrompt;
+    addChatMessage('user', `✨ Refine: ${userPrompt}`);
+    setAiPrompt('');
+    setIsLoading(true);
+
+    try {
+      const result = await generateAsset({
+        prompt: userPrompt,
+        asset_type: assetType === 'effect' ? 'object' : assetType,
+        width: pixelSize,
+        height: pixelSize,
+        image: base64Image,
+        strength: 0.65, // Default strength for refinement
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'AI Refine Failed');
+      }
+
+      if (result.asset_url) {
+        const blob = await fetchAssetAsBlob(result.asset_url);
+        await loadAIImage(blob);
+        addChatMessage('ai', '✨ 리파인 완료!');
+      } else {
+        throw new Error('No image URL returned');
+      }
+    } catch (error) {
+      console.error('AI Refine Error:', error);
+      addChatMessage('ai', `❌ 리파인 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
     } finally {
       setIsLoading(false);
     }
@@ -344,249 +314,278 @@ export function RightPanel() {
   // ==================== Render ====================
 
   return (
-    <div className="w-[260px] bg-black border-l border-neutral-800 flex flex-col">
-      {/* Preview Section */}
-      <div className="p-3 border-b border-neutral-800">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-neutral-500">Preview</span>
-          <span className="text-[10px] text-neutral-600">
-            Frame {previewFrame + 1}/{frames.length}
-          </span>
-        </div>
+    <div className="h-full flex flex-col w-[320px] mr-4 transition-all duration-300 gap-4">
 
-        {/* Preview Canvas */}
-        <div
-          className="w-full aspect-square mb-3 border border-neutral-800 bg-[#1a1a1a] flex items-center justify-center"
-          style={{ imageRendering: 'pixelated' }}
-        >
-          {thumbnails[previewFrame] ? (
-            <img
-              src={thumbnails[previewFrame]!}
-              alt={`Frame ${previewFrame + 1}`}
-              className="w-full h-full object-contain"
-              style={{ imageRendering: 'pixelated' }}
+      {/* 1. Preview Block (Floating Top) */}
+      <div className="glass-panel p-4 border border-white/10 bg-black/40 shrink-0">
+        <div className="flex gap-4">
+          {/* Preview Box */}
+          <div className="w-24 h-24 border border-white/10 bg-[#1a1a1a] relative overflow-hidden group">
+            <div className="absolute inset-0"
+              style={{
+                backgroundImage: 'linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%)',
+                backgroundSize: '8px 8px',
+                backgroundPosition: '0 0, 4px 4px'
+              }}
             />
-          ) : (
-            <span className="text-neutral-600 text-xs">No frame</span>
-          )}
-        </div>
-
-        {/* Play/Pause Button */}
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          disabled={frames.length <= 1}
-          className={`w-full py-1.5 text-xs transition-colors ${isPlaying
-            ? 'bg-[#2563eb] text-white'
-            : 'bg-neutral-900 text-neutral-400 border border-neutral-800 hover:border-neutral-700'
-            } ${frames.length <= 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          {isPlaying ? '⏸ Pause' : '▶ Play'}
-        </button>
-
-        {/* FPS Control */}
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-[10px] text-neutral-500">FPS:</span>
-          <input
-            type="range"
-            min="1"
-            max="24"
-            value={fps}
-            onChange={(e) => setFps(Number(e.target.value))}
-            className="flex-1 h-1 bg-neutral-800 rounded appearance-none cursor-pointer"
-          />
-          <span className="text-[10px] text-neutral-400 w-6 text-right">{fps}</span>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-neutral-800">
-        {(['ai', 'animate', 'export'] as TabType[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 text-xs transition-colors ${activeTab === tab
-              ? 'text-white border-b-2 border-[#2563eb]'
-              : 'text-neutral-500 hover:text-neutral-300'
-              }`}
-          >
-            {tab.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-
-        {/* ==================== AI Tab ==================== */}
-        {activeTab === 'ai' && (
-          <>
-            {/* Chat Messages */}
-            <div
-              ref={chatContainerRef}
-              className="flex-1 overflow-y-auto p-2 space-y-2"
-            >
-              {chatMessages.length === 0 && (
-                <div className="text-neutral-600 text-xs text-center py-4">
-                  프롬프트를 입력하고<br />AI 이미지를 생성하세요
-                </div>
-              )}
-              {chatMessages.map(msg => (
-                <div
-                  key={msg.id}
-                  className={`text-xs p-2 rounded ${msg.role === 'user'
-                    ? 'bg-[#2563eb]/20 ml-4 text-blue-200'
-                    : 'bg-neutral-900 mr-4 text-neutral-300'
-                    }`}
-                >
-                  {msg.content}
-                </div>
-              ))}
-              {isLoading && (
-                <div className="text-xs p-2 bg-neutral-900 mr-4 text-neutral-400 animate-pulse">
-                  생성 중...
-                </div>
-              )}
-            </div>
-
-            {/* Input Section */}
-            <div className="p-2 border-t border-neutral-800 space-y-2">
-              {/* Feather Slider */}
-              <div className="flex items-center gap-2 px-1">
-                <span className="text-[10px] text-neutral-500 whitespace-nowrap">테두리 다듬기</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value={featherAmount}
-                  onChange={(e) => setFeatherAmount(Number(e.target.value))}
-                  className="flex-1 h-1 bg-neutral-800 rounded appearance-none cursor-pointer"
-                  title="테두리 깎기 (높을수록 많이 깎임)"
-                />
-                <span className="text-[10px] text-neutral-400 w-5 text-right">{featherAmount}</span>
-              </div>
-              {/* Asset Type Selector */}
-              <div className="flex gap-1">
-                {(['character', 'object', 'effect'] as const).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setAssetType(type)}
-                    className={`flex-1 py-1 text-[10px] rounded transition-colors ${assetType === type
-                      ? 'bg-[#2563eb] text-white'
-                      : 'bg-neutral-900 text-neutral-500 hover:text-neutral-300'
-                      }`}
-                  >
-                    {type === 'character' ? '👤' : type === 'object' ? '📦' : '✨'} {type}
-                  </button>
-                ))}
-              </div>
-
-              {/* Prompt Input */}
-              <input
-                type="text"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="예: 파란 슬라임 몬스터"
-                disabled={isLoading}
-                className="w-full px-2 py-1.5 text-xs bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-neutral-700 disabled:opacity-50"
-              />
-
-              {/* Generate Buttons */}
-              <div className="flex gap-1">
-                <button
-                  onClick={handleGenerateSingle}
-                  disabled={isLoading || !aiPrompt.trim()}
-                  className="flex-1 py-1.5 bg-neutral-800 text-white text-xs hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  ✨ 단일
-                </button>
-                <button
-                  onClick={handleGenerateAIAnimation}
-                  disabled={isLoading || !aiPrompt.trim()}
-                  className="flex-1 py-1.5 bg-[#2563eb] text-white text-xs hover:bg-[#3b82f6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  🎬 애니메이션
-                </button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* ==================== Animate Tab ==================== */}
-        {activeTab === 'animate' && (
-          <div className="p-3 space-y-3">
-            {/* 🦴 리깅 버튼 (프리미엄 기능) */}
+            {thumbnails[previewFrame] && (
+              <img src={thumbnails[previewFrame]!} className="absolute inset-0 w-full h-full object-contain" style={{ imageRendering: 'pixelated' }} />
+            )}
+            {/* Mini Controls Overlay */}
             <button
-              onClick={handleOpenRigger}
-              disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm rounded font-medium hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 transition-all"
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              🦴 부위별 리깅 애니메이션
+              <span className="text-2xl text-white drop-shadow-lg">{isPlaying ? '⏸' : '▶'}</span>
             </button>
-
-            <div className="border-t border-neutral-800 pt-3">
-              <p className="text-[10px] text-neutral-500 mb-2">
-                간단 변형 (현재 프레임 기반)
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {SIMPLE_PRESETS.map(preset => (
-                  <button
-                    key={preset.id}
-                    onClick={() => handleGenerateSimpleAnimation(preset.id)}
-                    disabled={isLoading}
-                    className="py-3 bg-neutral-900 border border-neutral-800 text-xs flex flex-col items-center gap-1 hover:border-neutral-700 disabled:opacity-50 transition-colors"
-                  >
-                    <span className="text-lg">{preset.emoji}</span>
-                    <span className="text-neutral-400">{preset.nameKo}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
-        )}
 
-        {/* ==================== Export Tab ==================== */}
-        {activeTab === 'export' && (
-          <div className="p-3 space-y-3">
+          {/* Info & FPS */}
+          <div className="flex-1 flex flex-col justify-between py-1">
             <div>
-              <label className="text-[10px] text-neutral-500 block mb-1">
-                파일 이름
-              </label>
+              <div className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-1">Preview</div>
+              <div className="text-[10px] text-white/40 font-mono">FRAME {previewFrame + 1} / {frames.length}</div>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px] text-white/40 uppercase tracking-wider">
+                <span>Speed</span>
+                <span className="text-white font-mono">{fps} FPS</span>
+              </div>
               <input
-                type="text"
-                value={exportName}
-                onChange={(e) => setExportName(e.target.value)}
-                placeholder="sprite"
-                className="w-full px-2 py-1.5 text-xs bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-neutral-700"
+                type="range"
+                min="1" max="24"
+                value={fps}
+                onChange={(e) => setFps(Number(e.target.value))}
+                className="w-full h-1 bg-white/10 appearance-none cursor-pointer"
               />
             </div>
-
-            <button
-              onClick={() => downloadWebP(exportName)}
-              disabled={frames.length === 0}
-              className="w-full py-2 bg-neutral-900 text-xs border border-neutral-800 hover:border-neutral-700 disabled:opacity-50 transition-colors"
-            >
-              📥 WebP 다운로드
-            </button>
-
-            <div className="text-[10px] text-neutral-600 space-y-1">
-              <p>• {frames.length}개 프레임</p>
-              <p>• {pixelSize}x{pixelSize}px</p>
-              <p>• {fps} FPS</p>
-            </div>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* 🦴 리깅 모달 */}
+      {/* 2. Main Content Block (Tabs + Content) */}
+      <div className="glass-panel border border-white/10 bg-black/40 flex-1 flex flex-col overflow-hidden">
+        {/* Tabs Switcher */}
+        <div className="flex border-b border-white/5">
+          {(['ai', 'animate', 'export'] as TabType[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`
+                    flex-1 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border-b-2
+                    ${activeTab === tab
+                  ? 'bg-white/5 text-white border-blue-500'
+                  : 'text-white/40 border-transparent hover:text-white hover:bg-white/5'}
+                  `}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <div className="flex-1 overflow-hidden flex flex-col relative">
+
+          {/* --- AI Studio --- */}
+          {activeTab === 'ai' && (
+            <div className="flex-1 flex flex-col">
+              {/* Chat Area */}
+              <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+                {chatMessages.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
+                    <span className="text-4xl mb-2 grayscale">✨</span>
+                    <p className="text-xs uppercase tracking-wide">Generator Ready</p>
+                  </div>
+                )}
+                {chatMessages.map(msg => (
+                  <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`
+                              max-w-[85%] px-3 py-2 text-xs leading-relaxed border
+                              ${msg.role === 'user'
+                        ? 'bg-blue-600/20 text-blue-100 border-blue-500/30'
+                        : 'bg-white/5 text-white/80 border-white/10'}
+                          `}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white/5 px-3 py-2 text-xs text-white/40 animate-pulse flex gap-2 items-center border border-white/10">
+                      <div className="w-1.5 h-1.5 bg-blue-500 animate-bounce" />
+                      <div className="w-1.5 h-1.5 bg-blue-500 animate-bounce [animation-delay:0.1s]" />
+                      <div className="w-1.5 h-1.5 bg-blue-500 animate-bounce [animation-delay:0.2s]" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Area */}
+              <div className="p-4 bg-black/10 border-t border-white/5 space-y-3">
+
+                {/* Controls Row */}
+                <div className="flex items-center gap-2">
+                  {/* Type Selector */}
+                  <div className="flex bg-white/5 p-0.5 border border-white/5">
+                    {(['character', 'object'] as const).map(t => (
+                      <button
+                        key={t}
+                        onClick={() => setAssetType(t as any)}
+                        className={`px-2 py-1 text-[10px] uppercase tracking-wide transition-colors ${assetType === t ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white'}`}
+                        title={t}
+                      >
+                        {t === 'character' ? 'CHAR' : 'OBJ'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Feather Slider */}
+                  <div className="flex-1 flex items-center gap-2 bg-white/5 px-2 py-1 border border-white/5">
+                    <span className="text-[10px] text-white/40 uppercase">Feather</span>
+                    <input
+                      type="range" min="0" max="100" value={featherAmount}
+                      onChange={e => setFeatherAmount(Number(e.target.value))}
+                      className="flex-1 h-1 bg-white/10"
+                    />
+                    <span className="text-[10px] text-blue-400 w-4 font-mono">{featherAmount}</span>
+                  </div>
+                </div>
+
+                {/* Prompt Input (Textarea + Big Button) */}
+                <div className="flex flex-col gap-2">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-blue-500/5 blur opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                    <textarea
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleGenerateSingle();
+                        }
+                      }}
+                      placeholder="Describe asset..."
+                      rows={3}
+                      className="w-full bg-[#0a0a0a] border border-white/10 px-3 py-2 text-xs text-white placeholder-white/20 focus:outline-none focus:border-blue-500/50 transition-colors resize-none font-mono"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleGenerateSingle}
+                      disabled={isLoading || !aiPrompt.trim()}
+                      className="w-full py-3 bg-blue-600 hover:bg-blue-500 flex items-center justify-center gap-2 text-white font-bold uppercase tracking-widest text-[10px] border border-blue-400/20 shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:translate-y-0.5"
+                    >
+                      <span>Generate</span>
+                    </button>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleRefine}
+                        disabled={isLoading || !aiPrompt.trim()}
+                        className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 flex items-center justify-center gap-2 text-white font-bold uppercase tracking-widest text-[10px] border border-purple-400/20 shadow-lg shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:translate-y-0.5"
+                        title="Refine current canvas with AI"
+                      >
+                        <span>Refine</span>
+                      </button>
+
+                      <button
+                        onClick={triggerBackgroundRemoval}
+                        disabled={isLoading}
+                        className="flex-1 py-3 bg-teal-600 hover:bg-teal-500 flex items-center justify-center gap-2 text-white font-bold uppercase tracking-widest text-[10px] border border-teal-400/20 shadow-lg shadow-teal-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:translate-y-0.5"
+                        title="Auto-remove solid background (Green/White)"
+                      >
+                        <span>Remove BG</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- Animation Tab --- */}
+          {activeTab === 'animate' && (
+            <div className="p-4 space-y-4 overflow-y-auto">
+              <button
+                onClick={handleOpenRigger}
+                className="w-full py-4 bg-gradient-to-r from-violet-900/50 to-indigo-900/50 border border-indigo-500/30 hover:border-indigo-500/70 flex items-center justify-center gap-2 text-sm font-medium text-white transition-all"
+              >
+                <span>🦴</span> Auto Rigger
+              </button>
+
+              <div>
+                <h4 className="text-[10px] uppercase text-white/40 tracking-widest mb-2 font-bold">Presets</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {SIMPLE_PRESETS.map(preset => (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleGenerateSimpleAnimation(preset.id)}
+                      className="bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 p-3 flex flex-col items-center gap-2 transition-all"
+                    >
+                      <span className="text-2xl pt-1 grayscale hover:grayscale-0 transition-all">{preset.emoji}</span>
+                      <span className="text-[10px] text-white/70 uppercase tracking-wide">{preset.nameKo}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* --- Export Tab --- */}
+          {activeTab === 'export' && (
+            <div className="p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase text-white/40 tracking-widest font-bold">Filename</label>
+                <input
+                  value={exportName}
+                  onChange={(e) => setExportName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 px-3 py-2 text-xs text-white focus:border-blue-500/50 outline-none transition-colors font-mono"
+                />
+              </div>
+
+              <div className="p-4 bg-white/5 space-y-2 border border-white/5">
+                <div className="flex justify-between text-xs text-white/60 font-mono">
+                  <span>Resolution</span>
+                  <span className="text-white">{pixelSize} x {pixelSize}</span>
+                </div>
+                <div className="flex justify-between text-xs text-white/60 font-mono">
+                  <span>Frames</span>
+                  <span className="text-white">{frames.length}</span>
+                </div>
+                <div className="flex justify-between text-xs text-white/60 font-mono">
+                  <span>Duration</span>
+                  <span className="text-white">{(frames.length / fps).toFixed(1)}s</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => downloadWebP(exportName)}
+                disabled={frames.length === 0}
+                className="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 text-xs font-bold uppercase tracking-widest text-white disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                📥 Export WebP
+              </button>
+            </div>
+          )}
+
+        </div>
+      </div>
+
+
+      {/* 🦴 Rigger Modal (Overlay) */}
       {showRigger && (
-        <PartRigger
-          sourceCanvas={getWorkCanvas()}
-          pixelSize={pixelSize}
-          onFramesGenerated={handleRigFramesGenerated}
-          onClose={() => setShowRigger(false)}
-        />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0f1115] border border-white/10 overflow-hidden shadow-2xl w-[800px] h-[600px] flex flex-col">
+            <PartRigger
+              sourceCanvas={getWorkCanvas()}
+              pixelSize={pixelSize}
+              onFramesGenerated={handleRigFramesGenerated}
+              onClose={() => setShowRigger(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
