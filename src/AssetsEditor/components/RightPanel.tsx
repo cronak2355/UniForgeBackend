@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAssetsEditor } from '../context/AssetsEditorContext';
-import { 
-  generateSimpleAnimation, 
-  SIMPLE_PRESETS, 
-  type SimpleAnimationType 
+import {
+  generateSimpleAnimation,
+  SIMPLE_PRESETS,
+  type SimpleAnimationType
 } from '../services/simpleAnimationService';
 import { PartRigger } from './PartRigger';
+import { generateAsset, fetchAssetAsBlob } from '../services/SagemakerService';
 
 interface ChatMessage {
   id: string;
@@ -113,7 +114,7 @@ export function RightPanel() {
    * @returns ImageData 배열
    */
   const splitSpriteSheet = (
-    img: HTMLImageElement, 
+    img: HTMLImageElement,
     frameCount: number = 4
   ): ImageData[] => {
     const frameWidth = Math.floor(img.width / frameCount);
@@ -129,7 +130,7 @@ export function RightPanel() {
       if (ctx) {
         // 픽셀아트 보존 설정
         ctx.imageSmoothingEnabled = false;
-        
+
         // 스프라이트 시트에서 i번째 프레임 추출
         ctx.drawImage(
           img,
@@ -173,7 +174,7 @@ export function RightPanel() {
   // ==================== Handlers ====================
 
   /**
-   * AI 애니메이션 생성 (4프레임 스프라이트 시트)
+   * AI 애니메이션 생성 (SageMaker 연동 - 4프레임 스프라이트 시트)
    */
   const handleGenerateAIAnimation = async () => {
     if (!aiPrompt.trim()) return;
@@ -184,50 +185,25 @@ export function RightPanel() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/AIgenerate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          prompt: userPrompt,
-          size: pixelSize,
-          asset_type: assetType,
-          is_animation: true,  // 서버에 애니메이션 모드 요청
-          frame_count: 4,
-        }),
+      // TODO: SageMaker에서 스프라이트 시트 생성 지원 시 구현
+      // 현재는 단일 이미지 생성 후 로컬 애니메이션 적용
+      const result = await generateAsset({
+        prompt: userPrompt,
+        asset_type: assetType === 'effect' ? 'object' : assetType,
+        width: pixelSize,
+        height: pixelSize,
       });
 
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'AI 생성 실패');
       }
 
-      if (!data.image) {
-        throw new Error('이미지 응답 없음');
-      }
-
-      // 이미지 로드
-      const img = new Image();
-      img.src = data.image;
-      await img.decode();
-
-      // 스프라이트 시트 분할 (자동 감지: width/height 비율로 프레임 수 추정)
-      const aspectRatio = img.width / img.height;
-      const frameCount = Math.round(aspectRatio); // 4:1 → 4프레임, 1:1 → 1프레임
-      
-      if (frameCount <= 1) {
-        // 단일 이미지인 경우 그냥 로드
-        const blob = await base64ToBlob(data.image);
+      if (result.asset_url) {
+        const blob = await fetchAssetAsBlob(result.asset_url);
         await loadAIImage(blob);
-        addChatMessage('ai', '✨ 단일 이미지 생성 완료!');
+        addChatMessage('ai', '✨ 이미지 생성 완료! Animate 탭에서 애니메이션을 추가하세요.');
       } else {
-        // 스프라이트 시트 분할
-        const frameDataList = splitSpriteSheet(img, frameCount);
-        await applyFramesToEditor(frameDataList);
-        
-        // 애니메이션 재생 시작
-        setIsPlaying(true);
-        addChatMessage('ai', `🎬 ${frameCount}프레임 애니메이션 생성 완료!`);
+        throw new Error('이미지 URL이 없습니다');
       }
 
     } catch (error) {
@@ -239,38 +215,36 @@ export function RightPanel() {
   };
 
   /**
-   * AI 단일 이미지 생성
+   * AI 단일 이미지 생성 (SageMaker 연동)
    */
   const handleGenerateSingle = async () => {
     if (!aiPrompt.trim()) return;
-    
+
     const userPrompt = aiPrompt;
     addChatMessage('user', `✨ ${userPrompt}`);
     setAiPrompt('');
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/AIgenerate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          prompt: userPrompt, 
-          size: pixelSize,
-          asset_type: assetType,
-          is_animation: false,
-        }),
+      // SageMaker API 호출
+      const result = await generateAsset({
+        prompt: userPrompt,
+        asset_type: assetType === 'effect' ? 'object' : assetType,
+        width: pixelSize,
+        height: pixelSize,
       });
 
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
+      if (!result.success) {
+        throw new Error(result.error || result.message || 'AI 생성 실패');
       }
 
-      if (data.image) {
-        const blob = await base64ToBlob(data.image);
+      if (result.asset_url) {
+        // S3에서 이미지 가져오기
+        const blob = await fetchAssetAsBlob(result.asset_url);
         await loadAIImage(blob);
         addChatMessage('ai', '✨ 이미지 생성 완료!');
+      } else {
+        throw new Error('이미지 URL이 없습니다');
       }
     } catch (error) {
       console.error('AI Single Error:', error);
@@ -289,11 +263,11 @@ export function RightPanel() {
       alert('먼저 캔버스에 그림을 그려주세요!');
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const generatedFrames = generateSimpleAnimation(sourceCanvas, animationType, pixelSize);
-      
+
       for (let i = 0; i < generatedFrames.length; i++) {
         if (i === 0) {
           applyImageData(generatedFrames[i]);
@@ -304,7 +278,7 @@ export function RightPanel() {
           applyImageData(generatedFrames[i]);
         }
       }
-      
+
       selectFrame(0);
       setIsPlaying(true);
     } catch (error) {
@@ -377,18 +351,18 @@ export function RightPanel() {
             Frame {previewFrame + 1}/{frames.length}
           </span>
         </div>
-        
+
         {/* Preview Canvas */}
-        <div 
+        <div
           className="w-full aspect-square mb-3 border border-neutral-800 bg-[#1a1a1a] flex items-center justify-center"
           style={{ imageRendering: 'pixelated' }}
         >
           {thumbnails[previewFrame] ? (
-            <img 
-              src={thumbnails[previewFrame]!} 
+            <img
+              src={thumbnails[previewFrame]!}
               alt={`Frame ${previewFrame + 1}`}
               className="w-full h-full object-contain"
-              style={{ imageRendering: 'pixelated' }} 
+              style={{ imageRendering: 'pixelated' }}
             />
           ) : (
             <span className="text-neutral-600 text-xs">No frame</span>
@@ -399,11 +373,10 @@ export function RightPanel() {
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           disabled={frames.length <= 1}
-          className={`w-full py-1.5 text-xs transition-colors ${
-            isPlaying 
-              ? 'bg-[#2563eb] text-white' 
+          className={`w-full py-1.5 text-xs transition-colors ${isPlaying
+              ? 'bg-[#2563eb] text-white'
               : 'bg-neutral-900 text-neutral-400 border border-neutral-800 hover:border-neutral-700'
-          } ${frames.length <= 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${frames.length <= 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {isPlaying ? '⏸ Pause' : '▶ Play'}
         </button>
@@ -429,11 +402,10 @@ export function RightPanel() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2 text-xs transition-colors ${
-              activeTab === tab 
-                ? 'text-white border-b-2 border-[#2563eb]' 
+            className={`flex-1 py-2 text-xs transition-colors ${activeTab === tab
+                ? 'text-white border-b-2 border-[#2563eb]'
                 : 'text-neutral-500 hover:text-neutral-300'
-            }`}
+              }`}
           >
             {tab.toUpperCase()}
           </button>
@@ -442,28 +414,27 @@ export function RightPanel() {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden flex flex-col">
-        
+
         {/* ==================== AI Tab ==================== */}
         {activeTab === 'ai' && (
           <>
             {/* Chat Messages */}
-            <div 
-              ref={chatContainerRef} 
+            <div
+              ref={chatContainerRef}
               className="flex-1 overflow-y-auto p-2 space-y-2"
             >
               {chatMessages.length === 0 && (
                 <div className="text-neutral-600 text-xs text-center py-4">
-                  프롬프트를 입력하고<br/>AI 이미지를 생성하세요
+                  프롬프트를 입력하고<br />AI 이미지를 생성하세요
                 </div>
               )}
               {chatMessages.map(msg => (
-                <div 
-                  key={msg.id} 
-                  className={`text-xs p-2 rounded ${
-                    msg.role === 'user' 
-                      ? 'bg-[#2563eb]/20 ml-4 text-blue-200' 
+                <div
+                  key={msg.id}
+                  className={`text-xs p-2 rounded ${msg.role === 'user'
+                      ? 'bg-[#2563eb]/20 ml-4 text-blue-200'
                       : 'bg-neutral-900 mr-4 text-neutral-300'
-                  }`}
+                    }`}
                 >
                   {msg.content}
                 </div>
@@ -483,11 +454,10 @@ export function RightPanel() {
                   <button
                     key={type}
                     onClick={() => setAssetType(type)}
-                    className={`flex-1 py-1 text-[10px] rounded transition-colors ${
-                      assetType === type
+                    className={`flex-1 py-1 text-[10px] rounded transition-colors ${assetType === type
                         ? 'bg-[#2563eb] text-white'
                         : 'bg-neutral-900 text-neutral-500 hover:text-neutral-300'
-                    }`}
+                      }`}
                   >
                     {type === 'character' ? '👤' : type === 'object' ? '📦' : '✨'} {type}
                   </button>
@@ -507,15 +477,15 @@ export function RightPanel() {
 
               {/* Generate Buttons */}
               <div className="flex gap-1">
-                <button 
-                  onClick={handleGenerateSingle} 
+                <button
+                  onClick={handleGenerateSingle}
                   disabled={isLoading || !aiPrompt.trim()}
                   className="flex-1 py-1.5 bg-neutral-800 text-white text-xs hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   ✨ 단일
                 </button>
-                <button 
-                  onClick={handleGenerateAIAnimation} 
+                <button
+                  onClick={handleGenerateAIAnimation}
                   disabled={isLoading || !aiPrompt.trim()}
                   className="flex-1 py-1.5 bg-[#2563eb] text-white text-xs hover:bg-[#3b82f6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
@@ -544,9 +514,9 @@ export function RightPanel() {
               </p>
               <div className="grid grid-cols-2 gap-2">
                 {SIMPLE_PRESETS.map(preset => (
-                  <button 
-                    key={preset.id} 
-                    onClick={() => handleGenerateSimpleAnimation(preset.id)} 
+                  <button
+                    key={preset.id}
+                    onClick={() => handleGenerateSimpleAnimation(preset.id)}
                     disabled={isLoading}
                     className="py-3 bg-neutral-900 border border-neutral-800 text-xs flex flex-col items-center gap-1 hover:border-neutral-700 disabled:opacity-50 transition-colors"
                   >
@@ -574,9 +544,9 @@ export function RightPanel() {
                 className="w-full px-2 py-1.5 text-xs bg-neutral-900 border border-neutral-800 text-white outline-none focus:border-neutral-700"
               />
             </div>
-            
-            <button 
-              onClick={() => downloadWebP(exportName)} 
+
+            <button
+              onClick={() => downloadWebP(exportName)}
               disabled={frames.length === 0}
               className="w-full py-2 bg-neutral-900 text-xs border border-neutral-800 hover:border-neutral-700 disabled:opacity-50 transition-colors"
             >
