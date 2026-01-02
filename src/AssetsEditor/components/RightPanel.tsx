@@ -35,8 +35,8 @@ export function RightPanel() {
     selectFrame,
     applyImageData,
     getWorkCanvas,
-    bgRemovalTolerance,
-    setBgRemovalTolerance,
+    featherAmount,
+    setFeatherAmount,
   } = useAssetsEditor();
 
   // ==================== State ====================
@@ -450,20 +450,20 @@ export function RightPanel() {
 
             {/* Input Section */}
             <div className="p-2 border-t border-neutral-800 space-y-2">
-              {/* Background Removal Tolerance Slider */}
+              {/* Feather Slider */}
               <div className="flex items-center gap-2 px-1">
-                <span className="text-[10px] text-neutral-500 whitespace-nowrap">배경 제거 강도</span>
+                <span className="text-[10px] text-neutral-500 whitespace-nowrap">테두리 다듬기</span>
                 <input
                   type="range"
                   min="0"
                   max="100"
                   step="5"
-                  value={bgRemovalTolerance}
-                  onChange={(e) => setBgRemovalTolerance(Number(e.target.value))}
+                  value={featherAmount}
+                  onChange={(e) => setFeatherAmount(Number(e.target.value))}
                   className="flex-1 h-1 bg-neutral-800 rounded appearance-none cursor-pointer"
-                  title="배경 제거 민감도 조절 (높을수록 많이 지워짐)"
+                  title="테두리 깎기 (높을수록 많이 깎임)"
                 />
-                <span className="text-[10px] text-neutral-400 w-5 text-right">{bgRemovalTolerance}</span>
+                <span className="text-[10px] text-neutral-400 w-5 text-right">{featherAmount}</span>
               </div>
               {/* Asset Type Selector */}
               <div className="flex gap-1">

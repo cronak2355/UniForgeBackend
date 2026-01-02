@@ -88,8 +88,9 @@ interface AssetsEditorContextType {
   getWorkCanvas: () => HTMLCanvasElement | null;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  bgRemovalTolerance: number;
-  setBgRemovalTolerance: (tolerance: number) => void;
+
+  featherAmount: number;
+  setFeatherAmount: (amount: number) => void;
 
   // Export
   downloadWebP: (filename: string) => Promise<void>;
@@ -113,7 +114,9 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
   const [zoom, setZoomState] = useState(8);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [bgRemovalTolerance, setBgRemovalTolerance] = useState(50);
+
+  const [featherAmount, setFeatherAmount] = useState(0);
+  const [originalAIImage, setOriginalAIImage] = useState<ImageBitmap | null>(null);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [historyState, setHistoryState] = useState({ undoCount: 0, redoCount: 0 });
@@ -378,73 +381,157 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const imageBitmap = await createImageBitmap(blob);
+      setOriginalAIImage(imageBitmap);
+      // Reset feather to 0 or keep? Let's reset to 0 for new image
+      setFeatherAmount(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); // Remove dependencies triggered by state implementation detail
 
+  // Real-time processing effect
+  useEffect(() => {
+    if (!originalAIImage || !engineRef.current) return;
+
+    const processAIImage = () => {
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = pixelSize;
       tempCanvas.height = pixelSize;
       const tempCtx = tempCanvas.getContext('2d');
-      if (!tempCtx) throw new Error('Failed to get temp context');
+      if (!tempCtx) return;
 
       tempCtx.imageSmoothingEnabled = false;
-      tempCtx.drawImage(imageBitmap, 0, 0, pixelSize, pixelSize);
+      tempCtx.drawImage(originalAIImage, 0, 0, pixelSize, pixelSize);
 
       const imageData = tempCtx.getImageData(0, 0, pixelSize, pixelSize);
       const data = imageData.data;
+      const width = pixelSize;
+      const height = pixelSize;
 
-      // Green Screen Removal (Global)
-      // Remove all pixels that are predominantly GREEN
-      // AI "Bright Green" is usually ~ (0, 255, 0)
-
-      // Tolerance scaling: 0-100 -> effective variation allowed
-      const tolerance = 100 - bgRemovalTolerance; // Higher tolerance slider = looser check (more aggressive removal)
-      // Actually let's keep logic simple:
-      // If G is high AND (G > R + gap) AND (G > B + gap)
-
-      const threshold = Math.max(10, bgRemovalTolerance * 2); // 0-200
+      // 1. Global Green Chroma Key (Fixed Tolerance)
+      // We assume AI generates "Solid Bright Green".
+      // Hardcode a good tolerance (e.g., equivalent to old slider ~60)
+      const tolerance = 60; // Fairly aggressive
+      const strictness = 100 - tolerance; // 40
+      const threshold = Math.max(10, tolerance * 2);
 
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
 
-        // Green Screen Logic
-        // 1. G must be significant (> 100)
-        // 2. G must be dominant (G > R and G > B)
-        // 3. Difference must be greater than threshold
+        if (data[i + 3] === 0) continue; // Already transparent
 
+        // Green logic: G dominant and significantly bright
         if (g > 100 && g > r + 40 && g > b + 40) {
-          // It's green!
-          // Check sensitivity based on slider
-          // If slider is HIGH (aggressive), we remove even dark green
-          // Slider 50 = default
-
-          // Let's use simple Euclidian distance from Pure Green (0, 255, 0) logic?
-          // Or just dominant color check.
-
-          // If BG Tolerance is 0, we are strict.
-          // If BG Tolerance is 100, we remove everything remotely green.
-
-          // Dynamic Threshold:
-          // Strict (0): G > R+100, G > 200
-          // Loose (100): G > R+10, G > 50
-
-          const strictness = Math.max(0, 100 - bgRemovalTolerance);
-          // strictness 100 (Slider 0) -> Need G >> R,B
-          // strictness 0 (Slider 100) -> Need G > R,B
-
+          // Dynamic Threshold Check
           if (g > r + strictness && g > b + strictness) {
-            data[i + 3] = 0;
+            data[i + 3] = 0; // Alpha 0
           }
         }
       }
 
-      engineRef.current.applyAIImage(imageData);
-      updateHistoryState();
+      // 2. Feather (Erosion)
+      // "Shave off" white/green edges
+      if (featherAmount > 0) {
+        // Create a copy to read neighbors from
+        const originalAlpha = new Uint8Array(width * height);
+        for (let i = 0; i < width * height; i++) {
+          originalAlpha[i] = data[i * 4 + 3];
+        }
+
+        // Simple erosion: Valid pixel if all neighbors are opaque (or neighbor alpha > 0)
+        // We can do 'featherAmount' passes or use distance field.
+        // Given pixel art, 'featherAmount' as 'pixels' makes sense.
+        // But 0-10 range: 1 = 1px erosion?
+        // Maybe just 1 pass is enough, but check neighbors distance?
+        // Let's implement multi-pass erosion for simplicity if amount is integer.
+
+        const passes = Math.ceil(featherAmount / 2); // 0-5 passes for slider 0-10?
+        // Or just strictly follow amount. Slider 0-10 -> 0-3px?
+        // User wants "slightly shave". 
+        // Let's interpret slider 0-100 as "Threshold of neighbor transparency"? No.
+        // Let's try: Feather 1 = remove pixels adjacent to transparency.
+        // Feather 2 = remove pixels adjacent to transparency (2 layers deep).
+
+        // Using 2 buffers
+        let currentAlpha = originalAlpha;
+        const iterations = Math.floor(featherAmount / 20) + 1; // 0-20: 1px, 20-40: 2px...
+        // Actually user requested "Feather intensity bar".
+        // Let's use threshold-based erosion on alpha?
+        // No, pixel art is binary alpha usually.
+
+        // Let's stick to simple neighbor check.
+        // For 'featherAmount' (0-10), we erode that many pixels? No, too much.
+        // Let's scale: Slider 0-100.
+        // 0: No erosion.
+        // 1-30: 1 pixel erosion.
+        // 31-60: 2 pixels.
+        // 61-100: 3 pixels.
+
+        const erosionSteps = Math.floor(featherAmount / 25); // 0, 1, 2, 3, 4
+
+        if (erosionSteps > 0) {
+          let src = originalAlpha;
+          let dst = new Uint8Array(width * height);
+
+          for (let step = 0; step < erosionSteps; step++) {
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < width; x++) {
+                const idx = y * width + x;
+                if (src[idx] === 0) {
+                  dst[idx] = 0;
+                  continue;
+                }
+
+                // Check 4 neighbors
+                let isEdge = false;
+                const neighbors = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]];
+                for (const [nx, ny] of neighbors) {
+                  if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+                    // Boundary is "transparent" -> remove edge pixels at frame boundary? 
+                    // Usually no, keep frame boundary.
+                    continue;
+                  }
+                  const nIdx = ny * width + nx;
+                  if (src[nIdx] === 0) {
+                    isEdge = true;
+                    break;
+                  }
+                }
+
+                if (isEdge) {
+                  dst[idx] = 0; // Erode
+                } else {
+                  dst[idx] = 255;
+                }
+              }
+            }
+            // Swap for next iteration
+            src = new Uint8Array(dst);
+          }
+
+          // Apply back to data
+          for (let i = 0; i < width * height; i++) {
+            data[i * 4 + 3] = src[i];
+          }
+        }
+      }
+
+      engineRef.current?.applyAIImage(imageData);
+      // Do not update history on every frame of slider? 
+      // It's fine for "Real-time" preview, but history might get spammed.
+      // Ideally we only update history on "MouseUp" of slider. 
+      // But for now, let's just apply.
+      // syncFrameState is needed for thumbnails.
       syncFrameState();
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pixelSize, updateHistoryState, syncFrameState, bgRemovalTolerance]);
+    };
+
+    processAIImage();
+  }, [originalAIImage, featherAmount, pixelSize, syncFrameState]); // Removed history update to avoid spam
+
+  // Manual cleanup when changing images?
+  // Not needed, state replacement handles it.
 
   const applyImageData = useCallback((imageData: ImageData) => {
     if (!engineRef.current) return;
@@ -553,8 +640,8 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
         getWorkCanvas,
         isLoading,
         setIsLoading,
-        bgRemovalTolerance,
-        setBgRemovalTolerance,
+        featherAmount,
+        setFeatherAmount,
         // Export
         downloadWebP,
         saveToLibrary,
