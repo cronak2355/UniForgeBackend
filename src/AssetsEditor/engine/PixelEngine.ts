@@ -26,10 +26,10 @@ export class PixelEngine {
     this.viewCanvas = canvas;
     this.historyManager = new HistoryManager(maxHistory);
     this.frameManager = new FrameManager(resolution);
-    
+
     canvas.width = resolution;
     canvas.height = resolution;
-    
+
     const viewCtx = canvas.getContext('2d', { willReadFrequently: true });
     if (!viewCtx) throw new Error('Failed to get view canvas context');
     this.viewCtx = viewCtx;
@@ -37,14 +37,14 @@ export class PixelEngine {
     this.workCanvas = document.createElement('canvas');
     this.workCanvas.width = resolution;
     this.workCanvas.height = resolution;
-    
+
     const workCtx = this.workCanvas.getContext('2d', { willReadFrequently: true });
     if (!workCtx) throw new Error('Failed to get work canvas context');
     this.workCtx = workCtx;
 
     this.viewCtx.imageSmoothingEnabled = false;
     this.workCtx.imageSmoothingEnabled = false;
-    
+
     this.render();
   }
 
@@ -111,21 +111,21 @@ export class PixelEngine {
 
     // 기존 픽셀 데이터를 새 해상도로 스케일링
     this.frameManager.changeResolution(newResolution);
-    
+
     this.resolution = newResolution;
-    
+
     this.workCanvas.width = newResolution;
     this.workCanvas.height = newResolution;
-    
+
     this.viewCanvas.width = newResolution;
     this.viewCanvas.height = newResolution;
-    
+
     this.viewCtx.imageSmoothingEnabled = false;
     this.workCtx.imageSmoothingEnabled = false;
-    
+
     // 히스토리는 클리어 (좌표 체계가 달라지므로)
     this.historyManager.clear();
-    
+
     this.render();
   }
 
@@ -202,13 +202,23 @@ export class PixelEngine {
 
   // ==================== 드로잉 API ====================
 
-  drawPixelAt(x: number, y: number, color: RGBA): void {
-    this.setPixelWithHistory(x, y, color);
+  drawPixelAt(x: number, y: number, color: RGBA, brushSize = 1): void {
+    const offset = Math.floor(brushSize / 2);
+    for (let dy = 0; dy < brushSize; dy++) {
+      for (let dx = 0; dx < brushSize; dx++) {
+        this.setPixelWithHistory(x - offset + dx, y - offset + dy, color);
+      }
+    }
     this.render();
   }
 
-  erasePixelAt(x: number, y: number): void {
-    this.setPixelWithHistory(x, y, { r: 0, g: 0, b: 0, a: 0 });
+  erasePixelAt(x: number, y: number, brushSize = 1): void {
+    const offset = Math.floor(brushSize / 2);
+    for (let dy = 0; dy < brushSize; dy++) {
+      for (let dx = 0; dx < brushSize; dx++) {
+        this.setPixelWithHistory(x - offset + dx, y - offset + dy, { r: 0, g: 0, b: 0, a: 0 });
+      }
+    }
     this.render();
   }
 
@@ -242,7 +252,7 @@ export class PixelEngine {
 
   clear(): void {
     this.historyManager.beginBatch('clear');
-    
+
     const buffer = this.pixelBuffer;
     for (let y = 0; y < this.resolution; y++) {
       for (let x = 0; x < this.resolution; x++) {
@@ -252,7 +262,7 @@ export class PixelEngine {
         }
       }
     }
-    
+
     this.historyManager.commitBatch();
     this.render();
   }
@@ -286,7 +296,7 @@ export class PixelEngine {
           b: imageData.data[idx + 2],
           a: imageData.data[idx + 3],
         };
-        
+
         if (color.a > 0) {
           this.setPixelWithHistory(x, y, color);
         }
@@ -306,7 +316,7 @@ export class PixelEngine {
     for (const change of changes) {
       this.setPixelDirect(change.x, change.y, change.oldColor);
     }
-    
+
     this.render();
     return true;
   }
@@ -318,7 +328,7 @@ export class PixelEngine {
     for (const change of changes) {
       this.setPixelDirect(change.x, change.y, change.newColor);
     }
-    
+
     this.render();
     return true;
   }
@@ -391,7 +401,7 @@ export class PixelEngine {
    */
   getAnimationData(): { frames: ImageData[]; resolution: number } {
     const frames: ImageData[] = [];
-    
+
     for (let i = 0; i < this.frameManager.getFrameCount(); i++) {
       const data = this.frameManager.getFrameData(i);
       if (data) {

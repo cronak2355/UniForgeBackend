@@ -27,41 +27,45 @@ interface AssetsEditorContextType {
   // Canvas & Engine
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   initEngine: () => void;
-  
+
   // Tool state
   tool: Tool;
   setTool: (tool: Tool) => void;
   currentTool: Tool;
   setCurrentTool: (tool: Tool) => void;
-  
+
   // Color state
   color: RGBA;
   setColor: (color: RGBA) => void;
   currentColor: RGBA;
   setCurrentColor: (color: RGBA) => void;
-  
+
   // Resolution & Zoom
   pixelSize: PixelSize;
   setPixelSize: (size: PixelSize) => void;
   zoom: number;
   setZoom: (zoom: number) => void;
-  
+
+  // Brush Size
+  brushSize: number;
+  setBrushSize: (size: number) => void;
+
   // Canvas Actions
   clear: () => void;
   clearCanvas: () => void;
-  
+
   // Pointer Events
   handlePointerDown: (e: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerMove: (e: React.PointerEvent<HTMLCanvasElement>) => void;
   handlePointerUp: () => void;
-  
+
   // Undo / Redo
   undo: () => void;
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
   historyState: { undoCount: number; redoCount: number };
-  
+
   // Frame Management
   frames: Frame[];
   currentFrameIndex: number;
@@ -71,24 +75,24 @@ interface AssetsEditorContextType {
   duplicateFrame: (index: number) => void;
   selectFrame: (index: number) => void;
   getFrameThumbnail: (index: number) => string | null;
-  
+
   // Animation Preview
   isPlaying: boolean;
   setIsPlaying: (playing: boolean) => void;
   fps: number;
   setFps: (fps: number) => void;
-  
+
   // AI Image
   loadAIImage: (blob: Blob) => Promise<void>;
   applyImageData: (imageData: ImageData) => void;
   getWorkCanvas: () => HTMLCanvasElement | null;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  
+
   // Export
   downloadWebP: (filename: string) => Promise<void>;
   saveToLibrary: (name: string, type: Asset['type'], stats: Asset['stats']) => Promise<void>;
-  
+
   // Library
   assets: Asset[];
   deleteAsset: (id: string) => void;
@@ -100,7 +104,7 @@ const AssetsEditorContext = createContext<AssetsEditorContextType | null>(null);
 export function AssetsEditorProvider({ children }: { children: ReactNode }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<PixelEngine | null>(null);
-  
+
   const [currentTool, setCurrentTool] = useState<Tool>('brush');
   const [currentColor, setCurrentColor] = useState<RGBA>({ r: 255, g: 255, b: 255, a: 255 });
   const [pixelSize, setPixelSizeState] = useState<PixelSize>(128);
@@ -110,16 +114,17 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [historyState, setHistoryState] = useState({ undoCount: 0, redoCount: 0 });
-  
+  const [brushSize, setBrushSizeState] = useState(1);
+
   // Frame state
   const [frames, setFrames] = useState<Frame[]>([]);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [maxFrames, setMaxFrames] = useState(4);
-  
+
   // Animation state
   const [isPlaying, setIsPlaying] = useState(false);
   const [fps, setFps] = useState(8);
-  
+
   const isDrawingRef = useRef(false);
 
   // 프레임 상태 동기화
@@ -164,6 +169,10 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
     engineRef.current?.clear();
     updateHistoryState();
   }, [updateHistoryState]);
+
+  const setBrushSize = useCallback((size: number) => {
+    setBrushSizeState(Math.min(16, Math.max(1, size)));
+  }, []);
 
   // ==================== Frame Management ====================
 
@@ -216,10 +225,10 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
 
     switch (currentTool) {
       case 'brush':
-        engineRef.current.drawPixelAt(x, y, currentColor);
+        engineRef.current.drawPixelAt(x, y, currentColor, brushSize);
         break;
       case 'eraser':
-        engineRef.current.erasePixelAt(x, y);
+        engineRef.current.erasePixelAt(x, y, brushSize);
         break;
       case 'fill':
         engineRef.current.floodFill(x, y, currentColor);
@@ -232,13 +241,13 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
         }
         break;
     }
-  }, [currentTool, currentColor]);
+  }, [currentTool, currentColor, brushSize]);
 
   // ==================== Pointer Events ====================
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
     if (e.button !== 0) return;
-    
+
     const coords = getPixelCoords(e);
     if (!coords || !engineRef.current) return;
 
@@ -277,7 +286,7 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
 
   const handlePointerUp = useCallback(() => {
     if (!isDrawingRef.current) return;
-    
+
     isDrawingRef.current = false;
     engineRef.current?.endStroke();
     updateHistoryState();
@@ -325,22 +334,22 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
 
   const loadAIImage = useCallback(async (blob: Blob) => {
     if (!engineRef.current) return;
-    
+
     setIsLoading(true);
     try {
       const imageBitmap = await createImageBitmap(blob);
-      
+
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = pixelSize;
       tempCanvas.height = pixelSize;
       const tempCtx = tempCanvas.getContext('2d');
       if (!tempCtx) throw new Error('Failed to get temp context');
-      
+
       tempCtx.imageSmoothingEnabled = false;
       tempCtx.drawImage(imageBitmap, 0, 0, pixelSize, pixelSize);
-      
+
       const imageData = tempCtx.getImageData(0, 0, pixelSize, pixelSize);
-      
+
       engineRef.current.applyAIImage(imageData);
       updateHistoryState();
       syncFrameState();
@@ -364,7 +373,7 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
     tempCanvas.height = pixelSize;
     const ctx = tempCanvas.getContext('2d');
     if (!ctx || !canvasRef.current) return null;
-    
+
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(canvasRef.current, 0, 0, pixelSize, pixelSize);
     return tempCanvas;
@@ -374,7 +383,7 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
 
   const downloadWebP = useCallback(async (filename: string) => {
     if (!engineRef.current) return;
-    
+
     const base64 = await engineRef.current.exportAsBase64();
     const link = document.createElement('a');
     link.href = base64;
@@ -387,7 +396,7 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
   const saveToLibrary = useCallback(
     async (name: string, type: Asset['type'], stats: Asset['stats']) => {
       if (!engineRef.current) return;
-      
+
       const imageData = await engineRef.current.exportAsBase64();
       const newAsset: Asset = {
         id: crypto.randomUUID(),
@@ -427,6 +436,8 @@ export function AssetsEditorProvider({ children }: { children: ReactNode }) {
         setPixelSize,
         zoom,
         setZoom,
+        brushSize,
+        setBrushSize,
         clear: clearCanvas,
         clearCanvas,
         handlePointerDown,

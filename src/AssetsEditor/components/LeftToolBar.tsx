@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react';
 import { useAssetsEditor } from '../context/AssetsEditorContext';
 
 export function LeftToolbar() {
-  const { 
-    currentTool, 
-    setCurrentTool, 
-    currentColor, 
+  const {
+    currentTool,
+    setCurrentTool,
+    currentColor,
     setCurrentColor,
     pixelSize,
     setPixelSize,
+    brushSize,
+    setBrushSize,
     clearCanvas,
     undo,
     redo,
@@ -67,21 +69,20 @@ export function LeftToolbar() {
           <span className="text-xs text-neutral-500">Frames</span>
           <span className="text-[10px] text-neutral-600">{frames.length}/{maxFrames}</span>
         </div>
-        
+
         {/* Frame Thumbnails */}
         <div className="space-y-1.5 mb-2 max-h-[200px] overflow-y-auto">
           {frames.map((frame, index) => (
             <div
               key={frame.id}
               onClick={() => selectFrame(index)}
-              className={`group relative flex items-center gap-2 p-1.5 cursor-pointer transition-colors ${
-                currentFrameIndex === index
+              className={`group relative flex items-center gap-2 p-1.5 cursor-pointer transition-colors ${currentFrameIndex === index
                   ? 'bg-[#2563eb]/20 border border-[#2563eb]'
                   : 'bg-neutral-900 border border-neutral-800 hover:border-neutral-700'
-              }`}
+                }`}
             >
               {/* Thumbnail */}
-              <div 
+              <div
                 className="w-10 h-10 bg-neutral-800 flex-shrink-0"
                 style={{
                   backgroundImage: `
@@ -96,15 +97,15 @@ export function LeftToolbar() {
                 }}
               >
                 {thumbnails[index] && (
-                  <img 
-                    src={thumbnails[index]!} 
+                  <img
+                    src={thumbnails[index]!}
                     alt={`Frame ${index + 1}`}
                     className="w-full h-full"
                     style={{ imageRendering: 'pixelated' }}
                   />
                 )}
               </div>
-              
+
               {/* Frame Info */}
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-white truncate">Frame {index + 1}</div>
@@ -141,7 +142,7 @@ export function LeftToolbar() {
         </div>
 
         {/* Add Frame Button */}
-        <button 
+        <button
           onClick={addFrame}
           disabled={frames.length >= maxFrames}
           className="w-full py-1.5 text-xs bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 flex items-center justify-center gap-1 text-neutral-400 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -158,11 +159,10 @@ export function LeftToolbar() {
             <button
               key={size}
               onClick={() => setPixelSize(size)}
-              className={`flex-1 py-1.5 text-xs transition-colors ${
-                pixelSize === size 
-                  ? 'bg-[#2563eb] text-white' 
+              className={`flex-1 py-1.5 text-xs transition-colors ${pixelSize === size
+                  ? 'bg-[#2563eb] text-white'
                   : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-              }`}
+                }`}
             >
               {size}px
             </button>
@@ -178,14 +178,43 @@ export function LeftToolbar() {
             <button
               key={tool.id}
               onClick={() => setCurrentTool(tool.id as typeof currentTool)}
-              className={`aspect-square flex items-center justify-center text-sm transition-colors ${
-                currentTool === tool.id
+              className={`aspect-square flex items-center justify-center text-sm transition-colors ${currentTool === tool.id
                   ? 'bg-[#2563eb] text-white'
                   : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
-              }`}
+                }`}
               title={tool.label}
             >
               {tool.icon}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Brush Size */}
+      <div className="p-3 border-b border-neutral-800">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-neutral-500">Brush Size</span>
+          <span className="text-xs text-neutral-400 font-mono">{brushSize}px</span>
+        </div>
+        <input
+          type="range"
+          min="1"
+          max="16"
+          value={brushSize}
+          onChange={(e) => setBrushSize(Number(e.target.value))}
+          className="w-full h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#2563eb]"
+        />
+        <div className="flex gap-1 mt-2">
+          {[1, 2, 4, 8].map((size) => (
+            <button
+              key={size}
+              onClick={() => setBrushSize(size)}
+              className={`flex-1 py-1 text-[10px] transition-colors ${brushSize === size
+                  ? 'bg-[#2563eb] text-white'
+                  : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
+                }`}
+            >
+              {size}
             </button>
           ))}
         </div>
@@ -203,11 +232,10 @@ export function LeftToolbar() {
           <button
             onClick={undo}
             disabled={!canUndo}
-            className={`flex-1 py-1.5 text-xs flex items-center justify-center gap-1 transition-colors ${
-              canUndo
+            className={`flex-1 py-1.5 text-xs flex items-center justify-center gap-1 transition-colors ${canUndo
                 ? 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                 : 'bg-neutral-900/50 text-neutral-600 border border-neutral-800/50 cursor-not-allowed'
-            }`}
+              }`}
             title="Undo (Ctrl+Z)"
           >
             <span>↩</span> Undo
@@ -215,11 +243,10 @@ export function LeftToolbar() {
           <button
             onClick={redo}
             disabled={!canRedo}
-            className={`flex-1 py-1.5 text-xs flex items-center justify-center gap-1 transition-colors ${
-              canRedo
+            className={`flex-1 py-1.5 text-xs flex items-center justify-center gap-1 transition-colors ${canRedo
                 ? 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-white border border-neutral-800'
                 : 'bg-neutral-900/50 text-neutral-600 border border-neutral-800/50 cursor-not-allowed'
-            }`}
+              }`}
             title="Redo (Ctrl+Shift+Z)"
           >
             Redo <span>↪</span>
@@ -230,10 +257,10 @@ export function LeftToolbar() {
       {/* Color */}
       <div className="p-3 border-b border-neutral-800">
         <div className="text-xs text-neutral-500 mb-2">Color</div>
-        
+
         {/* Current Color Display */}
         <div className="flex gap-2 mb-3">
-          <div 
+          <div
             className="w-10 h-10 border border-neutral-700"
             style={{ backgroundColor: rgbaToHex(currentColor) }}
           />
@@ -246,7 +273,7 @@ export function LeftToolbar() {
             />
           </div>
         </div>
-        
+
         {/* Color Palette */}
         <div className="grid grid-cols-8 gap-0.5">
           {[
