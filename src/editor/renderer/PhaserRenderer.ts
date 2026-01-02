@@ -96,6 +96,11 @@ class PhaserRenderScene extends Phaser.Scene {
                 (this.cursors?.up?.isDown === true) ||
                 (this.wasd?.W?.isDown === true)
         };
+        this.phaserRenderer.onInputState?.(input);
+
+        if (!this.phaserRenderer.useEditorCoreRuntimePhysics) {
+            return;
+        }
 
         // Kinetic 모듈을 가진 엔티티만 업데이트
         editorCore.getEntities().forEach((entity) => {
@@ -162,6 +167,8 @@ export class PhaserRenderer implements IRenderer {
     onPointerUp?: (worldX: number, worldY: number, worldZ: number) => void;
     onScroll?: (deltaY: number) => void;
     onUpdateCallback?: (time: number, delta: number) => void;
+    onInputState?: (input: InputState) => void;
+    useEditorCoreRuntimePhysics = true;
 
     // ===== Lifecycle =====
 
@@ -354,6 +361,45 @@ export class PhaserRenderer implements IRenderer {
 
         if (rotation !== undefined) {
             gameObj.setAngle(rotation);
+        }
+    }
+
+    setScale(id: string, scaleX: number, scaleY: number, _scaleZ?: number): void {
+        const obj = this.entities.get(id);
+        if (!obj) {
+            console.warn(`[PhaserRenderer] Cannot set scale: entity "${id}" not found`);
+            return;
+        }
+
+        const gameObj = obj as Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Transform;
+        if (typeof gameObj.setScale === "function") {
+            gameObj.setScale(scaleX, scaleY);
+        }
+    }
+
+    setAlpha(id: string, alpha: number): void {
+        const obj = this.entities.get(id);
+        if (!obj) {
+            console.warn(`[PhaserRenderer] Cannot set alpha: entity "${id}" not found`);
+            return;
+        }
+
+        const gameObj = obj as Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Alpha;
+        if (typeof gameObj.setAlpha === "function") {
+            gameObj.setAlpha(alpha);
+        }
+    }
+
+    setTint(id: string, color: number): void {
+        const obj = this.entities.get(id);
+        if (!obj) {
+            console.warn(`[PhaserRenderer] Cannot set tint: entity "${id}" not found`);
+            return;
+        }
+
+        const gameObj = obj as Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Tint;
+        if (typeof gameObj.setTint === "function") {
+            gameObj.setTint(color);
         }
     }
 

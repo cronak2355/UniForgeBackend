@@ -8,6 +8,15 @@
 import type { IRenderer } from "../renderer/IRenderer";
 import type { EditorComponent, AutoRotateComponent, PulseComponent } from "../types/Component";
 import type { EditorVariable } from "../types/Variable";
+import type { EditorModule } from "../types/Module";
+import type { GameRule } from "./events/RuleEngine";
+import type { InputState } from "./RuntimePhysics";
+import { EventBus } from "./events/EventBus";
+import type { IModule } from "./modules/IModule";
+import { KineticModule } from "./modules/KineticModule";
+import { StatusModule } from "./modules/StatusModule";
+import { CombatModule, type TargetInfo, type ProjectileSpawnSignal } from "./modules/CombatModule";
+import { NarrativeModule } from "./modules/NarrativeModule";
 
 /**
  * 게임 엔티티 데이터 구조 (순수 JavaScript 객체)
@@ -27,6 +36,8 @@ export interface GameEntity {
     scaleZ: number;
     variables: EditorVariable[];
     components: EditorComponent[];
+    modules: EditorModule[];
+    rules: GameRule[];
 }
 
 /**
@@ -43,6 +54,8 @@ export interface CreateEntityOptions {
     scaleZ?: number;
     variables?: EditorVariable[];
     components?: EditorComponent[];
+    modules?: EditorModule[];
+    rules?: GameRule[];
     texture?: string;
     width?: number;
     height?: number;
@@ -57,6 +70,28 @@ interface ComponentRuntime {
     component: EditorComponent;
     // Pulse 컴포넌트용 초기 스케일
     initialScale?: { x: number; y: number };
+}
+
+interface ModuleRuntime {
+    entityId: string;
+    module: IModule;
+}
+
+interface ProjectileRuntime {
+    id: string;
+    fromId: string;
+    targetId: string | null;
+    x: number;
+    y: number;
+    z: number;
+    dirX: number;
+    dirY: number;
+    speed: number;
+    damage: number;
+    pierceCount: number;
+    explosionRadius: number;
+    life: number;
+    hitTargets: Set<string>;
 }
 
 /**
@@ -75,6 +110,14 @@ export class GameCore {
 
     // ===== 컴포넌트 런타임 (최적화된 업데이트 루프) =====
     private componentRuntimes: ComponentRuntime[] = [];
+    private moduleRuntimes: Map<string, ModuleRuntime[]> = new Map();
+    private projectileRuntimes: Map<string, ProjectileRuntime> = new Map();
+    private inputState: InputState = { left: false, right: false, up: false, down: false, jump: false };
+    private groundY = 500;
+    private readonly projectileTtl = 2;
+    private readonly projectileSize = 6;
+    private readonly projectileColor = 0xffcc00;
+    private readonly projectileHitRadius = 8;
 
     // ===== 구독자 (상태 변경 알림) =====
     private listeners: Set<() => void> = new Set();
@@ -123,6 +166,8 @@ export class GameCore {
             scaleZ: options.scaleZ ?? 1,
             variables: options.variables ?? [],
             components: options.components ?? [],
+            modules: options.modules ?? [],
+            rules: options.rules ?? [],
         };
 
         // 1. 로컬 상태에 저장
@@ -135,9 +180,12 @@ export class GameCore {
             height: options.height,
             color: options.color,
         });
+        this.renderer.update(id, entity.x, entity.y, entity.z, entity.rotationZ);
+        this.renderer.setScale(id, entity.scaleX, entity.scaleY, entity.scaleZ);
 
         // 3. 컴포넌트 런타임 등록
         this.registerComponentRuntimes(entity);
+        this.registerModuleRuntimes(entity);
 
         // 4. 구독자 알림
         this.notify();
@@ -160,6 +208,11 @@ export class GameCore {
         entity.y = y;
         if (z !== undefined) {
             entity.z = z;
+        }
+
+        const kinetic = this.getModuleByType<KineticModule>(id, "Kinetic");
+        if (kinetic) {
+            kinetic.position = { x: entity.x, y: entity.y, z: entity.z };
         }
 
         this.renderer.update(id, x, y, entity.z, entity.rotationZ);
@@ -190,6 +243,8 @@ export class GameCore {
 
         // 1. 컴포넌트 런타임 제거
         this.unregisterComponentRuntimes(id);
+        this.unregisterModuleRuntimes(id);
+        this.removeProjectilesForEntity(id);
 
         // 2. 렌더러에서 제거
         this.renderer.remove(id);
@@ -252,6 +307,20 @@ export class GameCore {
         }
 
         return true;
+    }
+
+    /**
+     * 런타임 입력 상태 갱신
+     */
+    setInputState(input: InputState): void {
+        this.inputState = { ...input };
+    }
+
+    /**
+     * Platformer 바닥 높이 설정
+     */
+    setGroundY(y: number): void {
+        this.groundY = y;
     }
 
     // ===== Component System =====
@@ -318,6 +387,250 @@ export class GameCore {
         this.componentRuntimes = this.componentRuntimes.filter(r => r.entityId !== entityId);
     }
 
+    private getModules(entityId: string): ModuleRuntime[] {
+        return this.moduleRuntimes.get(entityId) ?? [];
+    }
+
+    private getModuleByType<T extends IModule>(entityId: string, type: string): T | undefined {
+        const modules = this.getModules(entityId);
+        const match = modules.find(m => m.module.type === type);
+        return match?.module as T | undefined;
+    }
+
+    private registerModuleRuntimes(entity: GameEntity): void {
+        if (!entity.modules || entity.modules.length === 0) {
+            return;
+        }
+
+        const runtimes: ModuleRuntime[] = [];
+
+        for (const moduleData of entity.modules) {
+            switch (moduleData.type) {
+                case "Status": {
+                    const status = new StatusModule(moduleData.id, {
+                        hp: moduleData.hp,
+                        maxHp: moduleData.maxHp,
+                        mp: moduleData.mp,
+                        maxMp: moduleData.maxMp,
+                        attack: moduleData.attack,
+                        defense: moduleData.defense,
+                        speed: moduleData.speed,
+                    });
+                    runtimes.push({ entityId: entity.id, module: status });
+                    break;
+                }
+                case "Kinetic": {
+                    const kinetic = new KineticModule(moduleData.id, {
+                        mode: moduleData.mode,
+                        maxSpeed: moduleData.maxSpeed,
+                        friction: moduleData.friction,
+                        gravity: moduleData.gravity,
+                        jumpForce: moduleData.jumpForce,
+                    });
+                    kinetic.position = { x: entity.x, y: entity.y, z: entity.z };
+                    runtimes.push({ entityId: entity.id, module: kinetic });
+                    break;
+                }
+                case "Combat": {
+                    const combat = new CombatModule(moduleData.id, {
+                        attackRange: moduleData.attackRange,
+                        attackInterval: moduleData.attackInterval,
+                        damage: moduleData.damage,
+                        bulletPattern: moduleData.bulletPattern,
+                        bulletCount: moduleData.bulletCount,
+                    });
+                    combat.onSpawnProjectile = (signal) => this.spawnProjectile(signal);
+                    runtimes.push({ entityId: entity.id, module: combat });
+                    break;
+                }
+                case "Narrative": {
+                    const narrative = new NarrativeModule(moduleData.id);
+                    runtimes.push({ entityId: entity.id, module: narrative });
+                    break;
+                }
+            }
+        }
+
+        if (runtimes.length > 0) {
+            this.moduleRuntimes.set(entity.id, runtimes);
+        }
+    }
+
+    private unregisterModuleRuntimes(entityId: string): void {
+        const runtimes = this.moduleRuntimes.get(entityId);
+        if (runtimes) {
+            for (const runtime of runtimes) {
+                runtime.module.destroy();
+            }
+        }
+        this.moduleRuntimes.delete(entityId);
+    }
+
+    private updateModules(dt: number): void {
+        if (this.moduleRuntimes.size === 0) return;
+
+        const targets = this.buildTargetInfo();
+
+        for (const [entityId, runtimes] of this.moduleRuntimes) {
+            const entity = this.entities.get(entityId);
+            if (!entity) continue;
+
+            for (const runtime of runtimes) {
+                switch (runtime.module.type) {
+                    case "Kinetic": {
+                        const kinetic = runtime.module as KineticModule;
+                        if (kinetic.mode === "TopDown") {
+                            kinetic.processTopDownInput(this.inputState);
+                        } else if (kinetic.mode === "Platformer") {
+                            kinetic.processPlatformerInput(this.inputState);
+                        }
+
+                        kinetic.update(dt);
+
+                        if (kinetic.mode === "Platformer" && kinetic.position.y >= this.groundY) {
+                            kinetic.land(this.groundY);
+                        }
+
+                        entity.x = kinetic.position.x;
+                        entity.y = kinetic.position.y;
+                        entity.z = kinetic.position.z ?? entity.z;
+                        this.renderer.update(entity.id, entity.x, entity.y, entity.z, entity.rotationZ);
+                        break;
+                    }
+                    case "Combat": {
+                        const combat = runtime.module as CombatModule;
+                        combat.position = { x: entity.x, y: entity.y, z: entity.z };
+                        combat.update(dt);
+                        combat.updateAutoAttack(targets);
+                        break;
+                    }
+                    default:
+                        runtime.module.update(dt);
+                        break;
+                }
+            }
+        }
+    }
+
+    private buildTargetInfo(): TargetInfo[] {
+        const targets: TargetInfo[] = [];
+        for (const [id, entity] of this.entities) {
+            const status = this.getModuleByType<StatusModule>(id, "Status");
+            targets.push({
+                id,
+                position: { x: entity.x, y: entity.y, z: entity.z },
+                hp: status?.hp,
+            });
+        }
+        return targets;
+    }
+
+    private spawnProjectile(signal: ProjectileSpawnSignal): void {
+        if (this.projectileRuntimes.has(signal.id)) return;
+
+        this.projectileRuntimes.set(signal.id, {
+            id: signal.id,
+            fromId: signal.fromId,
+            targetId: signal.targetId,
+            x: signal.position.x,
+            y: signal.position.y,
+            z: signal.position.z ?? 0,
+            dirX: signal.direction.x,
+            dirY: signal.direction.y,
+            speed: signal.speed,
+            damage: signal.damage,
+            pierceCount: signal.pierceCount,
+            explosionRadius: signal.explosionRadius,
+            life: this.projectileTtl,
+            hitTargets: new Set(),
+        });
+
+        this.renderer.spawn(signal.id, "projectile", signal.position.x, signal.position.y, signal.position.z ?? 0, {
+            width: this.projectileSize,
+            height: this.projectileSize,
+            color: this.projectileColor,
+        });
+    }
+
+    private updateProjectiles(dt: number): void {
+        for (const [id, projectile] of this.projectileRuntimes) {
+            projectile.life -= dt;
+            if (projectile.life <= 0) {
+                this.removeProjectile(id);
+                continue;
+            }
+
+            projectile.x += projectile.dirX * projectile.speed * dt;
+            projectile.y += projectile.dirY * projectile.speed * dt;
+            this.renderer.update(id, projectile.x, projectile.y, projectile.z);
+
+            if (projectile.targetId) {
+                const target = this.entities.get(projectile.targetId);
+                if (!target) continue;
+
+                if (projectile.hitTargets.has(target.id)) continue;
+
+                const dx = target.x - projectile.x;
+                const dy = target.y - projectile.y;
+                const hit = (dx * dx + dy * dy) <= (this.projectileHitRadius * this.projectileHitRadius);
+                if (!hit) continue;
+
+                this.applyProjectileHit(projectile, target.id);
+                projectile.hitTargets.add(target.id);
+
+                if (projectile.pierceCount > 0) {
+                    projectile.pierceCount -= 1;
+                } else {
+                    this.removeProjectile(id);
+                }
+            }
+        }
+    }
+
+    private applyProjectileHit(projectile: ProjectileRuntime, targetId: string): void {
+        if (projectile.explosionRadius > 0) {
+            for (const [id, entity] of this.entities) {
+                if (id === projectile.fromId) continue;
+                if (projectile.hitTargets.has(id)) continue;
+                const dx = entity.x - projectile.x;
+                const dy = entity.y - projectile.y;
+                if ((dx * dx + dy * dy) <= (projectile.explosionRadius * projectile.explosionRadius)) {
+                    this.applyDamage(id, projectile.damage, projectile.fromId);
+                    projectile.hitTargets.add(id);
+                }
+            }
+            return;
+        }
+
+        if (targetId === projectile.fromId) return;
+        this.applyDamage(targetId, projectile.damage, projectile.fromId);
+    }
+
+    private applyDamage(targetId: string, damage: number, attackerId?: string): void {
+        const status = this.getModuleByType<StatusModule>(targetId, "Status");
+        if (status) {
+            status.takeDamage(damage);
+            if (!status.isAlive) {
+                EventBus.emit("ENTITY_DIED", { entityId: targetId, attackerId });
+            }
+        }
+
+        EventBus.emit("ATTACK_HIT", { targetId, damage, attackerId });
+    }
+
+    private removeProjectile(id: string): void {
+        this.projectileRuntimes.delete(id);
+        this.renderer.remove(id);
+    }
+
+    private removeProjectilesForEntity(entityId: string): void {
+        for (const [id, projectile] of this.projectileRuntimes) {
+            if (projectile.fromId === entityId || projectile.targetId === entityId) {
+                this.removeProjectile(id);
+            }
+        }
+    }
+
     // ===== Update Loop =====
 
     /**
@@ -326,11 +639,16 @@ export class GameCore {
      * @param deltaTime 이전 프레임으로부터의 시간 (초)
      */
     update(time: number, deltaTime: number): void {
+        const dt = deltaTime / 1000;
+
+        this.updateModules(dt);
+        this.updateProjectiles(dt);
+
         for (const runtime of this.componentRuntimes) {
             const entity = this.entities.get(runtime.entityId);
             if (!entity) continue;
 
-            this.processComponent(entity, runtime, time, deltaTime);
+            this.processComponent(entity, runtime, time, dt);
         }
     }
 
@@ -344,16 +662,14 @@ export class GameCore {
         dt: number
     ): void {
         const comp = runtime.component;
-
+        //todo : ECS패턴으로 리팩토링
         switch (comp.type) {
             case "AutoRotate": {
                 const c = comp as AutoRotateComponent;
-                console.log(`skrr ${c.speed}`)
                 entity.rotationZ += c.speed * dt;
                 this.renderer.update(entity.id, entity.x, entity.y, entity.z, entity.rotationZ);
                 break;
             }
-
             case "Pulse": {
                 const c = comp as PulseComponent;
                 const t = (time / 1000) * c.speed;
@@ -363,6 +679,7 @@ export class GameCore {
 
                 entity.scaleX = currentScale;
                 entity.scaleY = currentScale;
+                this.renderer.setScale(entity.id, entity.scaleX, entity.scaleY, entity.scaleZ);
                 // Note: 스케일 업데이트는 렌더러에서 별도 처리 필요
                 break;
             }
@@ -400,9 +717,21 @@ export class GameCore {
             this.renderer.remove(id);
         }
 
+        for (const id of this.projectileRuntimes.keys()) {
+            this.renderer.remove(id);
+        }
+
+        for (const runtimes of this.moduleRuntimes.values()) {
+            for (const runtime of runtimes) {
+                runtime.module.destroy();
+            }
+        }
+
         // 2. 로컬 상태 정리
         this.entities.clear();
         this.componentRuntimes = [];
+        this.moduleRuntimes.clear();
+        this.projectileRuntimes.clear();
         this.listeners.clear();
 
         console.log("[GameCore] Destroyed - all entities and runtimes cleaned up");
@@ -429,11 +758,16 @@ export class GameCore {
             this.createEntity(entityData.id, entityData.type, entityData.x, entityData.y, {
                 name: entityData.name,
                 z: entityData.z,
+                rotationX: entityData.rotationX,
+                rotationY: entityData.rotationY,
                 rotationZ: entityData.rotationZ,
                 scaleX: entityData.scaleX,
                 scaleY: entityData.scaleY,
                 scaleZ: entityData.scaleZ,
+                variables: entityData.variables,
                 components: entityData.components,
+                modules: entityData.modules,
+                rules: entityData.rules,
             });
         }
     }
