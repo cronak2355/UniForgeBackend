@@ -6,6 +6,7 @@ import { KeyboardAdapter } from "../core/events/adapters/KeyboardAdapter";
 import { editorCore } from "../EditorCore";
 // 물리 엔진 (엔진 독립적)
 import { runtimePhysics, type InputState } from "../core/RuntimePhysics";
+import type { EditorModule } from "../types/Module";
 
 /**
  * Phaser 씬 내부 클래스
@@ -48,7 +49,7 @@ class PhaserRenderScene extends Phaser.Scene {
             editorCore.getEntities().forEach((entity) => {
                 if (!entity.rules || entity.rules.length === 0) return;
 
-                const moduleMap: any = {};
+                const moduleMap: Record<string, EditorModule | undefined> = {};
                 if (entity.modules) {
                     entity.modules.forEach(m => {
                         moduleMap[m.type] = m;
@@ -65,7 +66,7 @@ class PhaserRenderScene extends Phaser.Scene {
                     }
                 };
 
-                RuleEngine.handleEvent(event, ctx, entity.rules);
+                RuleEngine.handleEvent(event, ctx as Parameters<typeof RuleEngine.handleEvent>[1], entity.rules);
             });
         });
 

@@ -3,6 +3,7 @@ import { HierarchyPanel } from "./HierarchyPanel";
 import { InspectorPanel } from "./inspector/InspectorPanel";
 import { AssetPanel } from "./AssetPanel";
 import type { EditorEntity } from "./types/Entity";
+import type { Asset } from "./types/Asset";
 import { EditorCanvas } from "./EditorCanvas";
 import { RunTimeCanvas } from "./RunTimeCanvas";
 import "./styles.css";
@@ -40,14 +41,14 @@ function EditorLayoutInner() {
     const [mode, setMode] = useState<Mode>("dev");
     const [runSession, setRunSession] = useState(0);
 
-    const changeSelectedAssetHandler = (a: any) => {
+    const changeSelectedAssetHandler = (a: Asset | null) => {
         core.setSelectedAsset(a);
         const cm = new CameraMode();
         const ctx: EditorContext = { currentMode: cm, currentSelectedAsset: a ?? undefined, mouse: "mousemove" };
         core.sendContextToEditorModeStateMachine(ctx);
     };
 
-    const changeDraggedAssetHandler = (a: any) => {
+    const changeDraggedAssetHandler = (a: Asset | null) => {
         core.setDraggedAsset(a);
         if (a == null) {
             const cm = new CameraMode();
