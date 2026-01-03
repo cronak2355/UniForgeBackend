@@ -1,0 +1,24 @@
+> Task :checkKotlinGradlePluginConfigurationErrors
+
+> Task :compileKotlin FAILED
+e: file:///C:/Users/danmu/.gemini/antigravity/scratch/UniForgeBackend/src/main/kotlin/com/uniforge/backend/comment/service/CommentService.kt:24:17 Cannot find a parameter with this name: parentId
+e: file:///C:/Users/danmu/.gemini/antigravity/scratch/UniForgeBackend/src/main/kotlin/com/uniforge/backend/image/repository/ImageResourceRepository.kt:17:6 Unresolved reference: Modifying
+e: file:///C:/Users/danmu/.gemini/antigravity/scratch/UniForgeBackend/src/main/kotlin/com/uniforge/backend/image/repository/ImageResourceRepository.kt:18:6 Unresolved reference: Query
+e: file:///C:/Users/danmu/.gemini/antigravity/scratch/UniForgeBackend/src/main/kotlin/com/uniforge/backend/image/service/ImageResourceService.kt:24:9 Unresolved reference: s3Validator
+e: file:///C:/Users/danmu/.gemini/antigravity/scratch/UniForgeBackend/src/main/kotlin/com/uniforge/backend/image/service/ImageThumbnailService.kt:43:13 No value passed for parameter 'contentType'
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+2 actionable tasks: 2 executed

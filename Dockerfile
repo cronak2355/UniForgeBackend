@@ -1,14 +1,15 @@
-FROM gradle:8.5-jdk17-alpine AS build
-WORKDIR /workspace/app
-
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
-COPY src src
-
-RUN gradle clean build -x test --no-daemon
+FROM eclipse-temurin:17-jdk-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN chmod +x gradlew && ./gradlew bootJar -x test
 
 FROM eclipse-temurin:17-jre-alpine
-VOLUME /tmp
-ARG DEPENDENCY=/workspace/app/build/libs
-COPY --from=build ${DEPENDENCY}/*.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+WORKDIR /app
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+ENV JAVA_OPTS="-Xms512m -Xmx1024m"
+ENV SPRING_PROFILES_ACTIVE=prod
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

@@ -6,11 +6,13 @@ plugins {
     kotlin("plugin.jpa") version "1.9.21"
 }
 
-group = "com.unifor"
+group = "com.uniforge"
 version = "0.0.1-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 repositories {
@@ -42,6 +44,10 @@ dependencies {
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+
+    // AWS
+    implementation(platform("software.amazon.awssdk:bom:2.21.1"))
+    implementation("software.amazon.awssdk:s3")
 }
 
 kotlin {
