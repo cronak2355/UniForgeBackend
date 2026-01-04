@@ -24,31 +24,24 @@ ActionRegistry.register("Move", (ctx: ActionContext, params: Record<string, unkn
         return;
     }
 
-    // 파라미터에서 방향과 속도를 가져옴
     const x = (params.x as number) ?? 0;
     const y = (params.y as number) ?? 0;
     const speed = (params.speed as number) ?? 200;
-    const dt = 0.016; // 약 60fps 기준
+    const dt = 0.016;
 
-    // 실제 위치 이동
     gameObject.x += x * speed * dt;
     gameObject.y += y * speed * dt;
 
-    // EditorCore의 entity 데이터도 업데이트 (동기화)
     const entity = editorCore.getEntities().get(entityId);
     if (entity) {
         entity.x = gameObject.x;
         entity.y = gameObject.y;
     }
-
-    console.log(`[Action] Move: Entity ${entityId} moved to (${gameObject.x.toFixed(1)}, ${gameObject.y.toFixed(1)})`);
 });
 
 ActionRegistry.register("Jump", (_ctx: ActionContext, _params: Record<string, unknown>) => {
-    // Jump 액션은 더 이상 위치를 직접 변경하지 않습니다.
-    // update() 루프의 물리 엔진이 모든 점프를 처리합니다.
-    // 이 액션은 EAC 규칙 호환성을 위해 로그만 출력합니다.
-    console.log(`[Action] Jump: Handled by physics engine (not direct position change)`);
+    // 물리 엔진에서 처리 - EAC 호환성용
+    console.log("[Action] Jump: Handled by physics engine");
 });
 
 // --- Combat Actions ---
@@ -64,7 +57,6 @@ ActionRegistry.register("Attack", (ctx: ActionContext, params: Record<string, un
     const range = (params.range as number) ?? 100;
     const damage = (params.damage as number) ?? 10;
 
-    // 다른 엔티티들과 거리 검사
     const allIds = renderer.getAllEntityIds?.() || [];
     for (const id of allIds) {
         if (id === attackerId) continue;
@@ -79,7 +71,6 @@ ActionRegistry.register("Attack", (ctx: ActionContext, params: Record<string, un
 
         if (distance <= range) {
             EventBus.emit("ATTACK_HIT", { targetId: id, damage, attackerId });
-            console.log(`[Action] Attack hit: ${id} for ${damage} damage`);
         }
     }
 });
@@ -88,24 +79,16 @@ ActionRegistry.register("Attack", (ctx: ActionContext, params: Record<string, un
 
 ActionRegistry.register("TakeDamage", (ctx: ActionContext, params: Record<string, unknown>) => {
     const status = ctx.modules.Status as any;
-    if (!status) {
-        console.warn("[Action] TakeDamage: No Status module");
-        return;
-    }
+    if (!status) return;
 
     const amount = (params.amount as number) ?? 1;
 
     if (typeof status.takeDamage === 'function') {
         status.takeDamage(amount);
-    } else {
-        // 직접 HP 감소 (데이터 모듈인 경우)
-        if (status.hp !== undefined) {
-            status.hp = Math.max(0, status.hp - amount);
-            console.log(`[Action] TakeDamage: HP reduced to ${status.hp}`);
-
-            if (status.hp <= 0) {
-                EventBus.emit("ENTITY_DIED", { entityId: ctx.entityId });
-            }
+    } else if (status.hp !== undefined) {
+        status.hp = Math.max(0, status.hp - amount);
+        if (status.hp <= 0) {
+            EventBus.emit("ENTITY_DIED", { entityId: ctx.entityId });
         }
     }
 });
@@ -120,8 +103,76 @@ ActionRegistry.register("Heal", (ctx: ActionContext, params: Record<string, unkn
         status.heal(amount);
     } else if (status.hp !== undefined && status.maxHp !== undefined) {
         status.hp = Math.min(status.maxHp, status.hp + amount);
-        console.log(`[Action] Heal: HP increased to ${status.hp}`);
     }
 });
 
-console.log("[DefaultActions] Actions registered with runtime support.");
+// --- Variable Actions ---
+
+/**
+ * 변수 설정
+ * params: { name: string, value: number | string }
+ */
+ActionRegistry.register("SetVar", (ctx: ActionContext, params: Record<string, unknown>) => {
+    const entity = editorCore.getEntities().get(ctx.entityId);
+    if (!entity) return;
+
+    const varName = params.name as string;
+    const value = params.value as number | string;
+    if (!varName) return;
+
+    if (!entity.variables) entity.variables = [];
+
+    const existingVar = entity.variables.find(v => v.name === varName);
+    if (existingVar) {
+        existingVar.value = value;
+    } else {
+        entity.variables.push({
+            id: crypto.randomUUID(),
+            name: varName,
+            type: typeof value === 'number' ? 'float' : 'string',
+            value
+        });
+    }
+});
+
+// --- Entity Control Actions ---
+
+/**
+ * 엔티티 활성화/비활성화
+ * params: { targetId?: string, enabled?: boolean }
+ * enabled 생략시 true (활성화)
+ */
+ActionRegistry.register("Enable", (ctx: ActionContext, params: Record<string, unknown>) => {
+    const renderer = ctx.globals?.renderer as any;
+    if (!renderer) return;
+
+    const targetId = (params.targetId as string) ?? ctx.entityId;
+    const enabled = (params.enabled as boolean) ?? true;
+    const gameObject = renderer.getGameObject?.(targetId);
+
+    if (gameObject) {
+        gameObject.setVisible(enabled);
+        gameObject.setActive(enabled);
+        EventBus.emit(enabled ? "ENTITY_ENABLED" : "ENTITY_DISABLED", { entityId: targetId });
+    }
+});
+
+// --- Scene Actions ---
+
+/**
+ * 씬 전환
+ * params: { sceneName: string, data?: object }
+ */
+ActionRegistry.register("ChangeScene", (ctx: ActionContext, params: Record<string, unknown>) => {
+    const scene = ctx.globals?.scene as Phaser.Scene | undefined;
+    if (!scene) return;
+
+    const sceneName = params.sceneName as string;
+    const data = params.data as object | undefined;
+    if (!sceneName) return;
+
+    EventBus.emit("SCENE_CHANGING", { from: scene.scene.key, to: sceneName });
+    scene.scene.start(sceneName, data);
+});
+
+console.log("[DefaultActions] 8 actions registered: Move, Jump, Attack, TakeDamage, Heal, SetVar, Enable, ChangeScene");
