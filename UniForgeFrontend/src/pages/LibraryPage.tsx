@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { marketplaceService } from '../services/marketplaceService';
 
 // --- Types ---
 interface LibraryItem {
@@ -28,7 +27,13 @@ const MOCK_GAMES: LibraryItem[] = [
     { id: 'g3', title: 'Medieval Legends', type: 'game', thumbnail: 'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=400&q=80', author: 'KnightSoft', purchaseDate: '2024.01.10' },
 ];
 
-// No MOCK_ASSETS needed
+const MOCK_ASSETS: LibraryItem[] = [
+    { id: 'a1', title: 'Sci-Fi Weapon Pack', type: 'asset', assetType: '3D Model', thumbnail: 'https://images.unsplash.com/photo-1612404730960-5c71579fca2c?w=400&q=80', author: 'AssetMaster', purchaseDate: '2023.11.20', collectionId: 'c1' },
+    { id: 'a2', title: 'Horror Sound Effects', type: 'asset', assetType: 'Sound', thumbnail: 'https://images.unsplash.com/photo-1516280440614-6697288d5d38?w=400&q=80', author: 'AudioLab', purchaseDate: '2023.12.05', collectionId: 'c2' },
+    { id: 'a3', title: 'Urban Texture Set', type: 'asset', assetType: 'Texture', thumbnail: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=400&q=80', author: 'TexturePro', purchaseDate: '2024.01.02' },
+    { id: 'a4', title: 'Cyberpunk Character', type: 'asset', assetType: '3D Model', thumbnail: 'https://images.unsplash.com/photo-1626285861696-9f0bf5a49c6d?w=400&q=80', author: 'NeonArt', purchaseDate: '2024.01.15', collectionId: 'c1' },
+    { id: 'a5', title: 'Dark Ambient Music', type: 'asset', assetType: 'Sound', thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80', author: 'GhostTrax', purchaseDate: '2024.01.20', collectionId: 'c2' },
+];
 
 const INITIAL_COLLECTIONS: Collection[] = [
     { id: 'c1', name: 'SF / 미래', icon: 'fa-rocket' },
@@ -48,41 +53,8 @@ export default function LibraryPage() {
     const [collections, setCollections] = useState<Collection[]>(INITIAL_COLLECTIONS);
     const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [items, setItems] = useState<LibraryItem[]>([]);
 
     // --- Effects ---
-    // Fetch Data
-    useEffect(() => {
-        const fetchItems = async () => {
-            if (activeTab === 'games') {
-                setItems(MOCK_GAMES);
-            } else if (activeTab === 'assets' && user) {
-                try {
-                    // Fetch assets created by the user
-                    const myAssets = await marketplaceService.getAssets(user.id);
-                    const libraryItems: LibraryItem[] = myAssets.map(asset => ({
-                        id: asset.id,
-                        title: asset.name,
-                        type: 'asset',
-                        thumbnail: asset.imageUrl || `https://placehold.co/400x300/1a1a1a/white?text=${encodeURIComponent(asset.name || 'UniForge')}`,
-                        author: asset.authorName || user.name || 'Unknown',
-                        purchaseDate: new Date(asset.createdAt).toLocaleDateString(),
-                        assetType: 'Asset', // Default type since backend doesn't provide specific type yet/mapped
-                        collectionId: undefined // TODO: Map collections
-                    }));
-                    setItems(libraryItems);
-                } catch (error) {
-                    console.error("Failed to fetch assets:", error);
-                    setItems([]);
-                }
-            } else {
-                setItems([]);
-            }
-        };
-
-        fetchItems();
-    }, [activeTab, user]);
-
     // Close dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -114,17 +86,17 @@ export default function LibraryPage() {
 
     // --- Filter Logic ---
     const getFilteredItems = () => {
-        let filtered = items;
+        let items = activeTab === 'games' ? MOCK_GAMES : MOCK_ASSETS;
 
         if (searchTerm) {
-            filtered = filtered.filter(item => item.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            items = items.filter(item => item.title.toLowerCase().includes(searchTerm.toLowerCase()));
         }
 
         if (activeTab === 'assets' && selectedCollectionId) {
-            filtered = filtered.filter(item => item.collectionId === selectedCollectionId);
+            items = items.filter(item => item.collectionId === selectedCollectionId);
         }
 
-        return filtered;
+        return items;
     };
 
     const filteredItems = getFilteredItems();
@@ -430,10 +402,6 @@ export default function LibraryPage() {
                                             src={item.thumbnail}
                                             alt={item.title}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            onError={(e) => {
-                                                e.currentTarget.src = `https://placehold.co/400x300/1a1a1a/white?text=${encodeURIComponent(item.title || 'UniForge')}`;
-                                                e.currentTarget.onerror = null; // Prevent infinite loop
-                                            }}
                                         />
                                         {/* Action Overlay */}
                                         <div style={{

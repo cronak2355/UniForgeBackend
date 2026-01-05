@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { marketplaceService, Asset, AssetVersion } from '../services/marketplaceService';
-import { purchaseService } from '../services/purchaseService';
 
 const AssetDetailPage = () => {
     const { assetId } = useParams<{ assetId: string }>();
@@ -30,30 +29,6 @@ const AssetDetailPage = () => {
         };
         fetchData();
     }, [assetId]);
-
-    const handleAddToLibrary = async () => {
-        if (!versions || versions.length === 0) {
-            alert('등록된 버전이 없습니다.');
-            return;
-        }
-
-        // 최신 버전 선택 (상태가 PUBLISHED인 것 중 가장 최근 것)
-        const publishedVersions = versions.filter(v => v.status === 'PUBLISHED');
-        if (publishedVersions.length === 0) {
-            alert('게시된 버전이 없습니다.');
-            return;
-        }
-
-        const latestVersion = publishedVersions[0]; // 보통 Repository에서 정렬되어 온다고 가정
-
-        try {
-            await purchaseService.purchaseAsset(latestVersion.id);
-            alert('라이브러리에 에셋이 추가되었습니다!');
-            navigate('/library');
-        } catch (err: any) {
-            alert(err.message || '에셋 추가에 실패했습니다.');
-        }
-    };
 
     if (loading) {
         return (
@@ -184,7 +159,7 @@ const AssetDetailPage = () => {
                             padding: '2rem',
                         }}>
                             <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>{asset.name}</h1>
-                            <p style={{ color: '#888', marginBottom: '1.5rem' }}>by {asset.authorName}</p>
+                            <p style={{ color: '#888', marginBottom: '1.5rem' }}>by User {asset.authorId}</p>
 
                             <div style={{
                                 fontSize: '2rem',
@@ -195,20 +170,18 @@ const AssetDetailPage = () => {
                                 {asset.price === 0 ? 'Free' : `₩${asset.price.toLocaleString()}`}
                             </div>
 
-                            <button
-                                onClick={handleAddToLibrary}
-                                style={{
-                                    width: '100%',
-                                    padding: '16px',
-                                    backgroundColor: '#2563eb',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '1rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    marginBottom: '1rem'
-                                }}>
+                            <button style={{
+                                width: '100%',
+                                padding: '16px',
+                                backgroundColor: '#2563eb',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                marginBottom: '1rem'
+                            }}>
                                 <i className="fa-solid fa-download" style={{ marginRight: '8px' }}></i>
                                 라이브러리에 추가
                             </button>

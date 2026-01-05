@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { marketplaceService, Asset } from '../services/marketplaceService';
-import { purchaseService } from '../services/purchaseService';
 
 const MarketplacePage = () => {
     const { user, logout } = useAuth();
@@ -33,7 +32,7 @@ const MarketplacePage = () => {
                     rating: asset.rating || 0,
                     type: asset.type || "3D 에셋",
                     genre: asset.genre || "기타",
-                    author: asset.authorName || `User ${asset.authorId}`
+                    author: asset.author || `User ${asset.authorId}`
                 }));
                 setAssets(mappedData);
             } catch (error) {
@@ -98,7 +97,7 @@ const MarketplacePage = () => {
             // genre/type 필터는 계속 적용
         }
         if (selectedCategory === "급상승") {
-            if ((item.rating || 0) < 4.7) return false;
+            if (item.rating < 4.7) return false;
         }
         if (selectedCategory === "신규") {
             return true; // 나중에 createdAt으로 교체
@@ -557,27 +556,8 @@ const MarketplacePage = () => {
                                     </div>
 
                                     <button
-                                        onClick={async () => {
-                                            try {
-                                                // 에셋의 최신 버전을 가져와야 함. 
-                                                // MarketplacePage에서는 Asset만 들고 있으므로, API를 한 번 더 호출하거나 
-                                                // AssetResponse에 최신 버전 ID를 포함해야 함.
-                                                // 여기서는 간단히 에셋 상세 페이지로 이동하거나, 상세 페이지와 로직을 통일하기 위해 
-                                                // 상세 페이지(navigate)로 이동하도록 유도하는 것이 좋지만, 
-                                                // 요청사항이 "버튼 누르면 저장"이므로 상세 정보를 한 번 더 긁어와서 처리하겠습니다.
-                                                const versions = await marketplaceService.getAssetVersions(selectedItem.id);
-                                                const publishedVersions = versions.filter(v => v.status === 'PUBLISHED');
-                                                if (publishedVersions.length === 0) {
-                                                    alert('게시된 버전이 없습니다.');
-                                                    return;
-                                                }
-                                                await purchaseService.purchaseAsset(publishedVersions[0].id);
-                                                alert(`${selectedItem.name}이(가) 라이브러리에 추가되었습니다.`);
-                                                setSelectedItem(null);
-                                                navigate('/library');
-                                            } catch (err: any) {
-                                                alert(err.message || '에셋 추가에 실패했습니다.');
-                                            }
+                                        onClick={() => {
+                                            alert(`${selectedItem.title}이(가) 라이브러리에 다운로드되었습니다.`);
                                         }}
                                         style={{
                                             width: '100%',

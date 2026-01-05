@@ -8,7 +8,6 @@ export interface Asset {
     price: number;
     createdAt: string;
     imageUrl?: string | null;
-    authorName: string;
     // Helper fields for UI (to be populated or mapped)
     image?: string;
     author?: string;
@@ -40,9 +39,8 @@ class MarketplaceService {
         return response.json();
     }
 
-    async getAssets(authorId?: string): Promise<Asset[]> {
-        const query = authorId ? `?authorId=${authorId}` : '';
-        return this.request<Asset[]>(`/assets${query}`);
+    async getAssets(): Promise<Asset[]> {
+        return this.request<Asset[]>('/assets');
     }
 
     async getAssetById(assetId: string): Promise<Asset> {
