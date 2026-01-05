@@ -1,7 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.uniforge.kr';
 
 export interface User {
-    id: number;
+    id: string;
     email: string;
     name: string;
     provider: 'LOCAL' | 'GOOGLE';
