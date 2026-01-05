@@ -45,7 +45,7 @@ class AuthService {
 
         // Debug logging
         if (endpoint.includes('/me')) {
-            console.log('Antigravity_Debug: Sending /me request. Token exists:', !!token);
+            console.log('Antigravity_Debug: Sending /me request. Token exists:', !!token, 'Build: v1.0.2-FIXED');
             if (token) console.log('Antigravity_Debug: Token prefix:', token.substring(0, 15));
         }
 
