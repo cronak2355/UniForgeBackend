@@ -6,6 +6,8 @@ import { KeyboardAdapter } from "../core/events/adapters/KeyboardAdapter";
 import { editorCore } from "../EditorCore";
 // 물리 엔진 (엔진 독립적)
 import { runtimePhysics, type InputState } from "../core/RuntimePhysics";
+// 모듈 팩토리
+import { getRuntimeEntity } from "../core/modules/ModuleFactory";
 
 /**
  * Phaser 씬 내부 클래스
@@ -45,27 +47,30 @@ class PhaserRenderScene extends Phaser.Scene {
 
         // EventBus에 리스너 등록
         EventBus.on((event) => {
+            // 런타임 모드에서만 동작 (에디터 모드에서는 엔티티가 없음)
+            if (this.phaserRenderer.getAllEntityIds().length === 0) {
+                return; // 엔티티가 없으면 런타임이 아님
+            }
+
             editorCore.getEntities().forEach((entity) => {
                 if (!entity.rules || entity.rules.length === 0) return;
 
-                const moduleMap: any = {};
-                if (entity.modules) {
-                    entity.modules.forEach(m => {
-                        moduleMap[m.type] = m;
-                    });
-                }
+                // 런타임 엔티티에서 모듈 인스턴스 가져오기
+                const runtimeEntity = getRuntimeEntity(entity.id);
+                const modules = runtimeEntity?.modules ?? {};
 
                 const ctx = {
                     entityId: entity.id,
-                    modules: moduleMap,
+                    modules,
                     eventData: event.data || {},
                     globals: {
                         scene: this,
-                        renderer: this.phaserRenderer
+                        renderer: this.phaserRenderer,
+                        entities: editorCore.getEntities()
                     }
                 };
 
-                RuleEngine.handleEvent(event, ctx, entity.rules);
+                RuleEngine.handleEvent(event, ctx as Parameters<typeof RuleEngine.handleEvent>[1], entity.rules);
             });
         });
 
@@ -80,6 +85,9 @@ class PhaserRenderScene extends Phaser.Scene {
     update(time: number, delta: number) {
         // 부모 업데이트 호출
         this.phaserRenderer.onUpdate(time, delta);
+
+        // TICK 이벤트 발행 (매 프레임 - ECA Rule 트리거용)
+        EventBus.emit("TICK", { time, delta, dt: delta / 1000 });
 
         // 키보드가 초기화되지 않았으면 스킵
         if (!this.cursors || !this.wasd) return;
@@ -97,6 +105,10 @@ class PhaserRenderScene extends Phaser.Scene {
                 (this.wasd?.W?.isDown === true)
         };
         this.phaserRenderer.onInputState?.(input);
+
+        if (this.phaserRenderer.isEditableFocused()) {
+            return;
+        }
 
         if (!this.phaserRenderer.useEditorCoreRuntimePhysics) {
             return;
@@ -137,6 +149,16 @@ export class PhaserRenderer implements IRenderer {
     private game: Phaser.Game | null = null;
     private scene: PhaserRenderScene | null = null;
     private _container: HTMLElement | null = null;
+    private keyboardCaptureEnabled = true;
+    private onGlobalFocusIn?: (event: FocusEvent) => void;
+    private onGlobalFocusOut?: (event: FocusEvent) => void;
+    public isEditableFocused(): boolean {
+        const active = document.activeElement;
+        if (!(active instanceof HTMLElement)) return false;
+        const tag = active.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+        return active.isContentEditable === true;
+    }
 
     // ===== 엔티티 관리 - ID 동기화 보장 =====
     private entities: Map<string, Phaser.GameObjects.GameObject> = new Map();
@@ -207,6 +229,7 @@ export class PhaserRenderer implements IRenderer {
 
         // 입력 이벤트 설정
         this.setupInputEvents();
+        this.setupKeyboardCaptureGuards();
 
         // 초기화 완료 알림
         if (this.initResolve) {
@@ -261,6 +284,7 @@ export class PhaserRenderer implements IRenderer {
         }
 
         // 4. 씬 참조 해제
+        this.teardownKeyboardCaptureGuards();
         this.scene = null;
 
         // 5. Phaser Game 인스턴스 정리
@@ -667,6 +691,61 @@ export class PhaserRenderer implements IRenderer {
             window.removeEventListener("pointerup", onPointerUp);
             window.removeEventListener("wheel", onWheel);
         });
+    }
+
+    private setupKeyboardCaptureGuards(): void {
+        if (!this.scene || !this.scene.input || !this.scene.input.keyboard) return;
+
+        const isEditable = (target: EventTarget | null) => {
+            if (!(target instanceof HTMLElement)) return false;
+            const tag = target.tagName;
+            if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+            return target.isContentEditable === true;
+        };
+
+        const disableCapture = () => {
+            if (!this.scene?.input?.keyboard) return;
+            if (!this.keyboardCaptureEnabled) return;
+            this.keyboardCaptureEnabled = false;
+            this.scene.input.keyboard.disableGlobalCapture?.();
+        };
+
+        const enableCapture = () => {
+            if (!this.scene?.input?.keyboard) return;
+            if (this.keyboardCaptureEnabled) return;
+            this.keyboardCaptureEnabled = true;
+            this.scene.input.keyboard.enableGlobalCapture?.();
+        };
+
+        this.onGlobalFocusIn = (event: FocusEvent) => {
+            if (isEditable(event.target)) {
+                disableCapture();
+            }
+        };
+
+        this.onGlobalFocusOut = () => {
+            const active = document.activeElement;
+            if (isEditable(active)) return;
+            enableCapture();
+        };
+
+        window.addEventListener("focusin", this.onGlobalFocusIn);
+        window.addEventListener("focusout", this.onGlobalFocusOut);
+    }
+
+    private teardownKeyboardCaptureGuards(): void {
+        if (this.onGlobalFocusIn) {
+            window.removeEventListener("focusin", this.onGlobalFocusIn);
+            this.onGlobalFocusIn = undefined;
+        }
+        if (this.onGlobalFocusOut) {
+            window.removeEventListener("focusout", this.onGlobalFocusOut);
+            this.onGlobalFocusOut = undefined;
+        }
+        if (this.scene?.input?.keyboard) {
+            this.scene.input.keyboard.enableGlobalCapture?.();
+        }
+        this.keyboardCaptureEnabled = true;
     }
 
     // ===== Texture Loading (Phaser-specific helper) =====

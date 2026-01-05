@@ -3,6 +3,7 @@ import { HierarchyPanel } from "./HierarchyPanel";
 import { InspectorPanel } from "./inspector/InspectorPanel";
 import { AssetPanel } from "./AssetPanel";
 import type { EditorEntity } from "./types/Entity";
+import type { Asset } from "./types/Asset";
 import { EditorCanvas } from "./EditorCanvas";
 import { RunTimeCanvas } from "./RunTimeCanvas";
 import "./styles.css";
@@ -10,18 +11,10 @@ import { EditorCoreProvider, useEditorCoreSnapshot } from "../contexts/EditorCor
 import type { EditorContext } from "./EditorCore";
 import { CameraMode, DragDropMode } from "./editorMode/editorModes";
 
+import { colors } from "./constants/colors";
+
 // Entry Style Color Palette
-const colors = {
-    bgPrimary: '#0d1117',      // 메인 배경 (깊은 검정)
-    bgSecondary: '#161b22',    // 패널 배경
-    bgTertiary: '#21262d',     // 호버/입력 배경
-    borderColor: '#30363d',    // 기본 테두리
-    borderAccent: '#1f6feb',   // 파란색 액센트 테두리
-    accentBlue: '#1f6feb',     // 주 파란색
-    accentLight: '#58a6ff',    // 밝은 파란색
-    textPrimary: '#f0f6fc',    // 기본 텍스트
-    textSecondary: '#8b949e',  // 부가 텍스트
-};
+// const colors = { ... } replaced by import
 
 export default function EditorLayout() {
     return (
@@ -39,15 +32,18 @@ function EditorLayoutInner() {
 
     const [mode, setMode] = useState<Mode>("dev");
     const [runSession, setRunSession] = useState(0);
+    const [dropModalFile, setDropModalFile] = useState<File | null>(null);
+    const [dropAssetName, setDropAssetName] = useState("");
+    const [dropAssetTag, setDropAssetTag] = useState("Character");
 
-    const changeSelectedAssetHandler = (a: any) => {
+    const changeSelectedAssetHandler = (a: Asset | null) => {
         core.setSelectedAsset(a);
         const cm = new CameraMode();
         const ctx: EditorContext = { currentMode: cm, currentSelectedAsset: a ?? undefined, mouse: "mousemove" };
         core.sendContextToEditorModeStateMachine(ctx);
     };
 
-    const changeDraggedAssetHandler = (a: any) => {
+    const changeDraggedAssetHandler = (a: Asset | null) => {
         core.setDraggedAsset(a);
         if (a == null) {
             const cm = new CameraMode();
@@ -68,6 +64,18 @@ function EditorLayoutInner() {
             setLocalSelectedEntity(selectedEntity);
         }
     }, [selectedEntity]);
+
+    const resetDropModal = () => {
+        setDropModalFile(null);
+        setDropAssetName("");
+        setDropAssetTag("Character");
+    };
+
+    useEffect(() => {
+        if (!dropModalFile) return;
+        const base = dropModalFile.name.replace(/\.[^/.]+$/, "");
+        setDropAssetName(base);
+    }, [dropModalFile]);
 
     return (
         <div style={{
@@ -226,6 +234,7 @@ function EditorLayoutInner() {
                             assets={assets}
                             selected_asset={selectedAsset}
                             draggedAsset={draggedAsset}
+                            onExternalImageDrop={(file) => setDropModalFile(file)}
                             addEntity={(entity) => {
                                 console.log("? [EditorLayout] new entity:", entity);
                                 core.addEntity(entity as any);
@@ -283,6 +292,148 @@ function EditorLayoutInner() {
                     changeDraggedAsset={(a) => changeDraggedAssetHandler(a)}
                 />
             </div>
+
+            {dropModalFile && (
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        background: "rgba(0, 0, 0, 0.65)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 2000,
+                        padding: "24px",
+                    }}
+                    onClick={() => resetDropModal()}
+                >
+                    <div
+                        style={{
+                            width: "100%",
+                            maxWidth: "520px",
+                            background: colors.bgSecondary,
+                            border: `1px solid ${colors.borderColor}`,
+                            borderRadius: "10px",
+                            padding: "20px",
+                            boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={{
+                            fontSize: "14px",
+                            fontWeight: 600,
+                            color: colors.textPrimary,
+                            marginBottom: "12px",
+                        }}>
+                            Image drop detected
+                        </div>
+                        <div style={{
+                            background: colors.bgTertiary,
+                            border: `1px solid ${colors.borderColor}`,
+                            borderRadius: "8px",
+                            padding: "12px",
+                            color: colors.textSecondary,
+                            fontSize: "12px",
+                            lineHeight: 1.6,
+                        }}>
+                            <div>Filename: {dropModalFile.name}</div>
+                            <div>Type: {dropModalFile.type || "unknown"}</div>
+                            <div>Size: {Math.ceil(dropModalFile.size / 1024)} KB</div>
+                        </div>
+                        <div style={{
+                            marginTop: "14px",
+                            display: "grid",
+                            gap: "10px",
+                        }}>
+                            <label style={{
+                                display: "grid",
+                                gap: "6px",
+                                fontSize: "12px",
+                                color: colors.textSecondary,
+                            }}>
+                                Name
+                                <input
+                                    type="text"
+                                    value={dropAssetName}
+                                    onChange={(e) => setDropAssetName(e.target.value)}
+                                    placeholder="Asset name"
+                                    style={{
+                                        background: colors.bgPrimary,
+                                        border: `1px solid ${colors.borderColor}`,
+                                        borderRadius: "6px",
+                                        padding: "8px 10px",
+                                        color: colors.textPrimary,
+                                        fontSize: "12px",
+                                        outline: "none",
+                                    }}
+                                />
+                            </label>
+                            <label style={{
+                                display: "grid",
+                                gap: "6px",
+                                fontSize: "12px",
+                                color: colors.textSecondary,
+                            }}>
+                                Tag
+                                <select
+                                    value={dropAssetTag}
+                                    onChange={(e) => setDropAssetTag(e.target.value)}
+                                    style={{
+                                        background: colors.bgPrimary,
+                                        border: `1px solid ${colors.borderColor}`,
+                                        borderRadius: "6px",
+                                        padding: "8px 10px",
+                                        color: colors.textPrimary,
+                                        fontSize: "12px",
+                                        outline: "none",
+                                    }}
+                                >
+                                    <option value="Character">Character</option>
+                                    <option value="Tile">Tile</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div style={{
+                            marginTop: "16px",
+                            display: "flex",
+                            gap: "8px",
+                            justifyContent: "flex-end",
+                        }}>
+                            <button
+                                type="button"
+                                style={{
+                                    padding: "8px 14px",
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                    background: colors.bgTertiary,
+                                    border: `1px solid ${colors.borderColor}`,
+                                    borderRadius: "6px",
+                                    color: colors.textPrimary,
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Add Asset
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => resetDropModal()}
+                                style={{
+                                    padding: "8px 14px",
+                                    fontSize: "12px",
+                                    fontWeight: 600,
+                                    background: colors.borderAccent,
+                                    border: `1px solid ${colors.borderColor}`,
+                                    borderRadius: "6px",
+                                    color: colors.textPrimary,
+                                    cursor: "pointer",
+                                }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
