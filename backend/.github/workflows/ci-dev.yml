@@ -1,0 +1,40 @@
+name: CI-dev
+
+on:
+  pull_request:
+    branches: ["dev"]
+
+# 같은 브랜치(dev)에 연속으로 푸시되면 이전 실행은 취소 (최신만 유지)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    # 테스트만 돌릴 거면 10~15분 정도 걸어두는 게 보통 안전함
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (with Gradle cache)
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: "gradle"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+
+      # 리눅스 러너에서 gradlew 실행 권한 이슈 방지용 (안전장치)
+      - name: Ensure Gradle Wrapper is executable
+        run: chmod +x ./gradlew
+
+      - name: Run tests
+        run: ./gradlew test --no-daemon
