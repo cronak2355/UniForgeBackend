@@ -3,14 +3,14 @@ spring:
     name: unifor-backend
     
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:unifor}
-    username: ${DB_USERNAME:unifor_admin}
-    password: ${DB_PASSWORD:password}
+    url: jdbc:postgresql://unifor-db.c5ks8kc0uicb.ap-northeast-2.rds.amazonaws.com:5432/unifor_db
+    username: unifor_admin
+    password: UniforPass12345
     driver-class-name: org.postgresql.Driver
     
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
