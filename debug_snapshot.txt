@@ -1,0 +1,23 @@
+﻿
+2026-01-05T15:47:56.898+09:00 DEBUG 
+28184 --- [           main] com.unif
+or.backend.UniforApplicationKt   : R
+unning with Spring Boot v3.2.0, Spri
+ng v6.1.1
+2026-01-05T15:48:02.676+09:00 DEBUG 
+28184 --- [           main] c.u.b.se
+curity.JwtAuthenticationFilter   : F
+ilter 'jwtAuthenticationFilter' conf
+igured for use
+2026-01-05T15:48:04.757+09:00 DEBUG 
+28184 --- [           main] swordEnc
+oderAuthenticationManagerBuilder : N
+o authenticationProviders and no par
+entAuthenticationManager defined. Re
+turning null.
+Error starting ApplicationContext. T
+o display the condition evaluation r
+eport re-run your application with '
+debug' enabled.
+
+
