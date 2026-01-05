@@ -1,0 +1,9 @@
+﻿package com.unifor.backend.library.repository
+
+import com.unifor.backend.library.entity.LibraryItem
+import org.springframework.data.jpa.repository.JpaRepository
+
+interface LibraryRepository : JpaRepository<LibraryItem, String> {
+    fun findAllByUserId(userId: String): List<LibraryItem>
+}
+
