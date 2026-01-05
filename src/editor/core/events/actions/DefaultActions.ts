@@ -390,5 +390,51 @@ ActionRegistry.register("ChangeScene", (ctx: ActionContext, params: Record<strin
     scene.scene.start(sceneName, data);
 });
 
+ActionRegistry.register("Rotate", (ctx: ActionContext, params: Record<string, unknown>) => {
+    const renderer = ctx.globals?.renderer as any;
+    if (!renderer) return;
+
+    const entityId = ctx.entityId;
+    const gameObject = renderer.getGameObject?.(entityId);
+    if (!gameObject) return;
+
+    const speed = (params.speed as number) ?? 90; // deg/sec
+    const dt = 0.016;
+
+    gameObject.rotation += Phaser.Math.DegToRad(speed * dt);
+
+    // EditorCore 동기화
+    const entity = editorCore.getEntities().get(entityId);
+    if (entity) {
+        entity.rotation += Phaser.Math.DegToRad(speed * dt);
+        gameObject.rotation = entity.rotation;
+    }
+});
+
+ActionRegistry.register("Pulse", (ctx: ActionContext, params: Record<string, unknown>) => {
+    const renderer = ctx.globals?.renderer as any;
+    if (!renderer) return;
+
+    const entityId = ctx.entityId;
+    const gameObject = renderer.getGameObject?.(entityId);
+    if (!gameObject) return;
+
+    const speed = (params.speed as number) ?? 2;
+    const min = (params.minScale as number) ?? 0.8;
+    const max = (params.maxScale as number) ?? 1.2;
+
+    const time = performance.now() * 0.001;
+    const t = Math.sin(time * speed) * 0.5 + 0.5;
+    const scale = min + (max - min) * t;
+
+    gameObject.setScale(scale);
+
+    const entity = editorCore.getEntities().get(entityId);
+    if (entity) {
+        entity.scaleX = scale;
+        entity.scaleY = scale;
+    }
+});
+
 console.log("[DefaultActions] 12 actions registered: Move, Jump, MoveToward, ChaseTarget, Attack, FireProjectile, TakeDamage, Heal, SetVar, Enable, ChangeScene");
 

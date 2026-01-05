@@ -4,11 +4,10 @@ import { colors } from "../constants/colors";
 import { ModuleSection } from "./ModuleSection";
 import { RuleSection } from "./RuleSection";
 
-type Props = {
-  entity: EditorEntity | null;
-  onUpdateEntity: (entity: EditorEntity) => void;
-};
-
+interface Props {
+  entity: EditorEntity;
+  onUpdateEntity: (next: EditorEntity) => void;
+}
 export function InspectorPanel({ entity, onUpdateEntity }: Props) {
   const [localEntity, setLocalEntity] = useState<EditorEntity | null>(null);
 
