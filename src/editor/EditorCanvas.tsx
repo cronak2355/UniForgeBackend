@@ -251,7 +251,10 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
                     modules: [],
                     variables: [],
                     events: [],
-                    rules: []
+                    rules: [],
+                    rotation: 0,
+                    scaleX: 1,
+                    scaleY: 1,
                 };
                 addEntityRef.current(created);
                 gameCore.createEntity(created.id, created.type, created.x, created.y, {
