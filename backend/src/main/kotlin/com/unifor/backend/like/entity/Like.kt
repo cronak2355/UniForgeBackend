@@ -7,18 +7,20 @@ import java.time.LocalDateTime
 @Table(name = "likes")
 class Like(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: String = java.util.UUID.randomUUID().toString(),
 
     @Column(name = "user_id", nullable = false)
-    val userId: Long,
+    val userId: String,
 
     @Column(name = "target_type", nullable = false)
     val targetType: String, // GAME, ASSET
 
     @Column(name = "target_id", nullable = false)
-    val targetId: Long,
+    val targetId: String,
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
+
+
+

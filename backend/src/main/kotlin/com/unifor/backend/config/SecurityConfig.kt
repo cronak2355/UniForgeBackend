@@ -1,10 +1,9 @@
-package com.unifor.backend.config
+﻿package com.unifor.backend.config
 
 import com.unifor.backend.security.JwtAuthenticationFilter
 import com.unifor.backend.security.OAuth2AuthenticationSuccessHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -34,27 +33,23 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    // 공개 ?�드?�인??(?�증 불필??
+                    // 공개 엔드포인트
                     .requestMatchers(
                         "/health",
                         "/actuator/**",
                         "/api/auth/signup",
                         "/api/auth/login",
                         "/oauth2/**",
-                        "/login/oauth2/**"
+                        "/login/oauth2/**",
+                        "/assets/**",
+                        "/marketplace/**"
                     ).permitAll()
-                    // Asset 조회??공개
-                    .requestMatchers(HttpMethod.GET, "/assets", "/assets/**").permitAll()
-                    // ?�머지???�증 ?�요
+                    // 나머지는 인증 필요
                     .anyRequest().authenticated()
             }
-            .exceptionHandling { handling ->
-                // ??�� 401 반환, 리다?�렉???�음 (API ?�버?��?�?
-                handling.authenticationEntryPoint { _, response, authException ->
-                    response.sendError(
-                        jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED,
-                        authException.message ?: "Unauthorized"
-                    )
+            .exceptionHandling { ex ->
+                ex.authenticationEntryPoint { _, response, _ ->
+                    response.sendError(401, "Unauthorized")
                 }
             }
             .oauth2Login { oauth2 ->
@@ -71,9 +66,7 @@ class SecurityConfig(
             allowedOrigins = listOf(
                 "https://uniforge.kr",
                 "http://localhost:5173",
-                "http://localhost:3000",
-                "http://localhost:5174",
-                "http://localhost:5175"
+                "http://localhost:3000"
             )
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
@@ -86,3 +79,6 @@ class SecurityConfig(
         }
     }
 }
+
+
+

@@ -42,9 +42,16 @@ class AuthService {
         options: RequestInit = {}
     ): Promise<T> {
         const token = this.getToken();
+
+        // Debug logging
+        if (endpoint.includes('/me')) {
+            console.log('Antigravity_Debug: Sending /me request. Token exists:', !!token);
+            if (token) console.log('Antigravity_Debug: Token prefix:', token.substring(0, 15));
+        }
+
         const headers: HeadersInit = {
             'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
+            'Authorization': token ? `Bearer ${token}` : '',
             ...options.headers,
         };
 
@@ -54,8 +61,9 @@ class AuthService {
         });
 
         if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: '오류가 발생했습니다' }));
-            throw new Error(error.message);
+            const errorData = await response.json().catch(() => ({}));
+            const message = errorData.message || `오류가 발생했습니다 (상태: ${response.status})`;
+            throw new Error(message);
         }
 
         return response.json();
@@ -85,8 +93,13 @@ class AuthService {
 
         try {
             return await this.request<User>('/api/auth/me');
-        } catch {
-            this.removeToken();
+        } catch (error: any) {
+            console.error('Failed to get current user:', error);
+            // 401 Unauthorized일 때만 토큰 삭제 (세션 만료)
+            if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+                console.warn('Authentication failed, removing token');
+                this.removeToken();
+            }
             return null;
         }
     }

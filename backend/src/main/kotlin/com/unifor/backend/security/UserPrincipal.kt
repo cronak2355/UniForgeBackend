@@ -1,4 +1,4 @@
-package com.unifor.backend.security
+﻿package com.unifor.backend.security
 
 import com.unifor.backend.entity.User
 import org.springframework.security.core.GrantedAuthority
@@ -14,7 +14,7 @@ class UserPrincipal(
     val id: String get() = user.id
     val email: String get() = user.email
     
-    override fun getName(): String = user.id.toString()
+    override fun getName(): String = user.id
     
     override fun getAttributes(): Map<String, Any> = attributes
     
@@ -40,3 +40,4 @@ class UserPrincipal(
             UserPrincipal(user, attributes)
     }
 }
+

@@ -1,4 +1,4 @@
-package com.unifor.backend.controller
+﻿package com.unifor.backend.controller
 
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.ResponseEntity
@@ -38,3 +38,6 @@ class HealthController(
         return ResponseEntity.ok(status)
     }
 }
+
+
+

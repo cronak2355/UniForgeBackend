@@ -1,4 +1,4 @@
-package com.unifor.backend.game.service
+﻿package com.unifor.backend.game.service
 
 import com.unifor.backend.game.entity.Game
 import com.unifor.backend.game.repository.GameRepository
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 class GameService(
     private val gameRepository: GameRepository
 ) {
-    fun createGame(authorId: Long, title: String, description: String?): Game {
+    fun createGame(authorId: String, title: String, description: String?): Game {
         return gameRepository.save(
             Game(
                 authorId = authorId,
@@ -18,3 +18,6 @@ class GameService(
         )
     }
 }
+
+
+

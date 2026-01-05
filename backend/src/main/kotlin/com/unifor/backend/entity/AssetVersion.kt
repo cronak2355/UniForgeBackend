@@ -1,4 +1,4 @@
-package com.unifor.backend.entity
+﻿package com.unifor.backend.entity
 
 import jakarta.persistence.*
 import java.time.Instant
@@ -22,3 +22,6 @@ data class AssetVersion(
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()
 )
+
+
+

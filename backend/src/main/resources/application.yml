@@ -57,3 +57,10 @@ aws:
     region: ${AWS_REGION:ap-northeast-2}
     access-key: ${AWS_ACCESS_KEY:}
     secret-key: ${AWS_SECRET_KEY:}
+
+logging:
+  level:
+    root: INFO
+    com.unifor.backend: DEBUG
+    org.springframework.security: TRACE
+    org.hibernate.SQL: INFO

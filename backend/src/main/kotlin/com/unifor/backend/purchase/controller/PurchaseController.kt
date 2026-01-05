@@ -1,6 +1,7 @@
-package com.unifor.backend.purchase.controller
+﻿package com.unifor.backend.purchase.controller
 
 import com.unifor.backend.purchase.service.PurchaseService
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -10,9 +11,12 @@ class PurchaseController(
 ) {
     @PostMapping("/asset")
     fun purchaseAsset(
-        @RequestParam userId: Long,
-        @RequestParam assetVersionId: Long
+        @AuthenticationPrincipal user: com.unifor.backend.security.UserPrincipal,
+        @RequestParam assetVersionId: String
     ) {
-        purchaseService.purchaseAsset(userId, assetVersionId)
+        purchaseService.purchaseAsset(user.id, assetVersionId)
     }
 }
+
+
+

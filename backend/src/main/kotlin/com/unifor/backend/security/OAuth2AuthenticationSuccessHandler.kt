@@ -1,4 +1,4 @@
-package com.unifor.backend.security
+﻿package com.unifor.backend.security
 
 import com.unifor.backend.entity.AuthProvider
 import com.unifor.backend.entity.User
@@ -33,7 +33,7 @@ class OAuth2AuthenticationSuccessHandler(
         val providerId = attributes["sub"] as String
         val picture = attributes["picture"] as? String
         
-        // ?�용??조회 ?�는 ?�성
+        // 사용자 조회 또는 생성
         val user = userRepository.findByEmail(email).orElseGet {
             userRepository.save(
                 User(
@@ -45,17 +45,17 @@ class OAuth2AuthenticationSuccessHandler(
                 )
             )
         }.also { existingUser ->
-            // 기존 ?�용?�의 ?�로???��?지 ?�데?�트
+            // 기존 사용자의 프로필 이미지 업데이트
             if (existingUser.profileImage != picture && picture != null) {
                 existingUser.profileImage = picture
                 userRepository.save(existingUser)
             }
         }
         
-        // JWT ?�큰 ?�성
+        // JWT 토큰 생성
         val token = jwtTokenProvider.generateToken(user.id, user.email)
         
-        // ?�론?�엔?�로 리다?�렉??(?�큰 ?�함)
+        // 프론트엔드로 리다이렉트 (토큰 포함)
         val targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
             .path("/oauth/callback")
             .queryParam("token", token)
@@ -65,3 +65,6 @@ class OAuth2AuthenticationSuccessHandler(
         redirectStrategy.sendRedirect(request, response, targetUrl)
     }
 }
+
+
+

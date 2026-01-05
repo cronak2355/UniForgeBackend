@@ -1,4 +1,4 @@
-package com.unifor.backend.like.controller
+﻿package com.unifor.backend.like.controller
 
 import com.unifor.backend.like.service.LikeService
 import org.springframework.web.bind.annotation.*
@@ -11,14 +11,17 @@ class LikeController(
 
     @PostMapping
     fun like(
-        @RequestParam userId: Long,
+        @RequestParam userId: String,
         @RequestParam type: String,
-        @RequestParam targetId: Long
+        @RequestParam targetId: String
     ) = likeService.like(userId, type, targetId)
 
     @GetMapping("/count")
     fun count(
         @RequestParam type: String,
-        @RequestParam targetId: Long
+        @RequestParam targetId: String
     ) = likeService.count(type, targetId)
 }
+
+
+

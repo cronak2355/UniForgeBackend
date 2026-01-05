@@ -1,4 +1,4 @@
-package com.unifor.backend.game.entity
+﻿package com.unifor.backend.game.entity
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -7,8 +7,7 @@ import java.time.LocalDateTime
 @Table(name = "game_versions")
 class GameVersion(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: String = java.util.UUID.randomUUID().toString(),
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id")
@@ -23,3 +22,6 @@ class GameVersion(
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
+
+
+

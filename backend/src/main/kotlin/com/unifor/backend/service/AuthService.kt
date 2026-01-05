@@ -1,4 +1,4 @@
-package com.unifor.backend.service
+﻿package com.unifor.backend.service
 
 import com.unifor.backend.dto.*
 import com.unifor.backend.entity.AuthProvider
@@ -18,12 +18,12 @@ class AuthService(
     
     @Transactional
     fun signup(request: SignupRequest): AuthResponse {
-        // ?�메??중복 체크
+        // 이메일 중복 체크
         if (userRepository.existsByEmail(request.email)) {
-            throw IllegalArgumentException("?��? ?�용 중인 ?�메?�입?�다")
+            throw IllegalArgumentException("이미 사용 중인 이메일입니다")
         }
         
-        // ?�용???�성
+        // 사용자 생성
         val user = userRepository.save(
             User(
                 email = request.email,
@@ -33,7 +33,7 @@ class AuthService(
             )
         )
         
-        // JWT ?�큰 ?�성
+        // JWT 토큰 생성
         val token = jwtTokenProvider.generateToken(user.id, user.email)
         
         return AuthResponse(
@@ -43,21 +43,21 @@ class AuthService(
     }
     
     fun login(request: LoginRequest): AuthResponse {
-        // ?�용??조회
+        // 사용자 조회
         val user = userRepository.findByEmail(request.email)
-            .orElseThrow { IllegalArgumentException("?�메???�는 비�?번호가 ?�바르�? ?�습?�다") }
+            .orElseThrow { IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다") }
         
-        // 비�?번호 ?�인
+        // 비밀번호 확인
         if (user.password == null || !passwordEncoder.matches(request.password, user.password)) {
-            throw IllegalArgumentException("?�메???�는 비�?번호가 ?�바르�? ?�습?�다")
+            throw IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다")
         }
         
-        // OAuth ?�용?��? 로컬 로그???�도
+        // OAuth 사용자가 로컬 로그인 시도
         if (user.provider != AuthProvider.LOCAL) {
-            throw IllegalArgumentException("${user.provider.name} 계정?�로 로그?�해주세??)
+            throw IllegalArgumentException("${user.provider.name} 계정으로 로그인해주세요")
         }
         
-        // JWT ?�큰 ?�성
+        // JWT 토큰 생성
         val token = jwtTokenProvider.generateToken(user.id, user.email)
         
         return AuthResponse(
@@ -68,8 +68,11 @@ class AuthService(
     
     fun getCurrentUser(userId: String): UserDTO {
         val user = userRepository.findById(userId)
-            .orElseThrow { IllegalArgumentException("?�용?��? 찾을 ???�습?�다") }
+            .orElseThrow { IllegalArgumentException("사용자를 찾을 수 없습니다") }
         
         return UserDTO.from(user)
     }
 }
+
+
+

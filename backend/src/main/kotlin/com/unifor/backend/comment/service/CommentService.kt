@@ -1,4 +1,4 @@
-package com.unifor.backend.comment.service
+﻿package com.unifor.backend.comment.service
 
 import com.unifor.backend.comment.entity.Comment
 import com.unifor.backend.comment.repository.CommentRepository
@@ -9,11 +9,11 @@ class CommentService(
     private val commentRepository: CommentRepository
 ) {
     fun write(
-        userId: Long,
+        userId: String,
         type: String,
-        targetId: Long,
+        targetId: String,
         content: String,
-        parentId: Long?
+        parentId: String?
     ) {
         commentRepository.save(
             Comment(
@@ -26,6 +26,9 @@ class CommentService(
         )
     }
 
-    fun list(type: String, targetId: Long) =
+    fun list(type: String, targetId: String) =
         commentRepository.findAllByTargetTypeAndTargetId(type, targetId)
 }
+
+
+

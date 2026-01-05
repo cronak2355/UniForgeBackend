@@ -1,4 +1,4 @@
-package com.unifor.backend.game.service
+﻿package com.unifor.backend.game.service
 
 import com.unifor.backend.game.entity.GameVersion
 import com.unifor.backend.game.repository.GameRepository
@@ -10,7 +10,7 @@ class GameVersionService(
     private val gameRepository: GameRepository,
     private val versionRepository: GameVersionRepository
 ) {
-    fun createVersion(gameId: Long, s3Path: String): GameVersion {
+    fun createVersion(gameId: String, s3Path: String): GameVersion {
         val game = gameRepository.findById(gameId).orElseThrow()
         return versionRepository.save(
             GameVersion(
@@ -21,7 +21,7 @@ class GameVersionService(
         )
     }
 
-    fun publish(versionId: Long) {
+    fun publish(versionId: String) {
         val version = versionRepository.findById(versionId).orElseThrow()
         versionRepository.save(
             GameVersion(
@@ -34,3 +34,6 @@ class GameVersionService(
         )
     }
 }
+
+
+

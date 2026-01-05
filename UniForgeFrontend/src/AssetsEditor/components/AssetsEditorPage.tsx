@@ -2,7 +2,7 @@
 
 import { AssetsEditorProvider, useAssetsEditor } from '../context/AssetsEditorContext';
 import { Canvas } from './Canvas';
-import { LeftToolbar } from './LeftToolbar';
+import { LeftToolbar } from './LeftToolBar';
 import { RightPanel } from './RightPanel';
 
 // Floating Glass Layout

@@ -1,4 +1,4 @@
-package com.unifor.backend.purchase.service
+﻿package com.unifor.backend.purchase.service
 
 import com.unifor.backend.library.entity.LibraryItem
 import com.unifor.backend.library.repository.LibraryRepository
@@ -14,7 +14,7 @@ class PurchaseService(
 ) {
 
     @Transactional
-    fun purchaseAsset(userId: Long, assetVersionId: Long) {
+    fun purchaseAsset(userId: String, assetVersionId: String) {
         purchaseRepository.save(
             Purchase(
                 userId = userId,
@@ -31,3 +31,6 @@ class PurchaseService(
         )
     }
 }
+
+
+

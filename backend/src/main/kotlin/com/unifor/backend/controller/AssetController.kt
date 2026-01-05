@@ -1,9 +1,10 @@
-package com.unifor.backend.controller
+﻿package com.unifor.backend.controller
 
 import com.unifor.backend.entity.Asset
 import com.unifor.backend.entity.AssetVersion
 import com.unifor.backend.repository.AssetRepository
 import com.unifor.backend.repository.AssetVersionRepository
+import com.unifor.backend.repository.UserRepository
 import com.unifor.backend.security.UserPrincipal
 import com.unifor.backend.service.S3Service
 import org.springframework.http.HttpStatus
@@ -17,27 +18,42 @@ import java.math.BigDecimal
 class AssetController(
     private val assetRepository: AssetRepository,
     private val assetVersionRepository: AssetVersionRepository,
+    private val userRepository: UserRepository,
     private val s3Service: S3Service
 ) {
     
-    // ============ 공개 ?�드?�인??(?�증 불필?? ============
+    private fun toResponse(asset: Asset): AssetResponse {
+        val authorName = userRepository.findById(asset.authorId).map { it.name }.orElse("Unknown")
+        return AssetResponse(
+            id = asset.id,
+            name = asset.name,
+            price = asset.price,
+            description = asset.description,
+            authorId = asset.authorId,
+            authorName = authorName,
+            imageUrl = asset.imageUrl,
+            createdAt = asset.createdAt
+        )
+    }
+    
+    // ============ 공개 엔드포인트 (인증 불필요) ============
     
     @GetMapping
     fun getAssets(
         @RequestParam(required = false) authorId: String?
-    ): ResponseEntity<List<Asset>> {
+    ): ResponseEntity<List<AssetResponse>> {
         val assets = if (authorId != null) {
             assetRepository.findByAuthorId(authorId)
         } else {
             assetRepository.findAll()
         }
-        return ResponseEntity.ok(assets)
+        return ResponseEntity.ok(assets.map { toResponse(it) })
     }
     
     @GetMapping("/{id}")
-    fun getAsset(@PathVariable id: String): ResponseEntity<Asset> {
+    fun getAsset(@PathVariable id: String): ResponseEntity<AssetResponse> {
         return assetRepository.findById(id)
-            .map { ResponseEntity.ok(it) }
+            .map { ResponseEntity.ok(toResponse(it)) }
             .orElse(ResponseEntity.notFound().build())
     }
     
@@ -47,13 +63,13 @@ class AssetController(
         return ResponseEntity.ok(versions)
     }
     
-    // ============ ?�증 ?�요 ?�드?�인??============
+    // ============ 인증 필요 엔드포인트 ============
     
     @PostMapping
     fun createAsset(
         @AuthenticationPrincipal user: UserPrincipal,
         @RequestBody request: CreateAssetRequest
-    ): ResponseEntity<Asset> {
+    ): ResponseEntity<AssetResponse> {
         val asset = assetRepository.save(
             Asset(
                 name = request.name,
@@ -62,7 +78,7 @@ class AssetController(
                 authorId = user.id
             )
         )
-        return ResponseEntity.status(HttpStatus.CREATED).body(asset)
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(asset))
     }
     
     @PostMapping("/{assetId}/versions")
@@ -116,6 +132,18 @@ class AssetController(
     }
 }
 
+// Response DTOs
+data class AssetResponse(
+    val id: String,
+    val name: String,
+    val price: BigDecimal,
+    val description: String?,
+    val authorId: String,
+    val authorName: String,
+    val imageUrl: String?,
+    val createdAt: java.time.Instant
+)
+
 // Request DTOs
 data class CreateAssetRequest(
     val name: String,
@@ -126,3 +154,6 @@ data class CreateAssetRequest(
 data class CreateVersionRequest(
     val s3RootPath: String? = null
 )
+
+
+

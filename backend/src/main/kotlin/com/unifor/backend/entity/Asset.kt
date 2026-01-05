@@ -1,4 +1,4 @@
-package com.unifor.backend.entity
+﻿package com.unifor.backend.entity
 
 import jakarta.persistence.*
 import java.math.BigDecimal
@@ -29,3 +29,6 @@ data class Asset(
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()
 )
+
+
+

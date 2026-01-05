@@ -1,4 +1,4 @@
-package com.unifor.backend.dto
+﻿package com.unifor.backend.dto
 
 import com.unifor.backend.entity.AuthProvider
 import com.unifor.backend.entity.User
@@ -6,37 +6,37 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
-// ?�원가???�청
+// 회원가입 요청
 data class SignupRequest(
-    @field:NotBlank(message = "?�메?��? ?�수?�니??)
-    @field:Email(message = "?�바�??�메???�식???�닙?�다")
+    @field:NotBlank(message = "이메일은 필수입니다")
+    @field:Email(message = "올바른 이메일 형식이 아닙니다")
     val email: String,
     
-    @field:NotBlank(message = "비�?번호???�수?�니??)
-    @field:Size(min = 6, message = "비�?번호??최소 6???�상?�어???�니??)
+    @field:NotBlank(message = "비밀번호는 필수입니다")
+    @field:Size(min = 6, message = "비밀번호는 최소 6자 이상이어야 합니다")
     val password: String,
     
-    @field:NotBlank(message = "?�름?� ?�수?�니??)
+    @field:NotBlank(message = "이름은 필수입니다")
     val name: String
 )
 
-// 로그???�청
+// 로그인 요청
 data class LoginRequest(
-    @field:NotBlank(message = "?�메?��? ?�수?�니??)
-    @field:Email(message = "?�바�??�메???�식???�닙?�다")
+    @field:NotBlank(message = "이메일은 필수입니다")
+    @field:Email(message = "올바른 이메일 형식이 아닙니다")
     val email: String,
     
-    @field:NotBlank(message = "비�?번호???�수?�니??)
+    @field:NotBlank(message = "비밀번호는 필수입니다")
     val password: String
 )
 
-// ?�증 ?�답
+// 인증 응답
 data class AuthResponse(
     val token: String,
     val user: UserDTO
 )
 
-// ?�용???�보 DTO
+// 사용자 정보 DTO
 data class UserDTO(
     val id: String,
     val email: String,
@@ -55,8 +55,11 @@ data class UserDTO(
     }
 }
 
-// ?�러 ?�답
+// 에러 응답
 data class ErrorResponse(
     val message: String,
     val code: String? = null
 )
+
+
+

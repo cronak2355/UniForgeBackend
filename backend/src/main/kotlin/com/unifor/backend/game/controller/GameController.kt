@@ -1,4 +1,4 @@
-package com.unifor.backend.game.controller
+﻿package com.unifor.backend.game.controller
 
 import com.unifor.backend.common.s3.S3Uploader
 import com.unifor.backend.game.service.GameService
@@ -15,14 +15,14 @@ class GameController(
 
     @PostMapping
     fun createGame(
-        @RequestParam authorId: Long,
+        @RequestParam authorId: String,
         @RequestParam title: String,
         @RequestParam(required = false) description: String?
     ) = gameService.createGame(authorId, title, description)
 
     @PostMapping("/{gameId}/versions")
     fun createVersion(
-        @PathVariable gameId: Long,
+        @PathVariable gameId: String,
         @RequestBody sceneJson: String
     ): Any {
         val s3Path = s3Uploader.uploadJson(
@@ -34,7 +34,10 @@ class GameController(
     }
 
     @PostMapping("/versions/{versionId}/publish")
-    fun publish(@PathVariable versionId: Long) {
+    fun publish(@PathVariable versionId: String) {
         versionService.publish(versionId)
     }
 }
+
+
+

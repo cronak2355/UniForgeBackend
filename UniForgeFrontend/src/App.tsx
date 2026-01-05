@@ -1,9 +1,6 @@
 import "./App.css";
-import EditorLayout from "./editor/EditorLayout";
-import { AssetsEditorPage } from './AssetsEditor';
+import AppRoutes from "./AppRoutes";
 
 export default function App() {
-  return <AssetsEditorPage />;
+  return <AppRoutes />;
 }
-
-export default App;
