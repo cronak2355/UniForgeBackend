@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.game.entity
+﻿package com.uniforge.backend.game.entity
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -7,7 +7,8 @@ import java.time.LocalDateTime
 @Table(name = "game_versions")
 class GameVersion(
     @Id
-    val id: String = java.util.UUID.randomUUID().toString(),
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id")
@@ -17,11 +18,8 @@ class GameVersion(
     val s3RootPath: String,
 
     @Column(nullable = false)
-    val status: String,
+    var status: String,
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
-
-
-

@@ -1,8 +1,8 @@
-﻿package com.unifor.backend.game.controller
+﻿package com.uniforge.backend.game.controller
 
-import com.unifor.backend.common.s3.S3Uploader
-import com.unifor.backend.game.service.GameService
-import com.unifor.backend.game.service.GameVersionService
+import com.uniforge.backend.common.s3.S3Uploader
+import com.uniforge.backend.game.service.GameService
+import com.uniforge.backend.game.service.GameVersionService
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -15,14 +15,14 @@ class GameController(
 
     @PostMapping
     fun createGame(
-        @RequestParam authorId: String,
+        @RequestParam authorId: Long,
         @RequestParam title: String,
         @RequestParam(required = false) description: String?
     ) = gameService.createGame(authorId, title, description)
 
     @PostMapping("/{gameId}/versions")
     fun createVersion(
-        @PathVariable gameId: String,
+        @PathVariable gameId: Long,
         @RequestBody sceneJson: String
     ): Any {
         val s3Path = s3Uploader.uploadJson(
@@ -34,10 +34,8 @@ class GameController(
     }
 
     @PostMapping("/versions/{versionId}/publish")
-    fun publish(@PathVariable versionId: String) {
+    fun publish(@PathVariable versionId: Long) {
         versionService.publish(versionId)
     }
+
 }
-
-
-

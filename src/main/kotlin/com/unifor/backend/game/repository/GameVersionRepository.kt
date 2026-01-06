@@ -1,14 +1,13 @@
-﻿package com.unifor.backend.game.repository
+﻿package com.uniforge.backend.game.repository
 
-import com.unifor.backend.game.entity.GameVersion
+import com.uniforge.backend.game.entity.Game
+import com.uniforge.backend.game.entity.GameVersion
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface GameVersionRepository : JpaRepository<GameVersion, String> {
-    fun findTopByGameIdAndStatusOrderByCreatedAtDesc(
-        gameId: String,
+interface GameVersionRepository : JpaRepository<GameVersion, Long> {
+
+    fun findTopByGameAndStatusOrderByCreatedAtDesc(
+        game: Game,
         status: String
     ): GameVersion?
 }
-
-
-
