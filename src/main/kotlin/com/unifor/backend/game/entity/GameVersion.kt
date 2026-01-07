@@ -1,4 +1,4 @@
-﻿package com.uniforge.backend.game.entity
+﻿package com.unifor.backend.game.entity
 
 import jakarta.persistence.*
 import java.time.LocalDateTime

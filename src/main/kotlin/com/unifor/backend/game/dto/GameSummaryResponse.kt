@@ -1,4 +1,4 @@
-package com.uniforge.backend.game.dto
+package com.unifor.backend.game.dto
 
 import java.time.LocalDateTime
 

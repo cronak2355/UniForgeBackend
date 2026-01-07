@@ -1,7 +1,7 @@
-﻿package com.uniforge.backend.game.repository
+﻿package com.unifor.backend.game.repository
 
-import com.uniforge.backend.game.entity.Game
-import com.uniforge.backend.game.entity.GameVersion
+import com.unifor.backend.game.entity.Game
+import com.unifor.backend.game.entity.GameVersion
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface GameVersionRepository : JpaRepository<GameVersion, Long> {

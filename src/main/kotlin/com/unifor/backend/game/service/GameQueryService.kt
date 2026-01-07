@@ -1,8 +1,9 @@
-package com.uniforge.backend.game.service
+package com.unifor.backend.game.service
 
-import com.uniforge.backend.game.dto.GameSummaryResponse
-import com.uniforge.backend.game.repository.GameRepository
-import com.uniforge.backend.game.repository.GameVersionRepository
+import com.unifor.backend.game.dto.GameSummaryResponse
+import com.unifor.backend.game.entity.Game
+import com.unifor.backend.game.repository.GameRepository
+import com.unifor.backend.game.repository.GameVersionRepository
 import org.springframework.stereotype.Service
 
 @Service
@@ -10,6 +11,20 @@ class GameQueryService(
     private val gameRepository: GameRepository,
     private val versionRepository: GameVersionRepository
 ) {
+
+    fun createGame(
+        authorId: Long,
+        title: String,
+        description: String?
+    ): Game {
+        return gameRepository.save(
+            Game(
+                authorId = authorId,
+                title = title,
+                description = description
+            )
+        )
+    }
 
     fun getMyGames(authorId: Long): List<GameSummaryResponse> {
         return gameRepository.findByAuthorId(authorId).map { game ->

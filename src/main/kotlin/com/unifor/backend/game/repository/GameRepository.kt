@@ -1,6 +1,6 @@
-﻿package com.uniforge.backend.game.repository
+﻿package com.unifor.backend.game.repository
 
-import com.uniforge.backend.game.entity.Game
+import com.unifor.backend.game.entity.Game
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 

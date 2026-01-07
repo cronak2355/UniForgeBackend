@@ -1,8 +1,8 @@
-﻿package com.uniforge.backend.game.service
+﻿package com.unifor.backend.game.service
 
-import com.uniforge.backend.game.entity.GameVersion
-import com.uniforge.backend.game.repository.GameRepository
-import com.uniforge.backend.game.repository.GameVersionRepository
+import com.unifor.backend.game.entity.GameVersion
+import com.unifor.backend.game.repository.GameRepository
+import com.unifor.backend.game.repository.GameVersionRepository
 import org.springframework.stereotype.Service
 
 @Service

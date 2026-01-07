@@ -1,6 +1,6 @@
-package com.uniforge.backend.game.controller
+package com.unifor.backend.game.controller
 
-import com.uniforge.backend.game.service.GameQueryService
+import com.unifor.backend.game.service.GameQueryService
 import org.springframework.web.bind.annotation.*
 
 @RestController
