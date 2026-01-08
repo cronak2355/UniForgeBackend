@@ -6,7 +6,6 @@ import com.unifor.backend.repository.AssetRepository
 import com.unifor.backend.repository.AssetVersionRepository
 import com.unifor.backend.repository.UserRepository
 import com.unifor.backend.security.UserPrincipal
-import com.unifor.backend.service.S3Service
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -19,7 +18,6 @@ class AssetController(
     private val assetRepository: AssetRepository,
     private val assetVersionRepository: AssetVersionRepository,
     private val userRepository: UserRepository,
-    private val s3Service: S3Service,
     private val libraryService: com.unifor.backend.library.service.LibraryService
 ) {
     
