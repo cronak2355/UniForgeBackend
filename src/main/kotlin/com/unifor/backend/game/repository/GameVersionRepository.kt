@@ -4,7 +4,7 @@ import com.unifor.backend.game.entity.Game
 import com.unifor.backend.game.entity.GameVersion
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface GameVersionRepository : JpaRepository<GameVersion, Long> {
+interface GameVersionRepository : JpaRepository<GameVersion, String> {
 
     fun findTopByGameAndStatusOrderByCreatedAtDesc(
         game: Game,

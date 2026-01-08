@@ -8,6 +8,6 @@ data class GameSummaryResponse(
     val description: String?,
     val thumbnailUrl: String?,
     val authorId: Long,
-    val latestVersionId: Long?,
+    val latestVersionId: String?,
     val createdAt: LocalDateTime
 )

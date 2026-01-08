@@ -7,8 +7,8 @@ import java.time.LocalDateTime
 @Table(name = "game_versions")
 class GameVersion(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    @org.hibernate.annotations.UuidGenerator
+    val id: String? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id")

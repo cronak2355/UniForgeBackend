@@ -21,7 +21,7 @@ class GameVersionService(
         )
     }
 
-    fun publish(versionId: Long) {
+    fun publish(versionId: String) {
         val version = versionRepository.findById(versionId).orElseThrow()
         version.status = "PUBLISHED"
     }
