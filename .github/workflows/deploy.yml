@@ -80,6 +80,7 @@ jobs:
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50" \
             --force-new-deployment
 
       - name: Wait for service stability
