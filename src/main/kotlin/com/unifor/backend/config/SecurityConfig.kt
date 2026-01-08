@@ -21,7 +21,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val oAuth2AuthenticationSuccessHandler: OAuth2AuthenticationSuccessHandler,
-    private val oAuth2AuthenticationFailureHandler: OAuth2AuthenticationFailureHandler
+    private val oAuth2AuthenticationFailureHandler: OAuth2AuthenticationFailureHandler,
+    private val httpCookieOAuth2AuthorizationRequestRepository: HttpCookieOAuth2AuthorizationRequestRepository
 ) {
     
     @Bean
@@ -55,6 +56,7 @@ class SecurityConfig(
                 }
             }
             .oauth2Login { oauth2 ->
+                oauth2.authorizationEndpoint { it.authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository) }
                 oauth2.successHandler(oAuth2AuthenticationSuccessHandler)
                 oauth2.failureHandler(oAuth2AuthenticationFailureHandler)
             }

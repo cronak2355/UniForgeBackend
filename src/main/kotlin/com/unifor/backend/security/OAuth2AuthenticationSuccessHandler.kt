@@ -19,8 +19,11 @@ import java.nio.charset.StandardCharsets
 class OAuth2AuthenticationSuccessHandler(
     private val jwtTokenProvider: JwtTokenProvider,
     private val userRepository: UserRepository,
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val userRepository: UserRepository,
     @Value("\${app.oauth2.redirect-uri:https://uniforge.kr}")
-    private val redirectUri: String
+    private val redirectUri: String,
+    private val httpCookieOAuth2AuthorizationRequestRepository: HttpCookieOAuth2AuthorizationRequestRepository
 ) : SimpleUrlAuthenticationSuccessHandler() {
     
     private val log = LoggerFactory.getLogger(OAuth2AuthenticationSuccessHandler::class.java)
@@ -82,6 +85,8 @@ class OAuth2AuthenticationSuccessHandler(
                 .toUriString()
             
             log.info("OAuth2 로그인 성공, 리다이렉트: {}", targetUrl)
+            
+            clearAuthenticationAttributes(request, response)
             redirectStrategy.sendRedirect(request, response, targetUrl)
             
         } catch (e: Exception) {
@@ -97,5 +102,10 @@ class OAuth2AuthenticationSuccessHandler(
             
             redirectStrategy.sendRedirect(request, response, errorUrl)
         }
+    }
+
+    private fun clearAuthenticationAttributes(request: HttpServletRequest, response: HttpServletResponse) {
+        super.clearAuthenticationAttributes(request)
+        httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response)
     }
 }
