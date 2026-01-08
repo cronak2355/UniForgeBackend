@@ -5,5 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface LibraryRepository : JpaRepository<LibraryItem, String> {
     fun findAllByUserId(userId: String): List<LibraryItem>
+    fun existsByUserIdAndRefId(userId: String, refId: String): Boolean
 }
 

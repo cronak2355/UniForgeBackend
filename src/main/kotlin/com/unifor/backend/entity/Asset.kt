@@ -27,7 +27,13 @@ data class Asset(
     val imageUrl: String? = null,
     
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now()
+    val createdAt: Instant = Instant.now(),
+
+    @Column(nullable = false)
+    val isPublic: Boolean = true,
+
+    @Column(nullable = false)
+    val genre: String = "Other"
 )
 
 

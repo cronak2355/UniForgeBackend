@@ -31,6 +31,13 @@ class OAuth2AuthenticationSuccessHandler(
         response: HttpServletResponse,
         authentication: Authentication
     ) {
+        val targetUrl = determineTargetUrl(request, response, authentication)
+
+        if (response.isCommitted) {
+            log.debug("응답이 이미 커밋되었습니다. 리다이렉트 할 수 없습니다: {}", targetUrl)
+            return
+        }
+
         try {
             val oAuth2User = authentication.principal as OAuth2User
             val attributes = oAuth2User.attributes
@@ -76,7 +83,7 @@ class OAuth2AuthenticationSuccessHandler(
             log.debug("JWT 토큰 생성 완료: userId={}", user.id)
             
             // 프론트엔드로 리다이렉트 (토큰 포함)
-            val targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
+            val redirectUrl = UriComponentsBuilder.fromUriString(redirectUri)
                 .path("/oauth/callback")
                 .queryParam("token", token)
                 .build()
