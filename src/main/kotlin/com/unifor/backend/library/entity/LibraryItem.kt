@@ -19,6 +19,9 @@ class LibraryItem(
     @Column(name = "ref_id", nullable = false)
     val refId: String,
 
+    @Column(name = "collection_id")
+    var collectionId: String? = null,
+
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
