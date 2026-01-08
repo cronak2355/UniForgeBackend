@@ -10,12 +10,13 @@ class MarketplaceController(
     private val gameRepository: GameRepository,
     private val gameVersionRepository: GameVersionRepository
 ) {
+
     @GetMapping("/marketplace/games")
     fun listGames(): List<Map<String, Any?>> {
         return gameRepository.findAll().map { game ->
             val version = gameVersionRepository
-                .findTopByGameIdAndStatusOrderByCreatedAtDesc(
-                    game.id,
+                .findTopByGameAndStatusOrderByCreatedAtDesc(
+                    game,
                     "PUBLISHED"
                 )
 
@@ -27,6 +28,3 @@ class MarketplaceController(
         }
     }
 }
-
-
-
