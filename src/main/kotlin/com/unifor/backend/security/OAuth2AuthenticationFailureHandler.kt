@@ -14,7 +14,8 @@ import java.nio.charset.StandardCharsets
 @Component
 class OAuth2AuthenticationFailureHandler(
     @Value("\${app.oauth2.redirect-uri:https://uniforge.kr}")
-    private val redirectUri: String
+    private val redirectUri: String,
+    private val httpCookieOAuth2AuthorizationRequestRepository: HttpCookieOAuth2AuthorizationRequestRepository
 ) : SimpleUrlAuthenticationFailureHandler() {
 
     private val log = LoggerFactory.getLogger(OAuth2AuthenticationFailureHandler::class.java)
@@ -38,6 +39,8 @@ class OAuth2AuthenticationFailureHandler(
             .queryParam("error", encodedError)
             .build()
             .toUriString()
+
+        httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequestCookies(request, response)
 
         log.info("OAuth2 실패 리다이렉트: {}", targetUrl)
         redirectStrategy.sendRedirect(request, response, targetUrl)
