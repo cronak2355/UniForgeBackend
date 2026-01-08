@@ -10,7 +10,7 @@ class GameVersionService(
     private val gameRepository: GameRepository,
     private val versionRepository: GameVersionRepository
 ) {
-    fun createVersion(gameId: Long, s3Path: String): GameVersion {
+    fun createVersion(gameId: String, s3Path: String): GameVersion {
         val game = gameRepository.findById(gameId).orElseThrow()
         return versionRepository.save(
             GameVersion(

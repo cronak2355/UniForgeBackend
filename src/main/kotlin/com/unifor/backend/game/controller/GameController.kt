@@ -15,14 +15,14 @@ class GameController(
 
     @PostMapping
     fun createGame(
-        @RequestParam authorId: Long,
+        @RequestParam authorId: String,
         @RequestParam title: String,
         @RequestParam(required = false) description: String?
     ) = gameQueryService.createGame(authorId, title, description)
 
     @PostMapping("/{gameId}/versions")
     fun createVersion(
-        @PathVariable gameId: Long,
+        @PathVariable gameId: String,
         @RequestBody sceneJson: String
     ): Any {
         val s3Path = s3Uploader.uploadJson(

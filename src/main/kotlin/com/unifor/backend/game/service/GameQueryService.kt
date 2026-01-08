@@ -13,7 +13,7 @@ class GameQueryService(
 ) {
 
     fun createGame(
-        authorId: Long,
+        authorId: String,
         title: String,
         description: String?
     ): Game {
@@ -26,7 +26,7 @@ class GameQueryService(
         )
     }
 
-    fun getMyGames(authorId: Long): List<GameSummaryResponse> {
+    fun getMyGames(authorId: String): List<GameSummaryResponse> {
         return gameRepository.findByAuthorId(authorId).map { game ->
             val latestVersion = versionRepository
                 .findTopByGameAndStatusOrderByCreatedAtDesc(game, "PUBLISHED")

@@ -8,11 +8,11 @@ import java.time.LocalDateTime
 class Game(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    @org.hibernate.annotations.UuidGenerator
+    val id: String? = null,
 
     @Column(name = "author_id", nullable = false)
-    val authorId: Long,
+    val authorId: String,
 
     @Column(nullable = false)
     var title: String,

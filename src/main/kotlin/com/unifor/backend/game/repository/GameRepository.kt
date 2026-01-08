@@ -4,9 +4,9 @@ import com.unifor.backend.game.entity.Game
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
-interface GameRepository : JpaRepository<Game, Long> {
+interface GameRepository : JpaRepository<Game, String> {
 
-    fun findByAuthorId(authorId: Long): List<Game>
+    fun findByAuthorId(authorId: String): List<Game>
 
     fun findByIsPublicTrue(): List<Game>
 

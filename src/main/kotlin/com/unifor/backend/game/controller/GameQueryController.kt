@@ -11,7 +11,7 @@ class GameQueryController(
 
     @GetMapping("/my")
     fun getMyGames(
-        @RequestParam authorId: Long
+        @RequestParam authorId: String
     ) = gameQueryService.getMyGames(authorId)
 
     @GetMapping("/public")
