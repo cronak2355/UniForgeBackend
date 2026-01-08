@@ -89,10 +89,10 @@ class OAuth2AuthenticationSuccessHandler(
                 .build()
                 .toUriString()
             
-            log.info("OAuth2 로그인 성공, 리다이렉트: {}", redirectUrl)
+            log.info("OAuth2 로그인 성공, 리다이렉트: {}", targetUrl)
             
             clearAuthenticationAttributes(request, response)
-            redirectStrategy.sendRedirect(request, response, redirectUrl)
+            redirectStrategy.sendRedirect(request, response, targetUrl)
             
         } catch (e: Exception) {
             log.error("OAuth2 로그인 처리 중 오류 발생", e)
