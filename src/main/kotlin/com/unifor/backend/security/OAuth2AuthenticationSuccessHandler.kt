@@ -19,8 +19,6 @@ import java.nio.charset.StandardCharsets
 class OAuth2AuthenticationSuccessHandler(
     private val jwtTokenProvider: JwtTokenProvider,
     private val userRepository: UserRepository,
-    private val jwtTokenProvider: JwtTokenProvider,
-    private val userRepository: UserRepository,
     @Value("\${app.oauth2.redirect-uri:https://uniforge.kr}")
     private val redirectUri: String,
     private val httpCookieOAuth2AuthorizationRequestRepository: HttpCookieOAuth2AuthorizationRequestRepository
