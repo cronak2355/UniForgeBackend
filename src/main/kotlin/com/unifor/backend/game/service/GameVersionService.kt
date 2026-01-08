@@ -10,7 +10,7 @@ class GameVersionService(
     private val gameRepository: GameRepository,
     private val versionRepository: GameVersionRepository
 ) {
-    fun createVersion(gameId: String, s3Path: String): GameVersion {
+    fun createVersion(gameId: Long, s3Path: String): GameVersion {
         val game = gameRepository.findById(gameId).orElseThrow()
         return versionRepository.save(
             GameVersion(
@@ -21,19 +21,8 @@ class GameVersionService(
         )
     }
 
-    fun publish(versionId: String) {
+    fun publish(versionId: Long) {
         val version = versionRepository.findById(versionId).orElseThrow()
-        versionRepository.save(
-            GameVersion(
-                id = version.id,
-                game = version.game,
-                s3RootPath = version.s3RootPath,
-                status = "PUBLISHED",
-                createdAt = version.createdAt
-            )
-        )
+        version.status = "PUBLISHED"
     }
 }
-
-
-

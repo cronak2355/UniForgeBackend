@@ -1,6 +1,7 @@
 ﻿package com.unifor.backend.config
 
 import com.unifor.backend.security.JwtAuthenticationFilter
+import com.unifor.backend.security.OAuth2AuthenticationFailureHandler
 import com.unifor.backend.security.OAuth2AuthenticationSuccessHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,7 +20,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
-    private val oAuth2AuthenticationSuccessHandler: OAuth2AuthenticationSuccessHandler
+    private val oAuth2AuthenticationSuccessHandler: OAuth2AuthenticationSuccessHandler,
+    private val oAuth2AuthenticationFailureHandler: OAuth2AuthenticationFailureHandler
 ) {
     
     @Bean
@@ -54,6 +56,7 @@ class SecurityConfig(
             }
             .oauth2Login { oauth2 ->
                 oauth2.successHandler(oAuth2AuthenticationSuccessHandler)
+                oauth2.failureHandler(oAuth2AuthenticationFailureHandler)
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
         

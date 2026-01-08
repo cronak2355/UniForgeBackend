@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: #jdbc:postgresql://<DB_HOST>:5432/<DB_NAME>  여기에 AWS RDS 주소 넣어야 함 
+    username: <DB_USER>
+    password: <DB_PASSWORD>
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
