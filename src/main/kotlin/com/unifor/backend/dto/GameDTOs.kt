@@ -7,7 +7,7 @@ data class GameSummaryDTO(
     val title: String,
     val description: String?,
     val thumbnailUrl: String?,
-    val authorId: Long,
+    val authorId: String,
     val latestVersionId: Long?,
     val createdAt: String
 ) {

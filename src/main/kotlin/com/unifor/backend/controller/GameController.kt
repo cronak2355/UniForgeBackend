@@ -13,7 +13,7 @@ class GameController(
 
     @PostMapping
     fun createGame(
-        @RequestParam authorId: Long,
+        @RequestParam authorId: String,
         @RequestParam title: String,
         @RequestParam(required = false) description: String?
     ): ResponseEntity<GameSummaryDTO> {
@@ -22,7 +22,7 @@ class GameController(
     }
 
     @GetMapping("/my")
-    fun getMyGames(@RequestParam authorId: Long): ResponseEntity<List<GameSummaryDTO>> {
+    fun getMyGames(@RequestParam authorId: String): ResponseEntity<List<GameSummaryDTO>> {
         val games = gameService.getMyGames(authorId)
         return ResponseEntity.ok(games)
     }

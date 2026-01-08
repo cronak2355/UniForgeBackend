@@ -18,7 +18,7 @@ class GameService(
 ) {
 
     @Transactional
-    fun createGame(authorId: Long, title: String, description: String?): GameSummaryDTO {
+    fun createGame(authorId: String, title: String, description: String?): GameSummaryDTO {
         val user = userRepository.findById(authorId)
             .orElseThrow { EntityNotFoundException("User not found with id $authorId") }
 
@@ -32,7 +32,7 @@ class GameService(
     }
 
     @Transactional(readOnly = true)
-    fun getMyGames(authorId: Long): List<GameSummaryDTO> {
+    fun getMyGames(authorId: String): List<GameSummaryDTO> {
         return gameRepository.findByAuthorId(authorId)
             .map { GameSummaryDTO.from(it) }
     }
