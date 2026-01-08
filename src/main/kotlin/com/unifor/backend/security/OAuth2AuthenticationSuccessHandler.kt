@@ -34,7 +34,17 @@ class OAuth2AuthenticationSuccessHandler(
         val picture = attributes["picture"] as? String
         
         // 사용자 조회 또는 생성
-        val user = userRepository.findByEmail(email).orElseGet {
+        val existingUser = userRepository.findByEmail(email).orElse(null)
+        val user = if (existingUser != null) {
+            // 기존 사용자: 프로필 이미지만 업데이트 (필요시)
+            if (existingUser.profileImage != picture && picture != null) {
+                existingUser.profileImage = picture
+                userRepository.save(existingUser)
+            } else {
+                existingUser
+            }
+        } else {
+            // 신규 사용자 생성
             userRepository.save(
                 User(
                     email = email,
@@ -44,12 +54,6 @@ class OAuth2AuthenticationSuccessHandler(
                     profileImage = picture
                 )
             )
-        }.also { existingUser ->
-            // 기존 사용자의 프로필 이미지 업데이트
-            if (existingUser.profileImage != picture && picture != null) {
-                existingUser.profileImage = picture
-                userRepository.save(existingUser)
-            }
         }
         
         // JWT 토큰 생성
