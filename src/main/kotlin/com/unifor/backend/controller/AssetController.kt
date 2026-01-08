@@ -43,14 +43,35 @@ class AssetController(
     
     @GetMapping
     fun getAssets(
-        @RequestParam(required = false) authorId: String?
+        @RequestParam(required = false) authorId: String?,
+        @RequestParam(required = false, defaultValue = "latest") sort: String
     ): ResponseEntity<List<AssetResponse>> {
+        val sortOption = when (sort) {
+            "popular" -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "rating") // Assuming rating exists, or fallback
+            "price_asc" -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "price")
+            "price_desc" -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "price")
+            else -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt") // "latest"
+        }
+
         val assets = if (authorId != null) {
-            assetRepository.findByAuthorId(authorId)
+            // Note: findByAuthorId needs to support Sort or we filter manually. 
+            // For now, simpler to use existing and sort in memory if list is small, or strictly use separate Jpa methods.
+            // Let's stick to memory sort for authorId for now to avoid repo changes, 
+            // but for findAll we can pass Sort to JpaRepository's findAll(Sort).
+            assetRepository.findByAuthorId(authorId).sortedWith(getComparator(sort))
         } else {
-            assetRepository.findAll()
+            assetRepository.findAll(sortOption)
         }
         return ResponseEntity.ok(assets.map { toResponse(it) })
+    }
+
+    private fun getComparator(sort: String): Comparator<Asset> {
+        return when (sort) {
+            "price_asc" -> compareBy { it.price }
+            "price_desc" -> compareByDescending { it.price }
+            "latest" -> compareByDescending { it.createdAt }
+             else -> compareByDescending { it.createdAt }
+        }
     }
     
     @GetMapping("/{id}")
@@ -104,7 +125,8 @@ class AssetController(
                 description = request.description,
                 authorId = user.id,
                 isPublic = request.isPublic ?: true,
-                genre = request.genre ?: "Other"
+                genre = request.genre ?: "Other",
+                imageUrl = request.imageUrl
             )
         )
         
@@ -116,6 +138,30 @@ class AssetController(
         }
         
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(asset))
+    }
+
+    @PatchMapping("/{id}")
+    fun updateAsset(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: UserPrincipal,
+        @RequestBody request: UpdateAssetRequest
+    ): ResponseEntity<AssetResponse> {
+        val asset = assetRepository.findById(id).orElseThrow { RuntimeException("Asset not found") }
+        
+        if (asset.authorId != user.id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        
+        val updatedAsset = asset.copy(
+            name = request.name ?: asset.name,
+            price = request.price ?: asset.price,
+            description = request.description ?: asset.description,
+            isPublic = request.isPublic ?: asset.isPublic,
+            genre = request.genre ?: asset.genre,
+            imageUrl = request.imageUrl ?: asset.imageUrl
+        )
+        
+        return ResponseEntity.ok(toResponse(assetRepository.save(updatedAsset)))
     }
     
     // ... existing createVersion ...
@@ -131,7 +177,17 @@ data class CreateAssetRequest(
     val price: BigDecimal? = null,
     val description: String? = null,
     val isPublic: Boolean? = true,
-    val genre: String? = "Other"
+    val genre: String? = "Other",
+    val imageUrl: String? = null
+)
+
+data class UpdateAssetRequest(
+    val name: String? = null,
+    val price: BigDecimal? = null,
+    val description: String? = null,
+    val isPublic: Boolean? = null,
+    val genre: String? = null,
+    val imageUrl: String? = null
 )
 
 data class CreateVersionRequest(
