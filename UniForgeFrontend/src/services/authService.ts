@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://uniforge.kr'; // import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE_URL = 'https://uniforge.kr'; // Hardcoded for production (endpoints already contain /api)
 
 export interface User {
     id: string;
@@ -25,7 +25,7 @@ export interface SignupRequest {
 }
 
 class AuthService {
-    public getToken(): string | null {
+    getToken(): string | null {
         return localStorage.getItem('token');
     }
 
@@ -104,7 +104,7 @@ class AuthService {
     }
 
     getGoogleLoginUrl(): string {
-        return `${API_BASE_URL}/oauth2/authorization/google`;
+        return `${API_BASE_URL}/api/oauth2/authorization/google`;
     }
 }
 

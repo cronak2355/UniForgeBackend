@@ -9,5 +9,19 @@ class LibraryService(
 ) {
     fun getUserLibrary(userId: String) =
         libraryRepository.findAllByUserId(userId)
+
+    fun addToLibrary(userId: String, refId: String, itemType: String): com.unifor.backend.library.entity.LibraryItem {
+        if (libraryRepository.existsByUserIdAndRefId(userId, refId)) {
+            throw IllegalArgumentException("Already in library")
+        }
+        
+        return libraryRepository.save(
+            com.unifor.backend.library.entity.LibraryItem(
+                userId = userId,
+                refId = refId,
+                itemType = itemType
+            )
+        )
+    }
 }
 

@@ -6,7 +6,7 @@ import com.unifor.backend.image.service.ImageResourceService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("/images")
 class ImageResourceController(
     private val service: ImageResourceService
 ) {

@@ -7,7 +7,8 @@ import java.time.LocalDateTime
 @Table(name = "game_versions")
 class GameVersion(
     @Id
-    val id: String = java.util.UUID.randomUUID().toString(),
+    @org.hibernate.annotations.UuidGenerator
+    val id: String? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id")
@@ -17,11 +18,8 @@ class GameVersion(
     val s3RootPath: String,
 
     @Column(nullable = false)
-    val status: String,
+    var status: String,
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
-
-
-

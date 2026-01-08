@@ -1,8 +1,9 @@
-const API_BASE_URL = 'https://uniforge.kr'; // import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE_URL = 'https://uniforge.kr/api'; // Hardcoded for production
 
 export interface Asset {
     id: string;
     authorId: string;
+    authorName: string;
     name: string;
     description: string | null;
     price: number;
@@ -55,5 +56,7 @@ class MarketplaceService {
         return this.request<Game[]>('/marketplace/games');
     }
 }
+
+
 
 export const marketplaceService = new MarketplaceService();

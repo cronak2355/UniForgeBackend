@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE_URL = 'https://uniforge.kr/api'; // Hardcoded for production
 
 const CreateAssetPage = () => {
     const navigate = useNavigate();
@@ -11,7 +11,9 @@ const CreateAssetPage = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        price: 0
+        price: 0,
+        isPublic: true,
+        genre: 'Other'
     });
     const [file, setFile] = useState<File | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -20,7 +22,7 @@ const CreateAssetPage = () => {
     const [error, setError] = useState<string | null>(null);
     const [dragActive, setDragActive] = useState(false);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
@@ -57,6 +59,7 @@ const CreateAssetPage = () => {
     const handleFile = (selectedFile: File) => {
         setFile(selectedFile);
 
+        // Generate preview for images
         if (selectedFile.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -112,7 +115,9 @@ const CreateAssetPage = () => {
                     body: JSON.stringify({
                         name: formData.name,
                         price: formData.price,
-                        description: formData.description || null
+                        description: formData.description || null,
+                        isPublic: formData.isPublic,
+                        genre: formData.genre
                     })
                 }
             );
@@ -125,7 +130,7 @@ const CreateAssetPage = () => {
             const asset = await createResponse.json();
             setUploadProgress(40);
 
-            // Step 2: Create version
+            // Step 2: Create version to get versionId
             const versionResponse = await fetch(
                 `${API_BASE_URL}/assets/${asset.id}/versions`,
                 {
@@ -157,22 +162,21 @@ const CreateAssetPage = () => {
                 throw new Error('업로드 URL 생성에 실패했습니다.');
             }
 
-            const { uploadUrl, s3Key } = await uploadUrlResponse.json();
+            const { uploadUrl } = await uploadUrlResponse.json();
             setUploadProgress(60);
 
-            // Step 4: Upload file to S3 using presigned URL
+            // Step 4: Upload file directly to S3
             const s3Response = await fetch(uploadUrl, {
                 method: 'PUT',
+                body: file,
                 headers: {
                     'Content-Type': file.type
-                },
-                body: file
+                }
             });
 
             if (!s3Response.ok) {
                 throw new Error('S3 업로드에 실패했습니다.');
             }
-            console.log('S3 upload successful, key:', s3Key);
             setUploadProgress(90);
 
             // Step 5: Publish the version
@@ -200,6 +204,7 @@ const CreateAssetPage = () => {
             minHeight: '100vh',
             color: 'white',
         }}>
+            {/* Header */}
             <header style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -228,6 +233,7 @@ const CreateAssetPage = () => {
                 </div>
             </header>
 
+            {/* Main Content */}
             <main style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem 2rem' }}>
                 <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>
                     <i className="fa-solid fa-plus" style={{ marginRight: '12px', color: '#3b82f6' }}></i>
@@ -238,6 +244,7 @@ const CreateAssetPage = () => {
                 </p>
 
                 <form onSubmit={handleSubmit}>
+                    {/* File Upload Area */}
                     <div
                         style={{
                             border: `2px dashed ${dragActive ? '#3b82f6' : '#333'}`,
@@ -295,6 +302,7 @@ const CreateAssetPage = () => {
                         )}
                     </div>
 
+                    {/* Form Fields */}
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
                             에셋 이름 *
@@ -367,6 +375,69 @@ const CreateAssetPage = () => {
                         </p>
                     </div>
 
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                장르
+                            </label>
+                            <select
+                                name="genre"
+                                value={formData.genre}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    backgroundColor: '#111',
+                                    border: '1px solid #333',
+                                    borderRadius: '8px',
+                                    color: 'white',
+                                    fontSize: '1rem',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <option value="Other">기타 (Other)</option>
+                                <option value="Fantasy">판타지 (Fantasy)</option>
+                                <option value="Sci-Fi">SF (Sci-Fi)</option>
+                                <option value="Modern">현대 (Modern)</option>
+                                <option value="Nature">자연 (Nature)</option>
+                                <option value="Characters">캐릭터 (Characters)</option>
+                                <option value="Buildings">건물 (Buildings)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
+                                공개 설정
+                            </label>
+                            <div style={{ display: 'flex', gap: '1rem', padding: '8px 0' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                    <input
+                                        type="radio"
+                                        name="isPublic"
+                                        checked={formData.isPublic === true}
+                                        onChange={() => setFormData(p => ({ ...p, isPublic: true }))}
+                                        style={{ marginRight: '8px' }}
+                                    />
+                                    공개 (Public)
+                                </label>
+                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                    <input
+                                        type="radio"
+                                        name="isPublic"
+                                        checked={formData.isPublic === false}
+                                        onChange={() => setFormData(p => ({ ...p, isPublic: false }))}
+                                        style={{ marginRight: '8px' }}
+                                    />
+                                    비공개 (Private)
+                                </label>
+                            </div>
+                            <p style={{ color: '#666', fontSize: '0.8rem' }}>
+                                비공개 선택 시 마켓플레이스에 노출되지 않으며, '나의 에셋'에서만 확인 가능합니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Error Message */}
                     {error && (
                         <div style={{
                             backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -381,6 +452,7 @@ const CreateAssetPage = () => {
                         </div>
                     )}
 
+                    {/* Progress Bar */}
                     {uploading && (
                         <div style={{ marginBottom: '1.5rem' }}>
                             <div style={{
@@ -402,6 +474,7 @@ const CreateAssetPage = () => {
                         </div>
                     )}
 
+                    {/* Submit Button */}
                     <button
                         type="submit"
                         disabled={uploading}

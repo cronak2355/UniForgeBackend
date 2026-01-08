@@ -6,20 +6,26 @@ import java.time.LocalDateTime
 @Entity
 @Table(name = "games")
 class Game(
+
     @Id
-    val id: String = java.util.UUID.randomUUID().toString(),
+    @org.hibernate.annotations.UuidGenerator
+    val id: String? = null,
 
     @Column(name = "author_id", nullable = false)
     val authorId: String,
 
     @Column(nullable = false)
-    val title: String,
+    var title: String,
 
-    val description: String? = null,
+    @Column(columnDefinition = "TEXT")
+    var description: String? = null,
 
-    @Column(name = "created_at")
+    @Column(name = "thumbnail_url")
+    var thumbnailUrl: String? = null,
+
+    @Column(name = "is_public", nullable = false)
+    var isPublic: Boolean = false,
+
+    @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now()
 )
-
-
-
