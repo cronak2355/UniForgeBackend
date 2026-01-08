@@ -12,7 +12,7 @@ class UploadController(
     @PostMapping("/presign/image")
     fun presignImageUpload(
         @RequestParam ownerType: String,
-        @RequestParam ownerId: Long,
+        @RequestParam ownerId: String,
         @RequestParam imageType: String,
         @RequestParam contentType: String
     ): Map<String, String> {

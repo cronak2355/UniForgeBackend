@@ -3,8 +3,10 @@
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import java.time.Duration
 import java.util.*
 
@@ -16,7 +18,7 @@ class PresignService(
 
     fun generateImageUploadUrl(
         ownerType: String,   // GAME | ASSET
-        ownerId: Long,
+        ownerId: String,
         imageType: String,   // thumbnail | preview
         contentType: String
     ): Map<String, String> {
@@ -55,7 +57,7 @@ class PresignService(
 
     private fun buildKey(
         ownerType: String,
-        ownerId: Long,
+        ownerId: String,
         imageType: String,
         extension: String
     ): String {
@@ -69,6 +71,20 @@ class PresignService(
             else ->
                 throw IllegalArgumentException("Invalid ownerType")
         }
+    }
+
+    fun generatePresignedGetUrl(key: String): String {
+        val getObjectRequest = GetObjectRequest.builder()
+            .bucket(bucket)
+            .key(key)
+            .build()
+
+        val presignRequest = GetObjectPresignRequest.builder()
+            .signatureDuration(Duration.ofMinutes(60))
+            .getObjectRequest(getObjectRequest)
+            .build()
+
+        return presigner.presignGetObject(presignRequest).url().toString()
     }
 }
 
