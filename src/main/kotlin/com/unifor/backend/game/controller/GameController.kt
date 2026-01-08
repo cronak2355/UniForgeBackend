@@ -34,7 +34,7 @@ class GameController(
     }
 
     @PostMapping("/versions/{versionId}/publish")
-    fun publish(@PathVariable versionId: Long) {
+    fun publish(@PathVariable versionId: String) {
         versionService.publish(versionId)
     }
 
