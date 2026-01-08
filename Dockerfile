@@ -3,6 +3,10 @@ WORKDIR /workspace/app
 
 COPY build.gradle.kts .
 COPY settings.gradle.kts .
+
+# Download dependencies first (cached layer)
+RUN gradle dependencies --no-daemon || true
+
 COPY src src
 
 RUN gradle clean build -x test --no-daemon
