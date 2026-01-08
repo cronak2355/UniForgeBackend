@@ -1,5 +1,6 @@
 package com.unifor.backend.security
 
+import com.nimbusds.oauth2.sdk.util.StringUtils
 import com.unifor.backend.util.CookieUtils
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -39,9 +40,9 @@ class HttpCookieOAuth2AuthorizationRequestRepository : AuthorizationRequestRepos
             CookieUtils.serialize(authorizationRequest),
             COOKIE_EXPIRE_SECONDS
         )
-        
+
         val redirectUriAfterLogin = request.getParameter(REDIRECT_URI_PARAM_COOKIE_NAME)
-        if (redirectUriAfterLogin != null && redirectUriAfterLogin.isNotBlank()) {
+        if (StringUtils.isNotBlank(redirectUriAfterLogin)) {
             CookieUtils.addCookie(
                 response,
                 REDIRECT_URI_PARAM_COOKIE_NAME,
@@ -51,13 +52,10 @@ class HttpCookieOAuth2AuthorizationRequestRepository : AuthorizationRequestRepos
         }
     }
 
-    override fun removeAuthorizationRequest(
-        request: HttpServletRequest,
-        response: HttpServletResponse
-    ): OAuth2AuthorizationRequest? {
+    override fun removeAuthorizationRequest(request: HttpServletRequest, response: HttpServletResponse): OAuth2AuthorizationRequest? {
         return this.loadAuthorizationRequest(request)
     }
-    
+
     fun removeAuthorizationRequestCookies(request: HttpServletRequest, response: HttpServletResponse) {
         CookieUtils.deleteCookie(request, response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME)
         CookieUtils.deleteCookie(request, response, REDIRECT_URI_PARAM_COOKIE_NAME)

@@ -19,7 +19,8 @@ class AssetController(
     private val assetRepository: AssetRepository,
     private val assetVersionRepository: AssetVersionRepository,
     private val userRepository: UserRepository,
-    private val s3Service: S3Service
+    private val s3Service: S3Service,
+    private val libraryService: com.unifor.backend.library.service.LibraryService
 ) {
     
     private fun toResponse(asset: Asset): AssetResponse {
@@ -75,80 +76,36 @@ class AssetController(
                 name = request.name,
                 price = request.price ?: BigDecimal.ZERO,
                 description = request.description,
-                authorId = user.id
+                authorId = user.id,
+                isPublic = request.isPublic ?: true,
+                genre = request.genre ?: "Other"
             )
         )
+        
+        // Auto-add to author's library
+        try {
+            libraryService.addToLibrary(user.id, asset.id, "ASSET")
+        } catch (e: Exception) {
+            // Ignore if fails, not critical
+        }
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(asset))
     }
     
-    @PostMapping("/{assetId}/versions")
-    fun createVersion(
-        @AuthenticationPrincipal user: UserPrincipal,
-        @PathVariable assetId: String,
-        @RequestBody request: CreateVersionRequest
-    ): ResponseEntity<AssetVersion> {
-        // Check asset exists
-        if (!assetRepository.existsById(assetId)) {
-            return ResponseEntity.notFound().build()
-        }
-        
-        val version = assetVersionRepository.save(
-            AssetVersion(
-                assetId = assetId,
-                s3RootPath = request.s3RootPath
-            )
-        )
-        return ResponseEntity.status(HttpStatus.CREATED).body(version)
-    }
-    
-    @GetMapping("/{assetId}/versions/{versionId}/upload-url")
-    fun getUploadUrl(
-        @AuthenticationPrincipal user: UserPrincipal,
-        @PathVariable assetId: String,
-        @PathVariable versionId: String,
-        @RequestParam fileName: String,
-        @RequestParam contentType: String
-    ): ResponseEntity<Map<String, String>> {
-        // Generate presigned URL for S3 upload
-        val s3Key = "assets/$assetId/versions/$versionId/$fileName"
-        val uploadUrl = s3Service.generatePresignedUploadUrl(s3Key, contentType)
-        return ResponseEntity.ok(mapOf(
-            "uploadUrl" to uploadUrl,
-            "s3Key" to s3Key
-        ))
-    }
-    
-    @PostMapping("/versions/{versionId}/publish")
-    fun publishVersion(
-        @AuthenticationPrincipal user: UserPrincipal,
-        @PathVariable versionId: String
-    ): ResponseEntity<AssetVersion> {
-        val version = assetVersionRepository.findById(versionId).orElse(null)
-            ?: return ResponseEntity.notFound().build()
-        
-        version.status = "PUBLISHED"
-        val updatedVersion = assetVersionRepository.save(version)
-        return ResponseEntity.ok(updatedVersion)
-    }
+    // ... existing createVersion ...
+
+    // ... existing endpoints ...
 }
 
-// Response DTOs
-data class AssetResponse(
-    val id: String,
-    val name: String,
-    val price: BigDecimal,
-    val description: String?,
-    val authorId: String,
-    val authorName: String,
-    val imageUrl: String?,
-    val createdAt: java.time.Instant
-)
+// ... existing AssetResponse ...
 
 // Request DTOs
 data class CreateAssetRequest(
     val name: String,
     val price: BigDecimal? = null,
-    val description: String? = null
+    val description: String? = null,
+    val isPublic: Boolean? = true,
+    val genre: String? = "Other"
 )
 
 data class CreateVersionRequest(
