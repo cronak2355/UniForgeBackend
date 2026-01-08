@@ -20,7 +20,7 @@ class OAuth2AuthenticationFailureHandler(
         exception: AuthenticationException
     ) {
         val targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
-            .path("/login")
+            .path("/auth")
             .queryParam("error", "social_login_failed")
             .build()
             .toUriString()
