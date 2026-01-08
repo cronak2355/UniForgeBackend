@@ -112,5 +112,16 @@ data class CreateVersionRequest(
     val s3RootPath: String? = null
 )
 
+data class AssetResponse(
+    val id: String,
+    val name: String,
+    val price: java.math.BigDecimal,
+    val description: String?,
+    val authorId: String,
+    val authorName: String,
+    val imageUrl: String?,
+    val createdAt: java.time.Instant
+)
+
 
 
