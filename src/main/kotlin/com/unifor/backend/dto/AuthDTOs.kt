@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 package com.unifor.backend.dto
-=======
-﻿package com.unifor.backend.dto
->>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
 
 import com.unifor.backend.entity.AuthProvider
 import com.unifor.backend.entity.User
@@ -42,11 +38,7 @@ data class AuthResponse(
 
 // 사용자 정보 DTO
 data class UserDTO(
-<<<<<<< HEAD
-    val id: Long,
-=======
     val id: String,
->>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
     val email: String,
     val name: String,
     val provider: AuthProvider,
@@ -68,9 +60,3 @@ data class ErrorResponse(
     val message: String,
     val code: String? = null
 )
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> 338a79d154f1cca38ca079749882aff6399db7da

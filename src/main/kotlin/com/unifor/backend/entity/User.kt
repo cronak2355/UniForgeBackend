@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 package com.unifor.backend.entity
-=======
-﻿package com.unifor.backend.entity
->>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
 
 import jakarta.persistence.*
 import java.time.Instant
@@ -11,12 +7,7 @@ import java.time.Instant
 @Table(name = "users")
 data class User(
     @Id
-<<<<<<< HEAD
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-=======
     val id: String = java.util.UUID.randomUUID().toString(),
->>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
     
     @Column(unique = true, nullable = false)
     val email: String,
@@ -44,10 +35,3 @@ data class User(
 enum class AuthProvider {
     LOCAL, GOOGLE
 }
-
-<<<<<<< HEAD
-=======
-
-
-
->>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
