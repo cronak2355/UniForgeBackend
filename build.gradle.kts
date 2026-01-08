@@ -39,6 +39,13 @@ dependencies {
     // Database
     runtimeOnly("org.postgresql:postgresql")
     
+<<<<<<< HEAD
+=======
+    // AWS S3
+    implementation("software.amazon.awssdk:s3:2.21.0")
+    implementation("software.amazon.awssdk:sts:2.21.0")
+    
+>>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

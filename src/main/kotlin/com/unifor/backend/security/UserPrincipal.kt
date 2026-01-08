@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 package com.unifor.backend.security
+=======
+﻿package com.unifor.backend.security
+>>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
 
 import com.unifor.backend.entity.User
 import org.springframework.security.core.GrantedAuthority
@@ -11,10 +15,17 @@ class UserPrincipal(
     private val attributes: Map<String, Any> = emptyMap()
 ) : UserDetails, OAuth2User {
     
+<<<<<<< HEAD
     val id: Long get() = user.id
     val email: String get() = user.email
     
     override fun getName(): String = user.id.toString()
+=======
+    val id: String get() = user.id
+    val email: String get() = user.email
+    
+    override fun getName(): String = user.id
+>>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
     
     override fun getAttributes(): Map<String, Any> = attributes
     
@@ -40,3 +51,7 @@ class UserPrincipal(
             UserPrincipal(user, attributes)
     }
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 338a79d154f1cca38ca079749882aff6399db7da

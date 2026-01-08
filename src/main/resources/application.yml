@@ -28,7 +28,7 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: email, profile
-            redirect-uri: "https://uniforge.kr/login/oauth2/code/{registrationId}"
+            redirect-uri: "https://uniforge.kr/api/login/oauth2/code/{registrationId}"
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
@@ -42,6 +42,8 @@ jwt:
 
 server:
   port: 8080
+  servlet:
+    context-path: /api
 
 management:
   endpoint:
@@ -50,3 +52,17 @@ management:
   health:
     redis:
       enabled: false
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET:unifor-assets-20251224152246648200000002}
+    region: ${AWS_REGION:ap-northeast-2}
+    access-key: ${AWS_ACCESS_KEY:}
+    secret-key: ${AWS_SECRET_KEY:}
+
+logging:
+  level:
+    root: INFO
+    com.unifor.backend: DEBUG
+    org.springframework.security: TRACE
+    org.hibernate.SQL: INFO

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 package com.unifor.backend.service
+=======
+﻿package com.unifor.backend.service
+>>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
 
 import com.unifor.backend.dto.*
 import com.unifor.backend.entity.AuthProvider
@@ -66,10 +70,20 @@ class AuthService(
         )
     }
     
+<<<<<<< HEAD
     fun getCurrentUser(userId: Long): UserDTO {
+=======
+    fun getCurrentUser(userId: String): UserDTO {
+>>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
         val user = userRepository.findById(userId)
             .orElseThrow { IllegalArgumentException("사용자를 찾을 수 없습니다") }
         
         return UserDTO.from(user)
     }
 }
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
