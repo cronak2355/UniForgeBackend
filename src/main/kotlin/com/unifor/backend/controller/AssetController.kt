@@ -1,4 +1,4 @@
-ï»¿package com.unifor.backend.controller
+package com.unifor.backend.controller
 
 import com.unifor.backend.common.s3.S3Uploader
 import com.unifor.backend.entity.Asset
@@ -42,7 +42,7 @@ class AssetController(
         )
     }
     
-    // ============ ê³µê°œ ì—”ë“œí¬ì¸íŠ¸ (ì¸ì¦ ë¶ˆí•„ìš”) ============
+    // ============ °ø°³ ¿£µåÆ÷ÀÎÆ® (ÀÎÁõ ºÒÇÊ¿ä) ============
     
     @GetMapping
     fun getAssets(
@@ -125,11 +125,14 @@ class AssetController(
         val uploadUrl = presignResult["uploadUrl"] ?: throw RuntimeException("Failed to generate upload URL")
         val s3Key = presignResult["s3Key"] ?: throw RuntimeException("Failed to generate S3 key")
         
-        return mapOf("uploadUrl" to uploadUrl)
+        return mapOf(
+            "uploadUrl" to uploadUrl,
+            "s3Key" to s3Key
+        )
     }
 
     
-    // ============ ì¸ì¦ í•„ìš” ì—”ë“œí¬ì¸íŠ¸ ============
+    // ============ ÀÎÁõ ÇÊ¿ä ¿£µåÆ÷ÀÎÆ® ============
     
     @PostMapping
     fun createAsset(
@@ -222,6 +225,8 @@ data class AssetResponse(
     val imageUrl: String?,
     val createdAt: java.time.Instant
 )
+
+
 
 
 
