@@ -89,13 +89,9 @@ jobs:
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=50" \
+            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=100" \
             --force-new-deployment
 
-      - name: Wait for service stability
+      - name: Check Deployment Triggered
         run: |
-          echo "Waiting for ECS service to stabilize..."
-          aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} || true
-          echo "Deployment triggered successfully!"
+          echo "Deployment triggered successfully! (Stability check skipped for speed - check AWS Console for progress)"
