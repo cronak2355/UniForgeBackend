@@ -20,18 +20,14 @@ class JwtTokenProvider(
     private val log = LoggerFactory.getLogger(JwtTokenProvider::class.java)
     
     private val key: SecretKey by lazy {
-        log.info("Initializing JWT secret key. Secret length: ${jwtSecret.length}")
-        val keyBytes = try {
-            if (jwtSecret.contains(" ") || jwtSecret.length < 32) {
-                 jwtSecret.padEnd(32, '0').toByteArray()
-            } else {
-                Decoders.BASE64.decode(jwtSecret)
-            }
-        } catch (e: Exception) {
-            log.debug("Secret is not Base64, using raw bytes: ${e.message}")
-            jwtSecret.padEnd(32, '0').toByteArray()
+        val secretBytes = jwtSecret.toByteArray(java.nio.charset.StandardCharsets.UTF_8)
+        // Ensure strictly secure key (HMAC-SHA requires 256 bits / 32 bytes)
+        val secureKeyBytes = if (secretBytes.size < 32) {
+             jwtSecret.padEnd(32, '0').toByteArray(java.nio.charset.StandardCharsets.UTF_8)
+        } else {
+             secretBytes
         }
-        Keys.hmacShaKeyFor(keyBytes)
+        Keys.hmacShaKeyFor(secureKeyBytes)
     }
     
     fun generateToken(userId: String, email: String): String {

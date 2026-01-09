@@ -4,6 +4,7 @@ import com.unifor.backend.security.JwtAuthenticationFilter
 import com.unifor.backend.security.OAuth2AuthenticationFailureHandler
 import com.unifor.backend.security.OAuth2AuthenticationSuccessHandler
 import com.unifor.backend.security.HttpCookieOAuth2AuthorizationRequestRepository
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -76,8 +77,10 @@ class SecurityConfig(
                     .anyRequest().authenticated()
             }
             .exceptionHandling { ex ->
-                ex.authenticationEntryPoint { _, response, _ ->
-                    response.sendError(401, "Unauthorized")
+                ex.authenticationEntryPoint { _, response, authException ->
+                    response.status = HttpServletResponse.SC_UNAUTHORIZED
+                    response.contentType = "application/json;charset=UTF-8"
+                    response.writer.write("{\"error\": \"Unauthorized\", \"message\": \"${authException.message}\"}")
                 }
             }
             .oauth2Login { oauth2 ->
