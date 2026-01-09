@@ -44,7 +44,7 @@ class GameService(
     }
 
     @Transactional
-    fun saveGameVersion(gameId: Long, sceneJson: String) {
+    fun saveGameVersion(gameId: String, sceneJson: String) {
         val game = gameRepository.findById(gameId)
             .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
 
@@ -58,5 +58,20 @@ class GameService(
             sceneJson = sceneJson
         )
         gameVersionRepository.save(version)
+    }
+
+    @Transactional(readOnly = true)
+    fun getLatestGameVersion(gameId: String): com.unifor.backend.dto.GameVersionResponseDTO {
+        val versions = gameVersionRepository.findByGameIdOrderByVersionNumberDesc(gameId)
+        if (versions.isEmpty()) {
+            throw EntityNotFoundException("No versions found for game $gameId")
+        }
+        val latest = versions[0]
+        return com.unifor.backend.dto.GameVersionResponseDTO(
+            versionId = latest.id,
+            versionNumber = latest.versionNumber,
+            sceneJson = latest.sceneJson,
+            createdAt = latest.createdAt.toString()
+        )
     }
 }

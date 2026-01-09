@@ -7,8 +7,8 @@ import java.time.Instant
 @Table(name = "games")
 data class Game(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    @Column(length = 36)
+    val id: String = java.util.UUID.randomUUID().toString(),
 
     @Column(nullable = false)
     var title: String,

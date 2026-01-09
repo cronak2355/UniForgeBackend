@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/games")
 class GameController(
-    private val gameService: GameService
+    private val gameService: GameService,
+    private val objectMapper: com.fasterxml.jackson.databind.ObjectMapper
 ) {
 
     @PostMapping
@@ -35,10 +36,23 @@ class GameController(
 
     @PostMapping("/{gameId}/versions")
     fun saveGameVersion(
-        @PathVariable gameId: Long,
-        @RequestBody sceneJson: String // Using String to accept raw JSON from frontend
+        @PathVariable gameId: String,
+        @RequestBody payload: Map<String, Any>
     ): ResponseEntity<Void> {
+        val sceneJson = objectMapper.writeValueAsString(payload)
         gameService.saveGameVersion(gameId, sceneJson)
         return ResponseEntity.ok().build()
+    }
+
+    @GetMapping("/{gameId}/versions/latest")
+    fun getLatestVersion(
+        @PathVariable gameId: String
+    ): ResponseEntity<com.unifor.backend.dto.GameVersionResponseDTO> {
+        return try {
+            val version = gameService.getLatestGameVersion(gameId)
+            ResponseEntity.ok(version)
+        } catch (e: jakarta.persistence.EntityNotFoundException) {
+            ResponseEntity.notFound().build()
+        }
     }
 }

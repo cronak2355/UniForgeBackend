@@ -17,7 +17,7 @@ data class GameVersion(
     @Column(nullable = false)
     val versionNumber: Int = 1, // Simple incremental versioning
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "LONGTEXT", nullable = false)
     val sceneJson: String, // Store the entire scene JSON blob
 
     @Column(nullable = true)
