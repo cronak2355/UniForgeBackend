@@ -42,7 +42,7 @@ class AssetController(
         )
     }
     
-    // ============ °ø°³ ¿£µåÆ÷ÀÎÆ® (ÀÎÁõ ºÒÇÊ¿ä) ============
+    // ============ ê³µê°œ ì—”ë“œí¬ì¸íŠ¸ (ì¸ì¦ ë¶ˆí•„ìš”) ============
     
     @GetMapping
     fun getAssets(
@@ -108,6 +108,20 @@ class AssetController(
         return ResponseEntity.ok(versions)
     }
 
+    @PostMapping("/{assetId}/versions")
+    fun createVersion(
+        @PathVariable assetId: String,
+        @RequestBody request: CreateVersionRequest
+    ): ResponseEntity<AssetVersion> {
+        val version = assetVersionRepository.save(
+            AssetVersion(
+                assetId = assetId,
+                s3RootPath = request.s3RootPath
+            )
+        )
+        return ResponseEntity.status(HttpStatus.CREATED).body(version)
+    }
+
     @GetMapping("/{assetId}/versions/{versionId}/upload-url")
     fun getUploadUrl(
         @PathVariable assetId: String,
@@ -132,7 +146,7 @@ class AssetController(
     }
 
     
-    // ============ ÀÎÁõ ÇÊ¿ä ¿£µåÆ÷ÀÎÆ® ============
+    // ============ ì¸ì¦ í•„ìš” ì—”ë“œí¬ì¸íŠ¸ ============
     
     @PostMapping
     fun createAsset(
