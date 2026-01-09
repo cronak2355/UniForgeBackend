@@ -33,7 +33,7 @@ class GameService(
 
     @Transactional(readOnly = true)
     fun getMyGames(authorId: String): List<GameSummaryDTO> {
-        return gameRepository.findByAuthorId(authorId)
+        return gameRepository.findByAuthor_Id(authorId)
             .map { GameSummaryDTO.from(it) }
     }
 
