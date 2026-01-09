@@ -9,8 +9,9 @@ class LibraryController(
     private val libraryService: LibraryService
 ) {
     @GetMapping
-    fun getLibrary(@RequestParam userId: String) =
-        libraryService.getUserLibrary(userId)
+    fun getLibrary(
+        @org.springframework.security.core.annotation.AuthenticationPrincipal user: com.unifor.backend.security.UserPrincipal
+    ) = libraryService.getUserLibrary(user.id)
 
     @PostMapping
     fun addToLibrary(
