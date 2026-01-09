@@ -12,6 +12,7 @@ env:
   ECR_REPOSITORY: unifor-backend
   ECS_CLUSTER: unifor-cluster
   ECS_SERVICE: unifor-backend
+  ECS_CONTAINER_NAME: backend
 
 jobs:
   build-and-test:
@@ -93,7 +94,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: ${{ env.ECS_SERVICE }}
+          container-name: ${{ env.ECS_CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
