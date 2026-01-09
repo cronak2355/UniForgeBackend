@@ -122,6 +122,15 @@ class AssetController(
         return ResponseEntity.status(HttpStatus.CREATED).body(version)
     }
 
+    @PostMapping("/versions/{versionId}/publish")
+    fun publishVersion(@PathVariable versionId: String): ResponseEntity<AssetVersion> {
+        val version = assetVersionRepository.findById(versionId)
+            .orElseThrow { RuntimeException("Version not found: $versionId") }
+        version.status = "PUBLISHED"
+        val savedVersion = assetVersionRepository.save(version)
+        return ResponseEntity.ok(savedVersion)
+    }
+
     @GetMapping("/{assetId}/versions/{versionId}/upload-url")
     fun getUploadUrl(
         @PathVariable assetId: String,
