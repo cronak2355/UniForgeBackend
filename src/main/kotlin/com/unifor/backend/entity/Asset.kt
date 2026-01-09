@@ -32,8 +32,8 @@ data class Asset(
     @Column(nullable = false)
     val isPublic: Boolean = true,
 
-    @Column(nullable = false)
-    val genre: String = "Other"
+    @Column(nullable = true)
+    val genre: String? = "Other"
 )
 
 
