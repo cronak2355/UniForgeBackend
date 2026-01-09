@@ -31,10 +31,8 @@ class OAuth2AuthenticationSuccessHandler(
         response: HttpServletResponse,
         authentication: Authentication
     ) {
-        val targetUrl = determineTargetUrl(request, response, authentication)
-
         if (response.isCommitted) {
-            log.debug("응답이 이미 커밋되었습니다. 리다이렉트 할 수 없습니다: {}", targetUrl)
+            log.debug("응답이 이미 커밋되었습니다.")
             return
         }
 
