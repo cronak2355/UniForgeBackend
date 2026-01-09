@@ -7,7 +7,7 @@ import org.springframework.util.SerializationUtils
 import java.util.*
 
 object CookieUtils {
-    
+
     fun getCookie(request: HttpServletRequest, name: String): Optional<Cookie> {
         val cookies = request.cookies
         if (cookies != null && cookies.isNotEmpty()) {

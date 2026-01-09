@@ -66,6 +66,3 @@ class JwtAuthenticationFilter(
         } else null
     }
 }
-
-
-

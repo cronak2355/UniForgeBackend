@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.config
+package com.unifor.backend.config
 
 import com.unifor.backend.security.JwtAuthenticationFilter
 import com.unifor.backend.security.OAuth2AuthenticationFailureHandler
@@ -85,6 +85,3 @@ class SecurityConfig(
         }
     }
 }
-
-
-

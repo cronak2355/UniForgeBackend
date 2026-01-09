@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.dto
+package com.unifor.backend.dto
 
 import com.unifor.backend.entity.AuthProvider
 import com.unifor.backend.entity.User
@@ -60,6 +60,3 @@ data class ErrorResponse(
     val message: String,
     val code: String? = null
 )
-
-
-

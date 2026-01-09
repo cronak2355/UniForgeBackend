@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.service
+package com.unifor.backend.service
 
 import com.unifor.backend.dto.*
 import com.unifor.backend.entity.AuthProvider
@@ -73,6 +73,3 @@ class AuthService(
         return UserDTO.from(user)
     }
 }
-
-
-

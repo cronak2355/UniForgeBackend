@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.security
+package com.unifor.backend.security
 
 import com.unifor.backend.entity.User
 import org.springframework.security.core.GrantedAuthority
@@ -40,4 +40,3 @@ class UserPrincipal(
             UserPrincipal(user, attributes)
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.controller
+package com.unifor.backend.controller
 
 import com.unifor.backend.dto.*
 import com.unifor.backend.entity.User
@@ -11,7 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 class AuthController(
     private val authService: AuthService
 ) {
@@ -41,6 +41,3 @@ class AuthController(
         )
     }
 }
-
-
-

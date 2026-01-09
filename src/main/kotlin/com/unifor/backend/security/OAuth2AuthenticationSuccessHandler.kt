@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.security
+package com.unifor.backend.security
 
 import com.unifor.backend.entity.AuthProvider
 import com.unifor.backend.entity.User
@@ -89,10 +89,10 @@ class OAuth2AuthenticationSuccessHandler(
                 .build()
                 .toUriString()
             
-            log.info("OAuth2 로그인 성공, 리다이렉트: {}", targetUrl)
+            log.info("OAuth2 로그인 성공, 리다이렉트: {}", redirectUrl)
             
             clearAuthenticationAttributes(request, response)
-            redirectStrategy.sendRedirect(request, response, targetUrl)
+            redirectStrategy.sendRedirect(request, response, redirectUrl)
             
         } catch (e: Exception) {
             log.error("OAuth2 로그인 처리 중 오류 발생", e)

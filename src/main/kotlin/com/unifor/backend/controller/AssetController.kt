@@ -1,11 +1,15 @@
-Ôªøpackage com.unifor.backend.controller
+package com.unifor.backend.controller
 
+import com.unifor.backend.common.s3.S3Uploader
 import com.unifor.backend.entity.Asset
 import com.unifor.backend.entity.AssetVersion
+import com.unifor.backend.image.repository.ImageResourceRepository
 import com.unifor.backend.repository.AssetRepository
 import com.unifor.backend.repository.AssetVersionRepository
 import com.unifor.backend.repository.UserRepository
 import com.unifor.backend.security.UserPrincipal
+import com.unifor.backend.upload.service.PresignService
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -18,7 +22,10 @@ class AssetController(
     private val assetRepository: AssetRepository,
     private val assetVersionRepository: AssetVersionRepository,
     private val userRepository: UserRepository,
-    private val libraryService: com.unifor.backend.library.service.LibraryService
+    private val libraryService: com.unifor.backend.library.service.LibraryService,
+    private val presignService: PresignService,
+    private val s3Uploader: S3Uploader,
+    private val imageResourceRepository: ImageResourceRepository
 ) {
     
     private fun toResponse(asset: Asset): AssetResponse {
@@ -35,7 +42,7 @@ class AssetController(
         )
     }
     
-    // ============ Í≥µÍ∞ú ÏóîÎìúÌè¨Ïù∏Ìä∏ (Ïù∏Ï¶ù Î∂àÌïÑÏöî) ============
+    // ============ ∞¯∞≥ ø£µÂ∆˜¿Œ∆Æ (¿Œ¡ı ∫“« ø‰) ============
     
     @GetMapping
     fun getAssets(
@@ -69,6 +76,24 @@ class AssetController(
              else -> compareByDescending { it.createdAt }
         }
     }
+
+    @GetMapping("/s3/{id}")
+    fun getAssetImage(
+        @PathVariable id: String,
+        @RequestParam(required = false, defaultValue = "preview") imageType: String
+    ): ResponseEntity<Void> {
+        val imageResource = imageResourceRepository.findByOwnerTypeAndOwnerIdAndImageTypeAndIsActive(
+            ownerType = "ASSET",
+            ownerId = id,
+            imageType = imageType,
+            isActive = true
+        ) ?: return ResponseEntity.notFound().build()
+
+        val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .header(HttpHeaders.LOCATION, presignedUrl)
+            .build()
+    }
     
     @GetMapping("/{id}")
     fun getAsset(@PathVariable id: String): ResponseEntity<AssetResponse> {
@@ -82,8 +107,32 @@ class AssetController(
         val versions = assetVersionRepository.findByAssetId(assetId)
         return ResponseEntity.ok(versions)
     }
+
+    @GetMapping("/{assetId}/versions/{versionId}/upload-url")
+    fun getUploadUrl(
+        @PathVariable assetId: String,
+        @PathVariable versionId: String,
+        @RequestParam contentType: String,
+        @RequestParam(required = false, defaultValue = "preview") imageType: String
+    ): Map<String, String> {
+        val presignResult = presignService.generateImageUploadUrl(
+            ownerType = "ASSET",
+            ownerId = assetId,
+            imageType = imageType,
+            contentType = contentType
+        )
+        
+        val uploadUrl = presignResult["uploadUrl"] ?: throw RuntimeException("Failed to generate upload URL")
+        val s3Key = presignResult["s3Key"] ?: throw RuntimeException("Failed to generate S3 key")
+        
+        return mapOf(
+            "uploadUrl" to uploadUrl,
+            "s3Key" to s3Key
+        )
+    }
+
     
-    // ============ Ïù∏Ï¶ù ÌïÑÏöî ÏóîÎìúÌè¨Ïù∏Ìä∏ ============
+    // ============ ¿Œ¡ı « ø‰ ø£µÂ∆˜¿Œ∆Æ ============
     
     @PostMapping
     fun createAsset(
@@ -176,6 +225,8 @@ data class AssetResponse(
     val imageUrl: String?,
     val createdAt: java.time.Instant
 )
+
+
 
 
 
