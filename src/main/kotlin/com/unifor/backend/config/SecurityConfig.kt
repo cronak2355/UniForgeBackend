@@ -36,6 +36,10 @@ class SecurityConfig(
                 "/api/actuator/**",
                 "/health",
                 "/api/health",
+                "/version",
+                "/api/version",
+                "/system/**",
+                "/api/system/**",
                 "/error"
             )
         }
