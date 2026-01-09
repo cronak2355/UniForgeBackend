@@ -4,8 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { fetchMyGames } from '../services/gameService';
 
 // --- Types ---
-interface LibraryItem {
+interface UILibraryItem {
     id: string;
+    libraryItemId?: string; // ID from LibraryItem entity, used for operations like move
     title: string;
     type: 'game' | 'asset';
     thumbnail: string;
@@ -22,14 +23,7 @@ interface Collection {
 }
 
 // --- Mock Data ---
-// const MOCK_GAMES: LibraryItem[] = [
-//     { id: 'g1', title: 'Neon Racer 2077', type: 'game', thumbnail: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&q=80', author: 'CyberDev', purchaseDate: '2023.12.01' },
-//     { id: 'g2', title: 'Cosmic Voyager', type: 'game', thumbnail: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400&q=80', author: 'StarStudio', purchaseDate: '2023.12.15' },
-//     { id: 'g3', title: 'Medieval Legends', type: 'game', thumbnail: 'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?w=400&q=80', author: 'KnightSoft', purchaseDate: '2024.01.10' },
-// ];
-
-
-const MOCK_ASSETS: LibraryItem[] = [
+const MOCK_ASSETS: UILibraryItem[] = [
     { id: 'a1', title: 'Sci-Fi Weapon Pack', type: 'asset', assetType: '3D Model', thumbnail: 'https://images.unsplash.com/photo-1612404730960-5c71579fca2c?w=400&q=80', author: 'AssetMaster', purchaseDate: '2023.11.20', collectionId: 'c1' },
     { id: 'a2', title: 'Horror Sound Effects', type: 'asset', assetType: 'Sound', thumbnail: 'https://images.unsplash.com/photo-1516280440614-6697288d5d38?w=400&q=80', author: 'AudioLab', purchaseDate: '2023.12.05', collectionId: 'c2' },
     { id: 'a3', title: 'Urban Texture Set', type: 'asset', assetType: 'Texture', thumbnail: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=400&q=80', author: 'TexturePro', purchaseDate: '2024.01.02' },
@@ -42,7 +36,13 @@ const INITIAL_COLLECTIONS: Collection[] = [
     { id: 'c2', name: '공포 / 호러', icon: 'fa-ghost' },
 ];
 
-export default function LibraryPage() {
+interface Props {
+    onClose?: () => void;
+    isModal?: boolean;
+    hideGamesTab?: boolean;
+}
+
+export default function LibraryPage({ onClose, isModal = false, hideGamesTab = false }: Props) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -51,12 +51,15 @@ export default function LibraryPage() {
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Data State
-    const [activeTab, setActiveTab] = useState<'games' | 'assets'>('games');
+    // If hideGamesTab is true, force initial tab to 'assets'
+    const [activeTab, setActiveTab] = useState<'games' | 'assets'>(hideGamesTab ? 'assets' : 'games');
     const [collections, setCollections] = useState<Collection[]>(INITIAL_COLLECTIONS);
     const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [myGames, setMyGames] = useState<LibraryItem[]>([]);
+    const [myGames, setMyGames] = useState<UILibraryItem[]>([]);
+    const [myAssets, setMyAssets] = useState<UILibraryItem[]>([]);
     const [loadingGames, setLoadingGames] = useState(true);
+    const [movingItem, setMovingItem] = useState<UILibraryItem | null>(null);
 
     // --- Effects ---
     // Fetch Data
@@ -66,9 +69,23 @@ export default function LibraryPage() {
         const loadData = async () => {
             setLoadingGames(true);
             try {
-                // 1. Fetch Games
+                // 0. Import services (dynamic import to avoid circular dependency issues if any, or just standard import)
+                const { libraryService } = await import('../services/libraryService');
+                const { marketplaceService } = await import('../services/marketplaceService');
+
+                // 1. Fetch Collections
+                const fetchedCollections = await libraryService.getCollections();
+                // Map to UI Collection type if needed, or ensuring backend returns matches
+                // Backend: id, name. Frontend expects: id, name, icon?
+                setCollections(fetchedCollections.map((c: any) => ({
+                    id: c.id,
+                    name: c.name,
+                    icon: 'fa-folder'
+                })));
+
+                // 2. Fetch Games
                 const games = await fetchMyGames(user.id);
-                const mappedGames: LibraryItem[] = games.map(game => ({
+                const mappedGames: UILibraryItem[] = games.map(game => ({
                     id: String(game.gameId),
                     title: game.title,
                     type: 'game',
@@ -78,33 +95,36 @@ export default function LibraryPage() {
                 }));
                 setMyGames(mappedGames);
 
-                // 2. Fetch Assets via Library Service
+                // 3. Fetch Assets via Library Service
                 // Note: current libraryService returns { refId, itemType, ... }
                 // We need to fetch details for each asset. Ideally backend should return "expanded" or we prefer "lazy loading".
                 // For MVP, we will fetch library items, then fetch asset details for items where type='ASSET'.
-
-                const { libraryService } = await import('../services/libraryService');
-                const { marketplaceService } = await import('../services/marketplaceService');
 
                 const libraryItems = await libraryService.getLibrary(user.id);
                 const assetItems = libraryItems.filter(item => item.itemType === 'ASSET');
 
                 if (assetItems.length > 0) {
                     const assetDetails = await Promise.all(
-                        assetItems.map(item => marketplaceService.getAssetById(item.refId).catch(() => null))
+                        assetItems.map(item => marketplaceService.getAssetById(Number(item.refId)).catch(() => null))
                     );
 
-                    const mappedAssets: LibraryItem[] = assetDetails
+                    const mappedAssets: UILibraryItem[] = assetDetails
                         .filter((detail): detail is NonNullable<typeof detail> => detail !== null)
-                        .map(detail => ({
-                            id: detail.id,
-                            title: detail.name,
-                            type: 'asset',
-                            assetType: 'Unknown', // Genre not yet in AssetResponse (added but DTO update needed if we want it here)
-                            thumbnail: detail.imageUrl ?? 'https://via.placeholder.com/400',
-                            author: detail.authorName, // Using authorName from response
-                            purchaseDate: new Date(detail.createdAt).toLocaleDateString(),
-                        }));
+                        .map(detail => {
+                            // Find corresponding library item to get collectionId
+                            const libItem = libraryItems.find(li => li.refId === detail.id);
+                            return {
+                                id: detail.id,
+                                libraryItemId: libItem?.id,
+                                title: detail.name,
+                                type: 'asset',
+                                assetType: detail.genre || 'Unknown',
+                                thumbnail: detail.imageUrl || detail.image || 'https://via.placeholder.com/400',
+                                author: detail.author || `User ${detail.authorId}`,
+                                purchaseDate: new Date(detail.createdAt).toLocaleDateString(),
+                                collectionId: libItem?.collectionId || undefined
+                            };
+                        });
 
                     setMyAssets(mappedAssets);
                 } else {
@@ -122,7 +142,6 @@ export default function LibraryPage() {
     }, [user]);
 
     // Added state for assets
-    const [myAssets, setMyAssets] = useState<LibraryItem[]>([]);
 
 
     // --- Actions ---
@@ -131,20 +150,28 @@ export default function LibraryPage() {
         navigate('/');
     };
 
-    const handleCreateCollection = () => {
+    const handleCreateCollection = async () => {
         const name = prompt("새로운 컬렉션(폴더) 이름을 입력하세요:");
         if (name) {
-            const newCollection: Collection = {
-                id: `c${Date.now()}`,
-                name,
-                icon: 'fa-folder'
-            };
-            setCollections([...collections, newCollection]);
+            try {
+                const { libraryService } = await import('../services/libraryService');
+                const newCol = await libraryService.createCollection(name);
+                setCollections([...collections, { id: newCol.id, name: newCol.name, icon: 'fa-folder' }]);
+            } catch (error) {
+                alert('컬렉션 생성 실패');
+                console.error(error);
+            }
         }
     };
 
     // --- Filter Logic ---
     const getFilteredItems = () => {
+        // If games tab is hidden, we only care about assets
+        if (hideGamesTab && activeTab === 'games') {
+            // Should not happen if state init is correct, but safety
+            return [];
+        }
+
         let items =
             activeTab === 'games'
                 ? myGames
@@ -167,15 +194,18 @@ export default function LibraryPage() {
     return (
         <div style={{
             backgroundColor: '#000000', // Fallback
-            minHeight: '100vh',
+            minHeight: isModal ? '100%' : '100vh', // Adjust height for modal
+            height: isModal ? '100%' : 'auto',
             display: 'flex',
             flexDirection: 'column',
             color: 'white',
             overflowX: 'hidden',
-            position: 'relative' // For absolute pos children
+            position: 'relative', // For absolute pos children
+            borderRadius: isModal ? '10px' : '0', // Optional border radius if container needs it
         }}>
             {/* --- Geometric Background Elements --- */}
-            <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+            {/* If isModal, use absolute to contain within parent. If page, use fixed to cover screen. */}
+            <div style={{ position: isModal ? 'absolute' : 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none', borderRadius: isModal ? '10px' : '0' }}>
                 {/* 1. Deep Gradient Base */}
                 <div style={{
                     position: 'absolute', inset: 0,
@@ -220,7 +250,7 @@ export default function LibraryPage() {
             </div>
 
             {/* --- Content Wrapper --- */}
-            <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1, height: '100%' }}>
                 {/* --- Header (Consistent Style) --- */}
                 <header style={{
                     display: 'flex',
@@ -232,37 +262,43 @@ export default function LibraryPage() {
                     backdropFilter: 'blur(10px)',
                     position: 'sticky',
                     top: 0,
-                    zIndex: 100
+                    zIndex: 100,
+                    borderTopLeftRadius: isModal ? '10px' : '0',
+                    borderTopRightRadius: isModal ? '10px' : '0',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
                         <div
                             style={{ fontSize: '1.5rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                            onClick={() => navigate('/main')}
+                            onClick={() => !onClose && navigate('/main')}
                         >
                             <i className="fa-solid fa-cube" style={{ marginRight: '8px', color: '#3b82f6' }}></i>
                             <span className="gradient-text">Uniforge</span>
                             <span style={{ fontSize: '0.9rem', color: '#666', marginLeft: '10px', fontWeight: 400 }}>라이브러리</span>
                         </div>
 
-                        {/* Navigation Tabs (Integrated in Header) */}
+                        {/* Navigation Tabs */}
                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                            <button
-                                onClick={() => { setActiveTab('games'); setSelectedCollectionId(null); }}
-                                style={{
-                                    padding: '8px 16px',
-                                    background: activeTab === 'games' ? '#1a1a1a' : 'transparent',
-                                    border: '1px solid',
-                                    borderColor: activeTab === 'games' ? '#333' : 'transparent',
-                                    borderRadius: '8px',
-                                    color: activeTab === 'games' ? 'white' : '#888',
-                                    fontSize: '0.95rem',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s'
-                                }}
-                            >
-                                <i className="fa-solid fa-gamepad" style={{ marginRight: '8px' }}></i>
-                                나의 게임
-                            </button>
+                            {!hideGamesTab && (
+                                <button
+                                    onClick={() => { setActiveTab('games'); setSelectedCollectionId(null); }}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: activeTab === 'games' ? '#1a1a1a' : 'transparent',
+                                        border: '1px solid',
+                                        borderColor: activeTab === 'games' ? '#333' : 'transparent',
+                                        borderRadius: '8px',
+                                        color: activeTab === 'games' ? 'white' : '#888',
+                                        fontSize: '0.95rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <i className="fa-solid fa-gamepad" style={{ marginRight: '8px' }}></i>
+                                    나의 게임
+                                </button>
+                            )}
+
+                            {/* Always show "My Assets" or just "Assets" text if it's the only one? Keeping it consistent for now */}
                             <button
                                 onClick={() => { setActiveTab('assets'); setSelectedCollectionId(null); }}
                                 style={{
@@ -284,15 +320,29 @@ export default function LibraryPage() {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <button onClick={() => navigate('/main')} style={{
-                            background: 'transparent', border: 'none', color: '#888', cursor: 'pointer',
-                            padding: '8px 16px', borderRadius: '6px', fontSize: '0.95rem'
-                        }}
-                            onMouseEnter={e => e.currentTarget.style.color = 'white'}
-                            onMouseLeave={e => e.currentTarget.style.color = '#888'}
-                        >
-                            홈으로
-                        </button>
+                        {onClose ? (
+                            <button onClick={onClose} style={{
+                                background: 'transparent', border: '1px solid #333', color: '#fff', cursor: 'pointer',
+                                padding: '8px 16px', borderRadius: '6px', fontSize: '0.95rem',
+                                display: 'flex', alignItems: 'center', gap: '8px'
+                            }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#1a1a1a'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                            >
+                                <i className="fa-solid fa-times"></i>
+                                닫기
+                            </button>
+                        ) : (
+                            <button onClick={() => navigate('/main')} style={{
+                                background: 'transparent', border: 'none', color: '#888', cursor: 'pointer',
+                                padding: '8px 16px', borderRadius: '6px', fontSize: '0.95rem'
+                            }}
+                                onMouseEnter={e => e.currentTarget.style.color = 'white'}
+                                onMouseLeave={e => e.currentTarget.style.color = '#888'}
+                            >
+                                홈으로
+                            </button>
+                        )}
 
                         {/* User Profile Dropdown */}
                         <div style={{ position: 'relative' }} ref={dropdownRef}>
@@ -343,18 +393,23 @@ export default function LibraryPage() {
                 </header>
 
                 {/* --- Main Content Area --- */}
-                <div style={{ display: 'flex', flex: 1, maxWidth: '1600px', width: '100%', margin: '0 auto' }}>
+                <div style={{ display: 'flex', flex: 1, maxWidth: '1600px', width: '100%', margin: '0 auto', overflowY: isModal ? 'auto' : 'visible' }}>
 
                     {/* --- Sidebar (Only for Assets) --- */}
+                    {/* Ensure sidebar sticks correctly in modal */}
                     {activeTab === 'assets' && (
                         <aside style={{
                             width: '240px',
                             padding: '2rem 1rem',
                             borderRight: '1px solid #1a1a1a',
                             position: 'sticky',
-                            top: '73px',
-                            height: 'calc(100vh - 73px)',
-                            overflowY: 'auto'
+                            top: '0', // In modal, header scrolls or stays? If header sticky, top should be 0 relative to content area if we manage scroll
+                            // But here header is sticky top 0 of root.
+                            // If root is 100% height and overflow hidden? No, root is flex column.
+                            // If isModal, we probably want the content area to scroll, not the window.
+                            // Let's rely on standard sticky behavior for now, but in modal container height is constrained.
+                            height: 'auto',
+                            minHeight: '100%'
                         }}>
                             <div style={{ padding: '0 8px 16px', color: '#666', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
                                 Collections
@@ -433,7 +488,7 @@ export default function LibraryPage() {
                                         onBlur={(e) => e.target.style.borderColor = '#333'}
                                     />
                                 </div>
-                                {activeTab === 'assets' && (
+                                {activeTab === 'assets' && !isModal && (
                                     <button
                                         onClick={() => navigate('/create-asset')}
                                         style={{
@@ -510,13 +565,34 @@ export default function LibraryPage() {
                                                 {item.type === 'game' ? <><i className="fa-solid fa-play"></i> 플레이</> : <><i className="fa-solid fa-download"></i> 다운로드</>}
                                             </button>
                                             {item.type === 'asset' &&
-                                                <button style={{
-                                                    width: '40px', height: '37px', borderRadius: '6px', border: '1px solid #ccc',
-                                                    backgroundColor: 'transparent', color: 'white', fontWeight: 600,
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                                }} title="컬렉션 이동">
-                                                    <i className="fa-solid fa-folder"></i>
-                                                </button>
+                                                <div style={{ position: 'relative' }} className="move-to-collection-wrapper">
+                                                    <button style={{
+                                                        width: '40px', height: '37px', borderRadius: '6px', border: '1px solid #ccc',
+                                                        backgroundColor: 'transparent', color: 'white', fontWeight: 600,
+                                                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }} title="컬렉션 이동"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            // Toggle a local state or simplified: using prompt/modal might be easier, 
+                                                            // but let's try a small popup.
+                                                            // Since we track 'selectedItem'? No.
+                                                            // We can use a browser native select or a custom overlay if time permits.
+                                                            // For MVP, lets use a simple approach: show a list of collections to click?
+                                                            // Or native select hidden?
+
+                                                            // Let's go with a simple prompt-like interaction or a small absolute Menu if we can track which item is open.
+                                                            // To simple: Use `prompt` to ask for Collection Name? No that's bad.
+
+                                                            // Better: A shared "Move Modal" or just a small dropdown.
+                                                            // I will implement a "MoveItemModal" or similar if I had time.
+                                                            // For now, let's just use a window.confirm/prompt hack OR 
+                                                            // actually, let's add a state `movingItem` to show a modal for selection.
+                                                            setMovingItem(item);
+                                                        }}
+                                                    >
+                                                        <i className="fa-solid fa-folder"></i>
+                                                    </button>
+                                                </div>
                                             }
                                         </div>
                                     </div>
@@ -551,6 +627,85 @@ export default function LibraryPage() {
                     </main>
                 </div>
             </div>
+
+            {/* Move Item Modal */}
+            {movingItem && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 1000,
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }} onClick={() => setMovingItem(null)}>
+                    <div style={{
+                        backgroundColor: '#1a1a1a', padding: '24px', borderRadius: '12px',
+                        width: '400px', maxWidth: '90%', border: '1px solid #333'
+                    }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ marginTop: 0, marginBottom: '16px', color: 'white' }}>컬렉션으로 이동</h3>
+                        <p style={{ color: '#aaa', marginBottom: '20px' }}>
+                            '{movingItem.title}' 에셋을 어디로 이동할까요?
+                        </p>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const { libraryService } = await import('../services/libraryService');
+                                        if (movingItem.libraryItemId) {
+                                            await libraryService.moveItemToCollection(movingItem.libraryItemId, null);
+                                            // Update Local State
+                                            setMyAssets(prev => prev.map(a => a.id === movingItem.id ? { ...a, collectionId: undefined } : a));
+                                            setMovingItem(null);
+                                        } else {
+                                            alert("Library Item ID not found");
+                                        }
+                                    } catch (e) { console.error(e); alert("이동 실패"); }
+                                }}
+                                style={{
+                                    padding: '12px', textAlign: 'left', backgroundColor: movingItem.collectionId ? 'transparent' : '#2563eb',
+                                    border: '1px solid #333', borderRadius: '8px', color: 'white', cursor: 'pointer'
+                                }}
+                            >
+                                <i className="fa-solid fa-layer-group" style={{ marginRight: '10px' }}></i>
+                                [기본] 전체 에셋 (컬렉션 해제)
+                            </button>
+                            {collections.map(col => (
+                                <button
+                                    key={col.id}
+                                    onClick={async () => {
+                                        try {
+                                            const { libraryService } = await import('../services/libraryService');
+                                            if (movingItem.libraryItemId) {
+                                                await libraryService.moveItemToCollection(movingItem.libraryItemId, col.id);
+                                                // Update Local State
+                                                setMyAssets(prev => prev.map(a => a.id === movingItem.id ? { ...a, collectionId: col.id } : a));
+                                                setMovingItem(null);
+                                            } else {
+                                                alert("Library Item ID not found");
+                                            }
+                                        } catch (e) { console.error(e); alert("이동 실패"); }
+                                    }}
+                                    style={{
+                                        padding: '12px', textAlign: 'left',
+                                        backgroundColor: movingItem.collectionId === col.id ? '#2563eb' : 'transparent',
+                                        border: '1px solid #333', borderRadius: '8px', color: 'white', cursor: 'pointer'
+                                    }}
+                                >
+                                    <i className="fa-solid fa-folder" style={{ marginRight: '10px' }}></i>
+                                    {col.name}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setMovingItem(null)}
+                                style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #555', color: '#ccc', borderRadius: '6px', cursor: 'pointer' }}
+                            >
+                                취소
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

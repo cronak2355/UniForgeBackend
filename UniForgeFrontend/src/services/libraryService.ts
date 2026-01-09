@@ -1,49 +1,59 @@
-import { authService } from './authService';
-
-const API_BASE_URL = 'https://uniforge.kr/api';
+const API_BASE_URL = 'https://uniforge.kr/api'; // Hardcoded for production
 
 export interface LibraryItem {
     id: string;
     userId: string;
-    itemType: 'GAME' | 'ASSET';
     refId: string;
+    itemType: string;
+    collectionId?: string | null;
     createdAt: string;
 }
 
-export const libraryService = {
-    async addToLibrary(refId: string, itemType: 'GAME' | 'ASSET'): Promise<LibraryItem> {
-        const token = authService.getToken();
-        if (!token) throw new Error('로그인이 필요합니다.');
+class LibraryService {
+    private getToken(): string | null {
+        return localStorage.getItem('token');
+    }
 
-        const response = await fetch(`${API_BASE_URL}/library`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ refId, itemType })
+    private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+        const token = this.getToken();
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+            ...(token && { Authorization: `Bearer ${token}` }),
+            ...options.headers,
+        };
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers,
         });
 
         if (!response.ok) {
-            if (response.status === 400) throw new Error('이미 라이브러리에 존재하는 아이템입니다.');
-            throw new Error('라이브러리 추가에 실패했습니다.');
+            throw new Error('Failed to fetch library');
         }
-
-        return response.json();
-    },
-
-    async getLibrary(userId: string): Promise<LibraryItem[]> {
-        const token = authService.getToken();
-        const headers: HeadersInit = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-        const response = await fetch(`${API_BASE_URL}/library?userId=${userId}`, {
-            headers
-        });
-
-        if (!response.ok) {
-            throw new Error('라이브러리 조회에 실패했습니다.');
-        }
-
         return response.json();
     }
-};
+
+    async getLibrary(userId: number): Promise<LibraryItem[]> {
+        return this.request<LibraryItem[]>(`/library?userId=${userId}`);
+    }
+
+    async getCollections(): Promise<any[]> {
+        return this.request<any[]>('/library/collections');
+    }
+
+    async createCollection(name: string): Promise<any> {
+        return this.request<any>('/library/collections', {
+            method: 'POST',
+            body: JSON.stringify({ name }),
+        });
+    }
+
+    async moveItemToCollection(itemId: string, collectionId: string | null): Promise<void> {
+        return this.request<void>(`/library/items/${itemId}/move`, {
+            method: 'PUT',
+            body: JSON.stringify({ collectionId }),
+        });
+    }
+}
+
+export const libraryService = new LibraryService();

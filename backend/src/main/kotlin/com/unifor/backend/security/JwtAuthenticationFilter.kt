@@ -28,7 +28,7 @@ class JwtAuthenticationFilter(
         try {
             val authHeader = request.getHeader("Authorization")
             val jwt = getJwtFromRequest(request)
-            println("Antigravity_Debug: Request path: ${request.requestURI}, Auth header: ${if (authHeader != null) "Present (${authHeader.take(15)}...)" else "Missing"}, JWT extracted: ${if (jwt != null) "Present" else "Missing"}")
+            log.debug("Request path: {}, Auth header present: {}, JWT extracted: {}", request.requestURI, authHeader != null, jwt != null)
             
             if (jwt != null) {
                 if (jwtTokenProvider.validateToken(jwt)) {
@@ -43,17 +43,16 @@ class JwtAuthenticationFilter(
                         )
                         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                         SecurityContextHolder.getContext().authentication = authentication
-                        println("Antigravity_Debug: User authenticated: $userId")
+                        log.debug("User authenticated: {}", userId)
                     } else {
-                        println("Antigravity_Debug: User from JWT not found in DB: $userId")
+                        log.warn("User from JWT not found in DB: {}", userId)
                     }
                 } else {
-                    println("Antigravity_Debug: Invalid JWT token detected during validation")
+                    log.debug("Invalid JWT token detected during validation")
                 }
             }
         } catch (e: Exception) {
-            println("Antigravity_Debug: JWT 인증 필터 오류: ${e.message}")
-            e.printStackTrace()
+            log.error("JWT 인증 필터 오류: {}", e.message, e)
         }
         
         filterChain.doFilter(request, response)
@@ -66,6 +65,3 @@ class JwtAuthenticationFilter(
         } else null
     }
 }
-
-
-

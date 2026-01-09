@@ -1,4 +1,4 @@
-﻿package com.unifor.backend
+package com.unifor.backend
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -9,6 +9,3 @@ class UniforApplication
 fun main(args: Array<String>) {
     runApplication<UniforApplication>(*args)
 }
-
-
-

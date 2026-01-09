@@ -1,12 +1,15 @@
-Ôªøpackage com.unifor.backend.controller
+package com.unifor.backend.controller
 
+import com.unifor.backend.common.s3.S3Uploader
 import com.unifor.backend.entity.Asset
 import com.unifor.backend.entity.AssetVersion
+import com.unifor.backend.image.repository.ImageResourceRepository
 import com.unifor.backend.repository.AssetRepository
 import com.unifor.backend.repository.AssetVersionRepository
 import com.unifor.backend.repository.UserRepository
 import com.unifor.backend.security.UserPrincipal
-import com.unifor.backend.service.S3Service
+import com.unifor.backend.upload.service.PresignService
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -19,8 +22,10 @@ class AssetController(
     private val assetRepository: AssetRepository,
     private val assetVersionRepository: AssetVersionRepository,
     private val userRepository: UserRepository,
-    private val s3Service: S3Service,
-    private val libraryService: com.unifor.backend.library.service.LibraryService
+    private val libraryService: com.unifor.backend.library.service.LibraryService,
+    private val presignService: PresignService,
+    private val s3Uploader: S3Uploader,
+    private val imageResourceRepository: ImageResourceRepository
 ) {
     
     private fun toResponse(asset: Asset): AssetResponse {
@@ -37,18 +42,57 @@ class AssetController(
         )
     }
     
-    // ============ Í≥µÍ∞ú ÏóîÎìúÌè¨Ïù∏Ìä∏ (Ïù∏Ï¶ù Î∂àÌïÑÏöî) ============
+    // ============ ∞¯∞≥ ø£µÂ∆˜¿Œ∆Æ (¿Œ¡ı ∫“« ø‰) ============
     
     @GetMapping
     fun getAssets(
-        @RequestParam(required = false) authorId: String?
+        @RequestParam(required = false) authorId: String?,
+        @RequestParam(required = false, defaultValue = "latest") sort: String
     ): ResponseEntity<List<AssetResponse>> {
+        val sortOption = when (sort) {
+            "popular" -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "rating") // Assuming rating exists, or fallback
+            "price_asc" -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "price")
+            "price_desc" -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "price")
+            else -> org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt") // "latest"
+        }
+
         val assets = if (authorId != null) {
-            assetRepository.findByAuthorId(authorId)
+            // Note: findByAuthorId needs to support Sort or we filter manually. 
+            // For now, simpler to use existing and sort in memory if list is small, or strictly use separate Jpa methods.
+            // Let's stick to memory sort for authorId for now to avoid repo changes, 
+            // but for findAll we can pass Sort to JpaRepository's findAll(Sort).
+            assetRepository.findByAuthorId(authorId).sortedWith(getComparator(sort))
         } else {
-            assetRepository.findAll()
+            assetRepository.findAll(sortOption)
         }
         return ResponseEntity.ok(assets.map { toResponse(it) })
+    }
+
+    private fun getComparator(sort: String): Comparator<Asset> {
+        return when (sort) {
+            "price_asc" -> compareBy { it.price }
+            "price_desc" -> compareByDescending { it.price }
+            "latest" -> compareByDescending { it.createdAt }
+             else -> compareByDescending { it.createdAt }
+        }
+    }
+
+    @GetMapping("/s3/{id}")
+    fun getAssetImage(
+        @PathVariable id: String,
+        @RequestParam(required = false, defaultValue = "preview") imageType: String
+    ): ResponseEntity<Void> {
+        val imageResource = imageResourceRepository.findByOwnerTypeAndOwnerIdAndImageTypeAndIsActive(
+            ownerType = "ASSET",
+            ownerId = id,
+            imageType = imageType,
+            isActive = true
+        ) ?: return ResponseEntity.notFound().build()
+
+        val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .header(HttpHeaders.LOCATION, presignedUrl)
+            .build()
     }
     
     @GetMapping("/{id}")
@@ -63,8 +107,32 @@ class AssetController(
         val versions = assetVersionRepository.findByAssetId(assetId)
         return ResponseEntity.ok(versions)
     }
+
+    @GetMapping("/{assetId}/versions/{versionId}/upload-url")
+    fun getUploadUrl(
+        @PathVariable assetId: String,
+        @PathVariable versionId: String,
+        @RequestParam contentType: String,
+        @RequestParam(required = false, defaultValue = "preview") imageType: String
+    ): Map<String, String> {
+        val presignResult = presignService.generateImageUploadUrl(
+            ownerType = "ASSET",
+            ownerId = assetId,
+            imageType = imageType,
+            contentType = contentType
+        )
+        
+        val uploadUrl = presignResult["uploadUrl"] ?: throw RuntimeException("Failed to generate upload URL")
+        val s3Key = presignResult["s3Key"] ?: throw RuntimeException("Failed to generate S3 key")
+        
+        return mapOf(
+            "uploadUrl" to uploadUrl,
+            "s3Key" to s3Key
+        )
+    }
+
     
-    // ============ Ïù∏Ï¶ù ÌïÑÏöî ÏóîÎìúÌè¨Ïù∏Ìä∏ ============
+    // ============ ¿Œ¡ı « ø‰ ø£µÂ∆˜¿Œ∆Æ ============
     
     @PostMapping
     fun createAsset(
@@ -78,7 +146,8 @@ class AssetController(
                 description = request.description,
                 authorId = user.id,
                 isPublic = request.isPublic ?: true,
-                genre = request.genre ?: "Other"
+                genre = request.genre ?: "Other",
+                imageUrl = request.imageUrl
             )
         )
         
@@ -90,6 +159,30 @@ class AssetController(
         }
         
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(asset))
+    }
+
+    @PatchMapping("/{id}")
+    fun updateAsset(
+        @PathVariable id: String,
+        @AuthenticationPrincipal user: UserPrincipal,
+        @RequestBody request: UpdateAssetRequest
+    ): ResponseEntity<AssetResponse> {
+        val asset = assetRepository.findById(id).orElseThrow { RuntimeException("Asset not found") }
+        
+        if (asset.authorId != user.id) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        
+        val updatedAsset = asset.copy(
+            name = request.name ?: asset.name,
+            price = request.price ?: asset.price,
+            description = request.description ?: asset.description,
+            isPublic = request.isPublic ?: asset.isPublic,
+            genre = request.genre ?: asset.genre,
+            imageUrl = request.imageUrl ?: asset.imageUrl
+        )
+        
+        return ResponseEntity.ok(toResponse(assetRepository.save(updatedAsset)))
     }
     
     // ... existing createVersion ...
@@ -105,12 +198,35 @@ data class CreateAssetRequest(
     val price: BigDecimal? = null,
     val description: String? = null,
     val isPublic: Boolean? = true,
-    val genre: String? = "Other"
+    val genre: String? = "Other",
+    val imageUrl: String? = null
+)
+
+data class UpdateAssetRequest(
+    val name: String? = null,
+    val price: BigDecimal? = null,
+    val description: String? = null,
+    val isPublic: Boolean? = null,
+    val genre: String? = null,
+    val imageUrl: String? = null
 )
 
 data class CreateVersionRequest(
     val s3RootPath: String? = null
 )
+
+data class AssetResponse(
+    val id: String,
+    val name: String,
+    val price: java.math.BigDecimal,
+    val description: String?,
+    val authorId: String,
+    val authorName: String,
+    val imageUrl: String?,
+    val createdAt: java.time.Instant
+)
+
+
 
 
 

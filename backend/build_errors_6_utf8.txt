@@ -1,7 +1,0 @@
-﻿Starting a Gradle Daemon, 21 busy and 1 stopped Daemons could not be reused, use --status for details
-> Task :checkKotlinGradlePluginConfigurationErrors
-> Task :compileKotlin
-w: Detected multiple Kotlin daemon sessions at kotlin\sessions
-
-BUILD SUCCESSFUL in 12s
-2 actionable tasks: 2 executed

@@ -61,9 +61,9 @@ class JwtTokenProvider(
     fun validateToken(token: String): Boolean {
         return try {
             Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(token)
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
             true
         } catch (e: SecurityException) {
             log.error("Invalid JWT signature: ${e.message}")
@@ -86,6 +86,3 @@ class JwtTokenProvider(
         }
     }
 }
-
-
-

@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.config
+package com.unifor.backend.config
 
 import com.unifor.backend.security.JwtAuthenticationFilter
 import com.unifor.backend.security.OAuth2AuthenticationFailureHandler
@@ -46,7 +46,8 @@ class SecurityConfig(
                         "/oauth2/**",
                         "/login/oauth2/**",
                         "/assets/**",
-                        "/marketplace/**"
+                        "/marketplace/**",
+                        "/games/public"
                     ).permitAll()
                     // 나머지는 인증 필요
                     .anyRequest().authenticated()
@@ -85,6 +86,3 @@ class SecurityConfig(
         }
     }
 }
-
-
-

@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.controller
+package com.unifor.backend.controller
 
 import com.unifor.backend.dto.*
 import com.unifor.backend.entity.User
@@ -41,6 +41,3 @@ class AuthController(
         )
     }
 }
-
-
-

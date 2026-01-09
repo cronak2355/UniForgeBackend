@@ -1,18 +1,15 @@
-FROM gradle:8.5-jdk17-alpine AS build
-WORKDIR /workspace/app
-
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
-
-# Download dependencies first (cached layer)
-RUN gradle dependencies --no-daemon || true
-
-COPY src src
-
-RUN gradle clean build -x test --no-daemon
+# Dockerfile for optimized deployment
+# Assumes build/libs/*.jar exists (built by CI pipeline)
 
 FROM eclipse-temurin:17-jre-alpine
+
+WORKDIR /app
+
+# Ensure we have a place for logs/temp files
 VOLUME /tmp
-ARG DEPENDENCY=/workspace/app/build/libs
-COPY --from=build ${DEPENDENCY}/*.jar app.jar
-ENTRYPOINT ["java","-jar","/app.jar"]
+
+# Copy the built JAR file from the context (which will be populated by CI)
+COPY build/libs/*.jar app.jar
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

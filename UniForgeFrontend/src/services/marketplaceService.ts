@@ -3,7 +3,6 @@ const API_BASE_URL = 'https://uniforge.kr/api'; // Hardcoded for production
 export interface Asset {
     id: string;
     authorId: string;
-    authorName: string;
     name: string;
     description: string | null;
     price: number;
@@ -40,15 +39,18 @@ class MarketplaceService {
         return response.json();
     }
 
-    async getAssets(): Promise<Asset[]> {
-        return this.request<Asset[]>('/assets');
+    async getAssets(authorId?: string, sort: string = 'latest'): Promise<Asset[]> {
+        const params = new URLSearchParams();
+        if (authorId) params.append('authorId', authorId);
+        if (sort) params.append('sort', sort);
+        return this.request<Asset[]>(`/assets?${params.toString()}`);
     }
 
-    async getAssetById(assetId: string): Promise<Asset> {
+    async getAssetById(assetId: number): Promise<Asset> {
         return this.request<Asset>(`/assets/${assetId}`);
     }
 
-    async getAssetVersions(assetId: string): Promise<AssetVersion[]> {
+    async getAssetVersions(assetId: number): Promise<AssetVersion[]> {
         return this.request<AssetVersion[]>(`/assets/${assetId}/versions`);
     }
 
@@ -57,6 +59,11 @@ class MarketplaceService {
     }
 }
 
-
+export interface AssetVersion {
+    id: number;
+    s3RootPath: string;
+    status: string;
+    createdAt: string;
+}
 
 export const marketplaceService = new MarketplaceService();

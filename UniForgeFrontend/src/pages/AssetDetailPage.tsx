@@ -9,23 +9,6 @@ const AssetDetailPage = () => {
     const [versions, setVersions] = useState<AssetVersion[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [addingToLib, setAddingToLib] = useState(false);
-    const [libError, setLibError] = useState<string | null>(null);
-
-    const handleAddToLibrary = async () => {
-        if (!asset) return;
-        setAddingToLib(true);
-        setLibError(null);
-        try {
-            const { libraryService } = await import('../services/libraryService');
-            await libraryService.addToLibrary(asset.id, 'ASSET');
-            alert('라이브러리에 추가되었습니다!');
-        } catch (err) {
-            setLibError(err instanceof Error ? err.message : '추가 실패');
-        } finally {
-            setAddingToLib(false);
-        }
-    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -187,32 +170,21 @@ const AssetDetailPage = () => {
                                 {asset.price === 0 ? 'Free' : `₩${asset.price.toLocaleString()}`}
                             </div>
 
-                            <button
-                                onClick={handleAddToLibrary}
-                                disabled={addingToLib}
-                                style={{
-                                    width: '100%',
-                                    padding: '16px',
-                                    backgroundColor: addingToLib ? '#333' : '#2563eb',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '1rem',
-                                    fontWeight: 600,
-                                    cursor: addingToLib ? 'not-allowed' : 'pointer',
-                                    marginBottom: '1rem',
-                                    transition: 'background-color 0.2s'
-                                }}>
-                                <i className={`fa-solid ${addingToLib ? 'fa-spinner fa-spin' : 'fa-download'}`} style={{ marginRight: '8px' }}></i>
-                                {addingToLib ? '추가 중...' : '라이브러리에 추가'}
+                            <button style={{
+                                width: '100%',
+                                padding: '16px',
+                                backgroundColor: '#2563eb',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                marginBottom: '1rem'
+                            }}>
+                                <i className="fa-solid fa-download" style={{ marginRight: '8px' }}></i>
+                                라이브러리에 추가
                             </button>
-
-                            {libError && (
-                                <p style={{ color: '#ef4444', marginBottom: '1rem', fontSize: '0.9rem', textAlign: 'center' }}>
-                                    <i className="fa-solid fa-circle-exclamation" style={{ marginRight: '4px' }}></i>
-                                    {libError}
-                                </p>
-                            )}
 
                             <button style={{
                                 width: '100%',

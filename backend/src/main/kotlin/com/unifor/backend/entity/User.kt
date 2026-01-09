@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.entity
+package com.unifor.backend.entity
 
 import jakarta.persistence.*
 import java.time.Instant
@@ -35,7 +35,3 @@ data class User(
 enum class AuthProvider {
     LOCAL, GOOGLE
 }
-
-
-
-

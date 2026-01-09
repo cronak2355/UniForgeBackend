@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.security
+package com.unifor.backend.security
 
 import com.unifor.backend.entity.AuthProvider
 import com.unifor.backend.entity.User
@@ -31,6 +31,11 @@ class OAuth2AuthenticationSuccessHandler(
         response: HttpServletResponse,
         authentication: Authentication
     ) {
+        if (response.isCommitted) {
+            log.debug("응답이 이미 커밋되었습니다.")
+            return
+        }
+
         try {
             val oAuth2User = authentication.principal as OAuth2User
             val attributes = oAuth2User.attributes
@@ -76,16 +81,16 @@ class OAuth2AuthenticationSuccessHandler(
             log.debug("JWT 토큰 생성 완료: userId={}", user.id)
             
             // 프론트엔드로 리다이렉트 (토큰 포함)
-            val targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
+            val redirectUrl = UriComponentsBuilder.fromUriString(redirectUri)
                 .path("/oauth/callback")
                 .queryParam("token", token)
                 .build()
                 .toUriString()
             
-            log.info("OAuth2 로그인 성공, 리다이렉트: {}", targetUrl)
+            log.info("OAuth2 로그인 성공, 리다이렉트: {}", redirectUrl)
             
             clearAuthenticationAttributes(request, response)
-            redirectStrategy.sendRedirect(request, response, targetUrl)
+            redirectStrategy.sendRedirect(request, response, redirectUrl)
             
         } catch (e: Exception) {
             log.error("OAuth2 로그인 처리 중 오류 발생", e)

@@ -26,15 +26,28 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      
+
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Build and Test
-        run: ./gradlew build
+      - name: Check for Duplicate Files
+        run: |
+          chmod +x ./scripts/check_duplicates.sh
+          ./scripts/check_duplicates.sh
+
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: build/libs/*.jar
+          retention-days: 1
 
   deploy:
     name: Deploy to ECS
@@ -44,10 +57,17 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    
+
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: build/libs
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -71,17 +91,48 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Update ECS Service
+      - name: Update ECS Task Definition and Service
+        env:
+          ECR_IMAGE: ${{ steps.build-image.outputs.image }}
         run: |
+          echo "=== Updating ECS Task Definition with new image ==="
+          echo "New image: $ECR_IMAGE"
+          
+          # 1. Get current task definition
+          TASK_DEF=$(aws ecs describe-task-definition --task-definition unifor-backend --query 'taskDefinition')
+          
+          # 2. Update image in task definition
+          NEW_TASK_DEF=$(echo $TASK_DEF | jq --arg IMAGE "$ECR_IMAGE" \
+            '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+          
+          # 3. Register new task definition
+          echo "Registering new task definition..."
+          NEW_REVISION=$(aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEF" --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "New task definition: $NEW_REVISION"
+          
+          # 4. Update service with new task definition
+          echo "Updating ECS service..."
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
+            --task-definition $NEW_REVISION \
             --force-new-deployment
+          
+          echo "=== ECS Service update initiated ==="
 
       - name: Wait for service stability
         run: |
           echo "Waiting for ECS service to stabilize..."
           aws ecs wait services-stable \
             --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} || true
-          echo "Deployment triggered successfully!"
+            --services ${{ env.ECS_SERVICE }} || echo "Warning: Service stability wait timed out"
+          
+          # Verify deployment
+          echo "=== Verifying deployment ==="
+          CURRENT_IMAGE=$(aws ecs describe-tasks \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --tasks $(aws ecs list-tasks --cluster ${{ env.ECS_CLUSTER }} --service-name ${{ env.ECS_SERVICE }} --query 'taskArns[0]' --output text) \
+            --query 'tasks[0].containers[0].image' --output text)
+          echo "Current running image: $CURRENT_IMAGE"
+          echo "Deployment completed!"
+

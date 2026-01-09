@@ -11,31 +11,36 @@ const CreateAssetPage = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        price: 0,
-        isPublic: true,
-        genre: 'Other'
+        price: 0
     });
+    const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+    const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [dragActive, setDragActive] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [error, setError] = useState<string | null>(null);
-    const [dragActive, setDragActive] = useState(false);
+    const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const getAuthHeaders = (): Record<string, string> => {
+        const token = localStorage.getItem('token');
+        return token ? { 'Authorization': `Bearer ${token}` } : {};
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'price' ? parseInt(value) || 0 : value
+            [name]: name === 'price' ? Number(value) : value
         }));
     };
 
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        if (e.type === 'dragenter' || e.type === 'dragover') {
+        if (e.type === "dragenter" || e.type === "dragover") {
             setDragActive(true);
-        } else if (e.type === 'dragleave') {
+        } else if (e.type === "dragleave") {
             setDragActive(false);
         }
     };
@@ -44,36 +49,27 @@ const CreateAssetPage = () => {
         e.preventDefault();
         e.stopPropagation();
         setDragActive(false);
-
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            handleFile(e.dataTransfer.files[0]);
+            setFile(e.dataTransfer.files[0]);
         }
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            handleFile(e.target.files[0]);
+            setFile(e.target.files[0]);
         }
     };
 
-    const handleFile = (selectedFile: File) => {
-        setFile(selectedFile);
-
-        // Generate preview for images
-        if (selectedFile.type.startsWith('image/')) {
+    const handleThumbnailSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setThumbnailFile(file);
             const reader = new FileReader();
             reader.onload = (e) => {
-                setPreviewImage(e.target?.result as string);
+                setThumbnailPreview(e.target?.result as string);
             };
-            reader.readAsDataURL(selectedFile);
-        } else {
-            setPreviewImage(null);
+            reader.readAsDataURL(file);
         }
-    };
-
-    const getAuthHeaders = (): HeadersInit => {
-        const token = authService.getToken();
-        return token ? { 'Authorization': `Bearer ${token}` } : {};
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -115,9 +111,7 @@ const CreateAssetPage = () => {
                     body: JSON.stringify({
                         name: formData.name,
                         price: formData.price,
-                        description: formData.description || null,
-                        isPublic: formData.isPublic,
-                        genre: formData.genre
+                        description: formData.description || null
                     })
                 }
             );
@@ -128,6 +122,40 @@ const CreateAssetPage = () => {
             }
 
             const asset = await createResponse.json();
+            setUploadProgress(30);
+
+            // Step 1.5: Upload Thumbnail (if exists)
+            if (thumbnailFile) {
+                const presignRes = await fetch(
+                    `${API_BASE_URL}/uploads/presign/image?ownerType=ASSET&ownerId=${asset.id}&imageType=thumbnail&contentType=${encodeURIComponent(thumbnailFile.type)}`,
+                    {
+                        method: 'POST',
+                        headers: authHeaders
+                    }
+                );
+
+                if (presignRes.ok) {
+                    const { uploadUrl } = await presignRes.json();
+                    if (uploadUrl) {
+                        await fetch(uploadUrl, {
+                            method: 'PUT',
+                            body: thumbnailFile,
+                            headers: { 'Content-Type': thumbnailFile.type }
+                        });
+
+                        // Update asset with imageUrl
+                        const cleanUrl = uploadUrl.split('?')[0];
+                        await fetch(`${API_BASE_URL}/assets/${asset.id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...authHeaders
+                            } as HeadersInit,
+                            body: JSON.stringify({ imageUrl: cleanUrl })
+                        });
+                    }
+                }
+            }
             setUploadProgress(40);
 
             // Step 2: Create version to get versionId
@@ -244,62 +272,90 @@ const CreateAssetPage = () => {
                 </p>
 
                 <form onSubmit={handleSubmit}>
-                    {/* File Upload Area */}
-                    <div
-                        style={{
-                            border: `2px dashed ${dragActive ? '#3b82f6' : '#333'}`,
-                            borderRadius: '16px',
-                            padding: '3rem',
-                            textAlign: 'center',
-                            marginBottom: '2rem',
-                            backgroundColor: dragActive ? 'rgba(59, 130, 246, 0.1)' : '#0a0a0a',
-                            transition: 'all 0.2s',
-                            cursor: 'pointer'
-                        }}
-                        onDragEnter={handleDrag}
-                        onDragLeave={handleDrag}
-                        onDragOver={handleDrag}
-                        onDrop={handleDrop}
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            onChange={handleFileSelect}
-                            style={{ display: 'none' }}
-                            accept=".zip,.rar,.7z,.png,.jpg,.jpeg,.glb,.gltf,.fbx,.obj"
-                        />
 
-                        {file ? (
-                            <div>
-                                {previewImage ? (
-                                    <img
-                                        src={previewImage}
-                                        alt="Preview"
-                                        style={{
-                                            maxWidth: '200px',
-                                            maxHeight: '200px',
-                                            borderRadius: '8px',
-                                            marginBottom: '1rem'
-                                        }}
-                                    />
+                    <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem' }}>
+                        {/* Thumbnail Upload */}
+                        <div style={{ width: '200px' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>대표 이미지 (썸네일)</label>
+                            <div
+                                onClick={() => thumbnailInputRef.current?.click()}
+                                style={{
+                                    width: '200px', height: '200px',
+                                    borderRadius: '12px',
+                                    border: '1px dashed #333',
+                                    backgroundColor: '#111',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    position: 'relative'
+                                }}
+                            >
+                                {thumbnailPreview ? (
+                                    <img src={thumbnailPreview} alt="Thumbnail Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                    <i className="fa-solid fa-file-zipper" style={{ fontSize: '4rem', color: '#3b82f6', marginBottom: '1rem' }}></i>
+                                    <div style={{ textAlign: 'center', color: '#666' }}>
+                                        <i className="fa-solid fa-image" style={{ fontSize: '2rem', marginBottom: '8px' }}></i>
+                                        <p style={{ fontSize: '0.8rem' }}>이미지 선택</p>
+                                    </div>
                                 )}
-                                <p style={{ fontWeight: 600 }}>{file.name}</p>
-                                <p style={{ color: '#888', fontSize: '0.9rem' }}>
-                                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                                </p>
+                                <input
+                                    ref={thumbnailInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleThumbnailSelect}
+                                    style={{ display: 'none' }}
+                                />
                             </div>
-                        ) : (
-                            <div>
-                                <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: '3rem', color: '#666', marginBottom: '1rem' }}></i>
-                                <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>파일을 드래그하거나 클릭하여 선택</p>
-                                <p style={{ color: '#666', fontSize: '0.9rem' }}>
-                                    ZIP, RAR, PNG, JPG, GLB, FBX, OBJ 지원 (최대 100MB)
-                                </p>
+                        </div>
+
+                        {/* File Upload Area */}
+                        <div style={{ flex: 1 }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>에셋 파일 (ZIP, OBJ, FBX 등)</label>
+                            <div
+                                style={{
+                                    border: `2px dashed ${dragActive ? '#3b82f6' : '#333'}`,
+                                    borderRadius: '16px',
+                                    padding: '3rem',
+                                    textAlign: 'center',
+                                    backgroundColor: dragActive ? 'rgba(59, 130, 246, 0.1)' : '#0a0a0a',
+                                    transition: 'all 0.2s',
+                                    cursor: 'pointer',
+                                    height: '200px',
+                                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'
+                                }}
+                                onDragEnter={handleDrag}
+                                onDragLeave={handleDrag}
+                                onDragOver={handleDrag}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    onChange={handleFileSelect}
+                                    style={{ display: 'none' }}
+                                    accept=".zip,.rar,.7z,.png,.jpg,.jpeg,.glb,.gltf,.fbx,.obj"
+                                />
+
+                                {file ? (
+                                    <div>
+                                        <i className="fa-solid fa-file-zipper" style={{ fontSize: '2.5rem', color: '#3b82f6', marginBottom: '1rem' }}></i>
+                                        <p style={{ fontWeight: 600 }}>{file.name}</p>
+                                        <p style={{ color: '#888', fontSize: '0.9rem' }}>
+                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: '2.5rem', color: '#666', marginBottom: '1rem' }}></i>
+                                        <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>파일 업로드</p>
+                                        <p style={{ color: '#666', fontSize: '0.8rem' }}>
+                                            최대 100MB
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* Form Fields */}
@@ -373,68 +429,6 @@ const CreateAssetPage = () => {
                         <p style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.5rem' }}>
                             0을 입력하면 무료 에셋으로 등록됩니다.
                         </p>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                장르
-                            </label>
-                            <select
-                                name="genre"
-                                value={formData.genre}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px 16px',
-                                    backgroundColor: '#111',
-                                    border: '1px solid #333',
-                                    borderRadius: '8px',
-                                    color: 'white',
-                                    fontSize: '1rem',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <option value="Other">기타 (Other)</option>
-                                <option value="Fantasy">판타지 (Fantasy)</option>
-                                <option value="Sci-Fi">SF (Sci-Fi)</option>
-                                <option value="Modern">현대 (Modern)</option>
-                                <option value="Nature">자연 (Nature)</option>
-                                <option value="Characters">캐릭터 (Characters)</option>
-                                <option value="Buildings">건물 (Buildings)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-                                공개 설정
-                            </label>
-                            <div style={{ display: 'flex', gap: '1rem', padding: '8px 0' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                    <input
-                                        type="radio"
-                                        name="isPublic"
-                                        checked={formData.isPublic === true}
-                                        onChange={() => setFormData(p => ({ ...p, isPublic: true }))}
-                                        style={{ marginRight: '8px' }}
-                                    />
-                                    공개 (Public)
-                                </label>
-                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                    <input
-                                        type="radio"
-                                        name="isPublic"
-                                        checked={formData.isPublic === false}
-                                        onChange={() => setFormData(p => ({ ...p, isPublic: false }))}
-                                        style={{ marginRight: '8px' }}
-                                    />
-                                    비공개 (Private)
-                                </label>
-                            </div>
-                            <p style={{ color: '#666', fontSize: '0.8rem' }}>
-                                비공개 선택 시 마켓플레이스에 노출되지 않으며, '나의 에셋'에서만 확인 가능합니다.
-                            </p>
-                        </div>
                     </div>
 
                     {/* Error Message */}

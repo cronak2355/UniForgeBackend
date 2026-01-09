@@ -36,8 +36,16 @@ async function buildTilesetCanvas(assets: Asset[]): Promise<HTMLCanvasElement | 
         asset.idx = idx;
 
         const img = new Image();
-        img.src = asset.url;
-        await img.decode();
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = (e) => {
+                console.error(`Failed to load image for tile: ${asset.name}`, e);
+                // Resolve anyway to prevent crashing the whole tileset generation
+                // Just draw a placeholder or skip
+                resolve(null);
+            };
+            img.src = asset.url;
+        });
 
         const x = (idx % TILESET_COLS) * TILE_SIZE;
         const y = Math.floor(idx / TILESET_COLS) * TILE_SIZE;
@@ -82,7 +90,8 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
     const cameraDragRef = useRef(false);
     const dragEntityIdRef = useRef<string | null>(null);
     const ghostIdRef = useRef<string | null>(null);
-    const rendererReadyRef = useRef(false);
+    // Use state instead of ref to trigger re-renders when ready
+    const [isRendererReady, setIsRendererReady] = useState(false);
     const tilemapReadyRef = useRef(false);
     const loadedTexturesRef = useRef<Set<string>>(new Set());
     const tileSignatureRef = useRef<string>("");
@@ -184,7 +193,7 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
                 });
             }
 
-            rendererReadyRef.current = true;
+            setIsRendererReady(true);
         })();
 
         renderer.onEntityClick = (id) => {
@@ -252,16 +261,18 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
             if (selectedAsset?.tag === "Tile" && selectedAsset.idx >= 0) {
                 const tx = Math.floor(worldX / TILE_SIZE);
                 const ty = Math.floor(worldY / TILE_SIZE);
-                if (!activeTilingType) {
-                    renderer.setPreviewTile(tx, ty, selectedAsset.idx);
-                } else if (isPointerDownRef.current) {
-                    if (activeTilingType === "drawing") {
+                if (activeTilingType === "drawing") {
+                    if (isPointerDownRef.current) {
                         renderer.setTile(tx, ty, selectedAsset.idx);
                         core.setTile(tx, ty, selectedAsset.idx);
-                    } else if (activeTilingType === "erase") {
-                        renderer.removeTile(tx, ty);
-                        core.removeTile(tx, ty);
+                    } else {
+                        renderer.setPreviewTile(tx, ty, selectedAsset.idx);
                     }
+                } else if (activeTilingType === "erase" && isPointerDownRef.current) {
+                    renderer.removeTile(tx, ty);
+                    core.removeTile(tx, ty);
+                } else {
+                    renderer.clearPreviewTile();
                 }
                 return;
             }
@@ -345,7 +356,7 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
 
     useEffect(() => {
         const renderer = rendererRef.current;
-        if (!renderer || !rendererReadyRef.current) return;
+        if (!renderer || !isRendererReady) return;
 
         const nextTiles = indexTiles(tiles);
         const prevTiles = prevTilesRef.current;
@@ -361,11 +372,11 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
         }
 
         prevTilesRef.current = nextTiles;
-    }, [tiles]);
+    }, [tiles, isRendererReady]);
 
     useEffect(() => {
         const renderer = rendererRef.current;
-        if (!renderer || !rendererReadyRef.current) return;
+        if (!renderer || !isRendererReady) return;
 
         const nextSignature = buildTileSignature(assets);
         const nextNonTileAssets = assets.filter((asset) => asset.tag !== "Tile");
@@ -387,6 +398,8 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
                 renderer.initTilemap("tiles");
                 tilemapReadyRef.current = true;
                 tileSignatureRef.current = nextSignature;
+
+                // Re-apply all tiles after tileset logic rebuild
                 applyAllTiles(renderer, tiles);
                 prevTilesRef.current = indexTiles(tiles);
             }
@@ -395,16 +408,19 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
         return () => {
             cancelled = true;
         };
-    }, [assets]);
+    }, [assets, isRendererReady]);
 
     useEffect(() => {
         const gameCore = gameCoreRef.current;
-        if (!gameCore || !rendererReadyRef.current) return;
+        if (!gameCore || !isRendererReady) return;
 
         const nextIds = new Set(entities.map((e) => e.id));
         const current = gameCore.getAllEntities();
 
-        for (const id of current.keys()) {
+        // Convert keys to array to avoid modification during iteration issues
+        const currentIds = Array.from(current.keys());
+
+        for (const id of currentIds) {
             if (!nextIds.has(id)) {
                 gameCore.removeEntity(id);
             }
@@ -432,7 +448,7 @@ export function EditorCanvas({ assets, selected_asset, addEntity, draggedAsset, 
                 gameCore.updateEntityLogic(ent.id, splitLogicItems(ent.logic), ent.variables);
             }
         }
-    }, [entities]);
+    }, [entities, isRendererReady]);
 
     // Entry Style Colors
     const colors = {
