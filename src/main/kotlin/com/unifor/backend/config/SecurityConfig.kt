@@ -40,6 +40,8 @@ class SecurityConfig(
                     // 공개 엔드포인트
                     .requestMatchers(
                         "/health",
+                        "/version",
+                        "/api/version",
                         "/actuator/**",
                         "/auth/signup",
                         "/auth/login",
