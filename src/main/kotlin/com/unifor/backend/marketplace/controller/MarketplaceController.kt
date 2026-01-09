@@ -1,7 +1,7 @@
 ﻿package com.unifor.backend.marketplace.controller
 
-import com.unifor.backend.game.repository.GameRepository
-import com.unifor.backend.game.repository.GameVersionRepository
+import com.unifor.backend.repository.GameRepository
+import com.unifor.backend.repository.GameVersionRepository
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 
