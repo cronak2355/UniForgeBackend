@@ -46,6 +46,7 @@ class SecurityConfig(
                         "/oauth2/**",
                         "/login/oauth2/**",
                         "/assets/**",
+                        "/api/assets/**",
                         "/marketplace/**",
                         "/games/public"
                     ).permitAll()
