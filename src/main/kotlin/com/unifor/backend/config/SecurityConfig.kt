@@ -46,8 +46,11 @@ class SecurityConfig(
                         "/oauth2/**",
                         "/login/oauth2/**",
                         "/assets/**",
+                        "/api/assets/**",
                         "/marketplace/**",
-                        "/games/public"
+                        "/api/marketplace/**",
+                        "/games/public",
+                        "/api/games/public"
                     ).permitAll()
                     // 나머지는 인증 필요
                     .anyRequest().authenticated()
