@@ -45,6 +45,8 @@ class SecurityConfig(
                         "/actuator/**",
                         "/auth/signup",
                         "/auth/login",
+                        "/system/**",
+                        "/api/system/**",
                         "/oauth2/**",
                         "/login/oauth2/**",
                         "/assets/**",
