@@ -2,24 +2,16 @@ HELP.md
 .gradle
 build/
 bin/
-<<<<<<< HEAD
 build_log.txt
 build_error.txt
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-=======
+build_error*.txt
 *.log
 *_log*.txt
-build_log.txt
-build_error*.txt
 compile_log.txt
 run_log.txt
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-!**/src/test/**/build/
->>>>>>> 338a79d154f1cca38ca079749882aff6399db7da
 
 ### STS ###
 .apt_generated
