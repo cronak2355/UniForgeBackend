@@ -20,6 +20,12 @@ data class GameVersion(
     @Column(columnDefinition = "TEXT", nullable = false)
     val sceneJson: String, // Store the entire scene JSON blob
 
+    @Column(nullable = true)
+    val s3RootPath: String? = null,
+
+    @Column(nullable = false)
+    val status: String = "DRAFT",
+
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()
 )
