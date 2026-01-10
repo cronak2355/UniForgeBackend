@@ -140,7 +140,7 @@ class AdminController(
     
     private fun toUserResponse(user: User): AdminUserResponse {
         val assetCount = assetRepository.findByAuthorId(user.id).size
-        val gameCount = gameRepository.findByAuthor_Id(user.id).size
+        val gameCount = gameRepository.findByAuthorId(user.id).size
         
         return AdminUserResponse(
             id = user.id,
