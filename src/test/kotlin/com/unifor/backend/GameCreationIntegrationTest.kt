@@ -28,6 +28,9 @@ class GameCreationIntegrationTest {
     @org.springframework.boot.test.mock.mockito.MockBean
     lateinit var redisConnectionFactory: org.springframework.data.redis.connection.RedisConnectionFactory
 
+    @org.springframework.boot.test.mock.mockito.MockBean
+    lateinit var stringRedisTemplate: org.springframework.data.redis.core.StringRedisTemplate
+
     @Autowired
     lateinit var userRepository: UserRepository
 
