@@ -105,7 +105,7 @@ class SecurityConfig(
                 "http://localhost:5173",
                 "http://localhost:3000"
             )
-            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             allowCredentials = true
             maxAge = 3600L
