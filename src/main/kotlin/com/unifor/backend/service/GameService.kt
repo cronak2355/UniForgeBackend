@@ -49,7 +49,7 @@ class GameService(
             .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
 
         // Find latest version to increment logic
-        val versions = gameVersionRepository.findByGameIdOrderByVersionNumberDesc(gameId)
+        val versions = gameVersionRepository.findByGame_IdOrderByVersionNumberDesc(gameId)
         val nextVersionNumber = if (versions.isEmpty()) 1 else versions[0].versionNumber + 1
 
         val version = GameVersion(
@@ -62,7 +62,7 @@ class GameService(
 
     @Transactional(readOnly = true)
     fun getLatestGameVersion(gameId: String): com.unifor.backend.dto.GameVersionResponseDTO {
-        val versions = gameVersionRepository.findByGameIdOrderByVersionNumberDesc(gameId)
+        val versions = gameVersionRepository.findByGame_IdOrderByVersionNumberDesc(gameId)
         if (versions.isEmpty()) {
             throw EntityNotFoundException("No versions found for game $gameId")
         }
