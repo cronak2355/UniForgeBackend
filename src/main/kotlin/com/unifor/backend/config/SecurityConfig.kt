@@ -21,6 +21,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val oAuth2AuthenticationSuccessHandler: OAuth2AuthenticationSuccessHandler,
@@ -77,6 +78,8 @@ class SecurityConfig(
                         "/games/public",
                         "/api/games/public"
                     ).permitAll()
+                    // 관리자 전용 엔드포인트
+                    .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                     // 나머지는 인증 필요
                     .anyRequest().authenticated()
             }

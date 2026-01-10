@@ -28,10 +28,18 @@ data class User(
     @Column(nullable = true)
     var profileImage: String? = null,
     
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var role: UserRole = UserRole.USER,
+    
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()
 )
 
 enum class AuthProvider {
     LOCAL, GOOGLE
+}
+
+enum class UserRole {
+    USER, ADMIN
 }

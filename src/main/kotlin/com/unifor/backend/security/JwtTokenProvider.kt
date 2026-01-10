@@ -30,7 +30,7 @@ class JwtTokenProvider(
         Keys.hmacShaKeyFor(secureKeyBytes)
     }
     
-    fun generateToken(userId: String, email: String): String {
+    fun generateToken(userId: String, email: String, role: String = "USER"): String {
         log.info("Generating token for user: {}", userId)
         val now = Date()
         val expiryDate = Date(now.time + jwtExpiration)
@@ -38,6 +38,7 @@ class JwtTokenProvider(
         return Jwts.builder()
             .subject(userId.toString())
             .claim("email", email)
+            .claim("role", role)
             .issuedAt(now)
             .expiration(expiryDate)
             .signWith(key)

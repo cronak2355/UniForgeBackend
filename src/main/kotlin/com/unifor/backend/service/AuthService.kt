@@ -34,7 +34,7 @@ class AuthService(
         )
         
         // JWT 토큰 생성
-        val token = jwtTokenProvider.generateToken(user.id, user.email)
+        val token = jwtTokenProvider.generateToken(user.id, user.email, user.role.name)
         
         return AuthResponse(
             token = token,
@@ -58,7 +58,7 @@ class AuthService(
         }
         
         // JWT 토큰 생성
-        val token = jwtTokenProvider.generateToken(user.id, user.email)
+        val token = jwtTokenProvider.generateToken(user.id, user.email, user.role.name)
         
         return AuthResponse(
             token = token,

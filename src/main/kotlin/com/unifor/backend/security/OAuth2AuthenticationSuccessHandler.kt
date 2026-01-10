@@ -77,7 +77,7 @@ class OAuth2AuthenticationSuccessHandler(
             }
             
             // JWT 토큰 생성
-            val token = jwtTokenProvider.generateToken(user.id, user.email)
+            val token = jwtTokenProvider.generateToken(user.id, user.email, user.role.name)
             log.debug("JWT 토큰 생성 완료: userId={}", user.id)
             
             // 프론트엔드로 리다이렉트 (토큰 포함)
