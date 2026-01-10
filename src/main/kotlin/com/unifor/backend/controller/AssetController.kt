@@ -157,6 +157,20 @@ class AssetController(
     
     // ============ 인증 필요 엔드포인트 ============
     
+    private fun processImageUrl(url: String?): String? {
+        if (url == null) return null
+        // S3 domain to replace
+        val s3Domain = "https://unifor-assets-20251224152246648200000002.s3.ap-northeast-2.amazonaws.com"
+        // CloudFront domain
+        val cloudFrontDomain = "https://uniforge.kr"
+        
+        return if (url.startsWith(s3Domain)) {
+            url.replace(s3Domain, cloudFrontDomain)
+        } else {
+            url
+        }
+    }
+
     @PostMapping
     fun createAsset(
         @AuthenticationPrincipal user: UserPrincipal,
@@ -170,7 +184,7 @@ class AssetController(
                 authorId = user.id,
                 isPublic = request.isPublic ?: true,
                 genre = request.genre ?: "Other",
-                imageUrl = request.imageUrl
+                imageUrl = processImageUrl(request.imageUrl)
             )
         )
         
@@ -202,7 +216,7 @@ class AssetController(
             description = request.description ?: asset.description,
             isPublic = request.isPublic ?: asset.isPublic,
             genre = request.genre ?: asset.genre,
-            imageUrl = request.imageUrl ?: asset.imageUrl
+            imageUrl = processImageUrl(request.imageUrl) ?: asset.imageUrl
         )
         
         return ResponseEntity.ok(toResponse(assetRepository.save(updatedAsset)))
