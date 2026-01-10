@@ -37,13 +37,12 @@ class JwtAuthenticationFilter(
                     
                     if (user != null) {
                         val userPrincipal = UserPrincipal.create(user)
-                        val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
                         val authentication = UsernamePasswordAuthenticationToken(
-                            userPrincipal, null, authorities
+                            userPrincipal, null, userPrincipal.authorities
                         )
                         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
                         SecurityContextHolder.getContext().authentication = authentication
-                        log.debug("User authenticated: {}", userId)
+                        log.debug("User authenticated: {} with roles: {}", userId, userPrincipal.authorities)
                     } else {
                         log.warn("User from JWT not found in DB: {}", userId)
                     }
