@@ -55,4 +55,21 @@ class GameController(
             ResponseEntity.notFound().build()
         }
     }
+
+    @PatchMapping("/{gameId}")
+    fun updateGame(
+        @PathVariable gameId: String,
+        @RequestBody request: UpdateGameRequest
+    ): ResponseEntity<GameSummaryDTO> {
+        return try {
+            val updated = gameService.updateThumbnail(gameId, request.thumbnailUrl)
+            ResponseEntity.ok(updated)
+        } catch (e: jakarta.persistence.EntityNotFoundException) {
+            ResponseEntity.notFound().build()
+        }
+    }
 }
+
+data class UpdateGameRequest(
+    val thumbnailUrl: String
+)

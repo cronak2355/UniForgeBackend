@@ -74,4 +74,15 @@ class GameService(
             createdAt = latest.createdAt.toString()
         )
     }
+
+    @Transactional
+    fun updateThumbnail(gameId: String, thumbnailUrl: String): GameSummaryDTO {
+        val game = gameRepository.findById(gameId)
+            .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
+        
+        game.thumbnailUrl = thumbnailUrl
+        game.updatedAt = java.time.Instant.now()
+        val savedGame = gameRepository.save(game)
+        return GameSummaryDTO.from(savedGame)
+    }
 }
