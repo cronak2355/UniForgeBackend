@@ -33,7 +33,13 @@ data class Asset(
     val isPublic: Boolean = true,
 
     @Column(nullable = true)
-    val genre: String? = "Other"
+    val genre: String? = "Other",
+
+    @Column(nullable = true, length = 500)
+    val tags: String? = null,  // 쉼표로 구분된 태그 (예: "공포,RPG,액션")
+
+    @Column(nullable = true, length = 50)
+    val assetType: String? = "오브젝트"  // 타일, 캐릭터, 무기, 오브젝트, VFX, UI
 )
 
 
