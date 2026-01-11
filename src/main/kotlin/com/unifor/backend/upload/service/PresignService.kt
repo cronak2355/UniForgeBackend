@@ -13,7 +13,8 @@ import java.util.*
 @Service
 class PresignService(
     private val presigner: S3Presigner,
-    @Value("\${aws.s3.bucket}") private val bucket: String
+    @Value("\${aws.s3.bucket}") private val bucket: String,
+    @Value("\${aws.s3.region}") private val region: String
 ) {
 
     fun generateImageUploadUrl(
@@ -49,9 +50,13 @@ class PresignService(
 
         val presignedUrl = presigner.presignPutObject(presignRequest)
 
+        // S3 직접 URL로 이미지 접근 (CloudFront 라우팅 문제 우회)
+        val publicUrl = "https://$bucket.s3.$region.amazonaws.com/$key"
+
         return mapOf(
             "uploadUrl" to presignedUrl.url().toString(),
-            "s3Key" to key
+            "s3Key" to key,
+            "publicUrl" to publicUrl
         )
     }
 
