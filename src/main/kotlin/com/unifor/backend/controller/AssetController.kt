@@ -30,6 +30,19 @@ class AssetController(
     
     private fun toResponse(asset: Asset): AssetResponse {
         val authorName = userRepository.findById(asset.authorId).map { it.name }.orElse("Unknown")
+        
+        // Convert S3 URL to Presigned URL for access
+        val finalImageUrl = if (!asset.imageUrl.isNullOrEmpty() && asset.imageUrl.contains(".amazonaws.com/")) {
+            try {
+                val key = asset.imageUrl.substringAfter(".amazonaws.com/")
+                presignService.generatePresignedGetUrl(key)
+            } catch (e: Exception) {
+                asset.imageUrl
+            }
+        } else {
+            asset.imageUrl
+        }
+
         return AssetResponse(
             id = asset.id,
             name = asset.name,
@@ -37,7 +50,7 @@ class AssetController(
             description = asset.description,
             authorId = asset.authorId,
             authorName = authorName,
-            imageUrl = asset.imageUrl,
+            imageUrl = finalImageUrl,
             createdAt = asset.createdAt,
             isPublic = asset.isPublic,
             genre = asset.genre,
