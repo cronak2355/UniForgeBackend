@@ -38,7 +38,11 @@ class AssetController(
             authorId = asset.authorId,
             authorName = authorName,
             imageUrl = asset.imageUrl,
-            createdAt = asset.createdAt
+            createdAt = asset.createdAt,
+            isPublic = asset.isPublic,
+            genre = asset.genre,
+            tags = asset.tags,
+            assetType = asset.assetType
         )
     }
     
@@ -184,6 +188,8 @@ class AssetController(
                 authorId = user.id,
                 isPublic = request.isPublic ?: true,
                 genre = request.genre ?: "Other",
+                tags = request.tags,
+                assetType = request.assetType ?: "오브젝트",
                 imageUrl = processImageUrl(request.imageUrl)
             )
         )
@@ -216,6 +222,8 @@ class AssetController(
             description = request.description ?: asset.description,
             isPublic = request.isPublic ?: asset.isPublic,
             genre = request.genre ?: asset.genre,
+            tags = request.tags ?: asset.tags,
+            assetType = request.assetType ?: asset.assetType,
             imageUrl = processImageUrl(request.imageUrl) ?: asset.imageUrl
         )
         
@@ -236,6 +244,8 @@ data class CreateAssetRequest(
     val description: String? = null,
     val isPublic: Boolean? = true,
     val genre: String? = "Other",
+    val tags: String? = null,
+    val assetType: String? = "오브젝트",
     val imageUrl: String? = null
 )
 
@@ -245,6 +255,8 @@ data class UpdateAssetRequest(
     val description: String? = null,
     val isPublic: Boolean? = null,
     val genre: String? = null,
+    val tags: String? = null,
+    val assetType: String? = null,
     val imageUrl: String? = null
 )
 
@@ -260,7 +272,11 @@ data class AssetResponse(
     val authorId: String,
     val authorName: String,
     val imageUrl: String?,
-    val createdAt: java.time.Instant
+    val createdAt: java.time.Instant,
+    val isPublic: Boolean?,
+    val genre: String?,
+    val tags: String?,
+    val assetType: String?
 )
 
 
