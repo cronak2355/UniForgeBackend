@@ -1,0 +1,10 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.5/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :checkKotlinGradlePluginConfigurationErrors
+
+> Task :compileKotlin
+w: file:///C:/Users/danmu/OneDrive/Desktop/AWS/backend/src/main/kotlin/com/unifor/backend/marketplace/controller/MarketplaceController.kt:18:17 Variable 'latestVersion' is never used
+w: file:///C:/Users/danmu/OneDrive/Desktop/AWS/backend/src/main/kotlin/com/unifor/backend/util/CookieUtils.kt:52:32 'deserialize(ByteArray?): Any?' is deprecated. Deprecated in Java
+
+BUILD SUCCESSFUL in 25s
+2 actionable tasks: 2 executed
