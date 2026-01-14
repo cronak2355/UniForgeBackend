@@ -7,39 +7,29 @@ import java.time.Instant
 @Table(name = "users")
 data class User(
     @Id
-    val id: String = java.util.UUID.randomUUID().toString(),
-    
-    @Column(unique = true, nullable = false)
-    val email: String,
-    
-    @Column(nullable = true)
-    var password: String? = null,
-    
-    @Column(nullable = false)
+    @Column(length = 36)
+    val id: String, // UUID passed from auth provider or generated
+
+    @Column(nullable = false, length = 100)
     var name: String,
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    val provider: AuthProvider = AuthProvider.LOCAL,
-    
-    @Column(nullable = true)
-    val providerId: String? = null,
-    
+
+    @Column(nullable = false, unique = true, length = 255)
+    var email: String,
+
     @Column(nullable = true)
     var profileImage: String? = null,
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    var role: UserRole = UserRole.USER,
-    
+    var role: Role = Role.USER,
+
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now()
+    val createdAt: Instant = Instant.now(),
+
+    @Column(nullable = false)
+    var updatedAt: Instant = Instant.now()
 )
 
-enum class AuthProvider {
-    LOCAL, GOOGLE
-}
-
-enum class UserRole {
+enum class Role {
     USER, ADMIN
 }
