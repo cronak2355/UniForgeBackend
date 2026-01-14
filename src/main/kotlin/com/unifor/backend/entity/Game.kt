@@ -26,8 +26,8 @@ data class Game(
     @Column(nullable = false)
     val createdAt: Instant = Instant.now(),
 
-    @Column(nullable = false)
-    var updatedAt: Instant = Instant.now(),
+    @Column(nullable = true)
+    var updatedAt: Instant? = Instant.now(),
     
     @OneToMany(mappedBy = "game", cascade = [CascadeType.ALL], orphanRemoval = true)
     var versions: MutableList<GameVersion> = mutableListOf()
