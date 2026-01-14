@@ -25,7 +25,7 @@ class BedrockService(
     }
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
-        val modelId = "amazon.titan-image-generator-v1"
+        val modelId = "amazon.titan-image-generator-v2:0"
         
         // Titan Image Generator v1 Request Format
         val payload = mapOf(
