@@ -27,7 +27,7 @@ class AiController(
             ))
         } catch (e: Exception) {
             e.printStackTrace()
-            ResponseEntity.internalServerError().body(mapOf("error" to e.message))
+            ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Unknown error")))
         }
     }
 
@@ -46,7 +46,7 @@ class AiController(
             ))
         } catch (e: Exception) {
             e.printStackTrace()
-            ResponseEntity.internalServerError().body(mapOf("error" to e.message))
+            ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Unknown error")))
         }
     }
 }
