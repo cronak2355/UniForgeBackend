@@ -39,9 +39,10 @@ dependencies {
     // Database
     runtimeOnly("org.postgresql:postgresql")
     
-    // AWS S3
+    // AWS S3 & Bedrock
     implementation("software.amazon.awssdk:s3:2.21.0")
     implementation("software.amazon.awssdk:sts:2.21.0")
+    implementation("software.amazon.awssdk:bedrockruntime:2.21.0")
     
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
