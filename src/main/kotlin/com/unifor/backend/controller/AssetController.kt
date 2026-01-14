@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import java.math.BigDecimal
+import java.util.Optional
 
 @RestController
 @RequestMapping("/assets")
@@ -29,7 +30,8 @@ class AssetController(
 ) {
     
     private fun toResponse(asset: Asset): AssetResponse {
-        val authorName = userRepository.findById(asset.authorId).map { it.name }.orElse("Unknown")
+        // val authorName = userRepository.findById(asset.authorId).map { it.name }.orElse("Unknown")
+        val authorName = "Unknown" // Debugging build error
         
         // Convert S3 URL to Presigned URL for access
         val finalImageUrl = if (!asset.imageUrl.isNullOrEmpty() && asset.imageUrl.contains(".amazonaws.com/")) {

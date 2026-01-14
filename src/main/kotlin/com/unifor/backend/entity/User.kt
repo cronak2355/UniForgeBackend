@@ -2,13 +2,14 @@ package com.unifor.backend.entity
 
 import jakarta.persistence.*
 import java.time.Instant
+import java.util.UUID
 
 @Entity
 @Table(name = "users")
 data class User(
     @Id
     @Column(length = 36)
-    val id: String, // UUID passed from auth provider or generated
+    val id: String = UUID.randomUUID().toString(),
 
     @Column(nullable = false, length = 100)
     var name: String,
@@ -17,11 +18,21 @@ data class User(
     var email: String,
 
     @Column(nullable = true)
+    var password: String? = null,
+
+    @Column(nullable = true)
     var profileImage: String? = null,
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    var role: Role = Role.USER,
+    var role: UserRole = UserRole.USER,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var provider: AuthProvider = AuthProvider.LOCAL,
+
+    @Column(length = 255)
+    var providerId: String? = null,
 
     @Column(nullable = false)
     val createdAt: Instant = Instant.now(),
@@ -30,6 +41,10 @@ data class User(
     var updatedAt: Instant = Instant.now()
 )
 
-enum class Role {
+enum class UserRole {
     USER, ADMIN
+}
+
+enum class AuthProvider {
+    LOCAL, GOOGLE
 }
