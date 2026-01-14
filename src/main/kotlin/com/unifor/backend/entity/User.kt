@@ -37,8 +37,8 @@ data class User(
     @Column(nullable = false)
     val createdAt: Instant = Instant.now(),
 
-    @Column(nullable = false)
-    var updatedAt: Instant = Instant.now()
+    @Column(nullable = true)
+    var updatedAt: Instant? = Instant.now()
 )
 
 enum class UserRole {
