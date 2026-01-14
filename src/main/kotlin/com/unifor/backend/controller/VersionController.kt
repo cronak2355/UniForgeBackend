@@ -11,7 +11,7 @@ class VersionController {
     @GetMapping
     fun getVersion(): VersionResponse {
         val version = System.getenv("APP_VERSION") ?: "dev"
-        val gitSha = System.getenv("GIT_SHA")
+        val gitSha = System.getenv("GIT_SHA") ?: System.getenv("COMMIT_HASH")
         return VersionResponse(version = version, gitSha = gitSha)
     }
 }
