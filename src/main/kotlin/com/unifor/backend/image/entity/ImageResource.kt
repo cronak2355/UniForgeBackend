@@ -20,7 +20,7 @@ data class ImageResource(
     @Column(nullable = false)
     val imageType: String, // main, thumbnail, preview
 
-    @Column(nullable = false)
+    @Column(name = "s3_key", nullable = false)
     val s3Key: String,
 
     @Column(nullable = false)
