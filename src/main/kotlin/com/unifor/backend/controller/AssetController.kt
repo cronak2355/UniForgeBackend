@@ -34,16 +34,29 @@ class AssetController(
         val authorName = userRepository.findById(asset.authorId).map { it.name }.orElse("Unknown")
         
         // Convert S3 URL to Presigned URL for access
+        // Convert S3 URL to Presigned URL for access
         val url = asset.imageUrl
-        val finalImageUrl = if (!url.isNullOrEmpty() && url.contains(".amazonaws.com/")) {
+        val finalImageUrl = if (!url.isNullOrEmpty() && url.contains("amazonaws.com")) {
+             // Extract key from URL if it's a full URL, or use as key if it's already a key (less likely given current logic)
             try {
-                val key = url.substringAfter(".amazonaws.com/")
-                presignService.generatePresignedGetUrl(key)
+                // If it's a full URL, extract the key part. 
+                // Assumption: URL format is ...amazonaws.com/KEY
+                val key = if (url.contains(".amazonaws.com/")) {
+                    url.substringAfter(".amazonaws.com/")
+                } else {
+                     // Fallback or if stored as relative path?
+                     url
+                }
+                
+                // Use s3Uploader which now returns a PRESIGNED URL
+                 s3Uploader.getDownloadUrl(key) 
             } catch (e: Exception) {
+                // Return original on error (log it ideally)
                 url
             }
         } else {
-            url
+             // If it's a local proxy URL or other
+             url 
         }
 
         return AssetResponse(
