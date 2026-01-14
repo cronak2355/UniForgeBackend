@@ -11,21 +11,21 @@ data class ImageResource(
     @Column(length = 36)
     val id: String = UUID.randomUUID().toString(),
 
-    @Column(nullable = false)
+    @Column(name = "owner_type", nullable = false)
     val ownerType: String, // ASSET, GAME, USER
 
-    @Column(nullable = false)
+    @Column(name = "owner_id", nullable = false)
     val ownerId: String,
 
-    @Column(nullable = false)
+    @Column(name = "image_type", nullable = false)
     val imageType: String, // main, thumbnail, preview
 
     @Column(name = "s3_key", nullable = false)
     val s3Key: String,
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true,
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     val createdAt: Instant = Instant.now()
 )
