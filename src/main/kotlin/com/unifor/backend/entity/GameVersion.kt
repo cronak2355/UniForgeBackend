@@ -7,8 +7,8 @@ import java.time.Instant
 @Table(name = "game_versions")
 data class GameVersion(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    @Column(length = 36)
+    val id: String = java.util.UUID.randomUUID().toString(),
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id", nullable = false)
@@ -23,8 +23,8 @@ data class GameVersion(
     @Column(nullable = true)
     val s3RootPath: String? = null,
 
-    @Column(nullable = false)
-    val status: String = "DRAFT",
+    @Column(nullable = true)
+    val status: String? = "DRAFT",
 
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()
