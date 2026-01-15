@@ -13,10 +13,10 @@ class LibraryItem(
     @Column(name = "user_id", nullable = false)
     val userId: String,
 
-    @Column(name = "target_id", nullable = true)
+    @Column(name = "item_id")
     val targetId: String? = null,
 
-    @Column(name = "target_type", nullable = true)
+    @Column(name = "item_type")
     val targetType: String? = null, // "ASSET" or "GAME"
 
     @Column(name = "created_at")
