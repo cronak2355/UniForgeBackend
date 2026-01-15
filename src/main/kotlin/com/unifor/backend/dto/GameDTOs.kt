@@ -20,7 +20,7 @@ data class GameSummaryDTO(
             thumbnailUrl = game.thumbnailUrl,
             authorId = game.author.id,
             latestVersionId = game.versions.maxByOrNull { it.versionNumber }?.id,
-            isPublic = game.isPublic,
+            isPublic = game.isPublic ?: false,
             createdAt = game.createdAt.toString()
         )
     }

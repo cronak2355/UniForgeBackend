@@ -1,0 +1,51 @@
+b/39438782469338816174215959070783322779408521351232487656/s	f/39438782600578701667568676264753863991398366233700663301/s
+EVENTS	1768496174044		at org.hibernate.sql.results.internal.RowProcessingStateStandardImpl.next(RowProcessingStateStandardImpl.java:66) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:200) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.sql.results.spi.ListResultsConsumer.consume(ListResultsConsumer.java:33) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:361) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:168) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.list(JdbcSelectExecutorStandardImpl.java:93) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:31) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.lambda$new$0(ConcreteSqmSelectQueryPlan.java:109) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.withCacheableSqmInterpretation(ConcreteSqmSelectQueryPlan.java:305) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.query.sqm.internal.ConcreteSqmSelectQueryPlan.performList(ConcreteSqmSelectQueryPlan.java:246) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.query.sqm.internal.QuerySqmImpl.doList(QuerySqmImpl.java:509) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:427) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.hibernate.query.Query.getResultList(Query.java:120) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.jpa.repository.query.JpaQueryExecution$CollectionExecution.doExecute(JpaQueryExecution.java:129) ~[spring-data-jpa-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:92) ~[spring-data-jpa-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:149) ~[spring-data-jpa-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:137) ~[spring-data-jpa-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170) ~[spring-data-commons-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158) ~[spring-data-commons-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164) ~[spring-data-commons-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143) ~[spring-data-commons-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.1.jar!/:6.1.1]	1768496169892
+EVENTS	1768496174044		at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70) ~[spring-data-commons-3.2.0.jar!/:3.2.0]	1768496169892
+EVENTS	1768496174044		at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.1.jar!/:6.1.1]	1768496169892
+EVENTS	1768496174044		at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123) ~[spring-tx-6.1.1.jar!/:6.1.1]	1768496169892
+EVENTS	1768496174044		at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:385) ~[spring-tx-6.1.1.jar!/:6.1.1]	1768496169892
+EVENTS	1768496174044		at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.1.1.jar!/:6.1.1]	1768496169892
+EVENTS	1768496174044		at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.1.1.jar!/:6.1.1]	1768496169892
+EVENTS	1768496174044		at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137) ~[spring-tx-6.1.1.jar!/:6.1.1]	1768496169892
+EVENTS	1768496174044		... 172 common frames omitted	1768496169892
+EVENTS	1768496174044	Caused by: org.postgresql.util.PSQLException: ERROR: column g1_0.is_public does not exist	1768496169892
+EVENTS	1768496174044	  Position: 64	1768496169892
+EVENTS	1768496174044		at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2713) ~[postgresql-42.6.0.jar!/:42.6.0]	1768496169892
+EVENTS	1768496174044		at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2401) ~[postgresql-42.6.0.jar!/:42.6.0]	1768496169892
+EVENTS	1768496174044		at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:368) ~[postgresql-42.6.0.jar!/:42.6.0]	1768496169892
+EVENTS	1768496174044		at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:498) ~[postgresql-42.6.0.jar!/:42.6.0]	1768496169892
+EVENTS	1768496174044		at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:415) ~[postgresql-42.6.0.jar!/:42.6.0]	1768496169892
+EVENTS	1768496174044		at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:190) ~[postgresql-42.6.0.jar!/:42.6.0]	1768496169892
+EVENTS	1768496174044		at org.postgresql.jdbc.PgPreparedStatement.executeQuery(PgPreparedStatement.java:134) ~[postgresql-42.6.0.jar!/:42.6.0]	1768496169892
+EVENTS	1768496174044		at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeQuery(ProxyPreparedStatement.java:52) ~[HikariCP-5.0.1.jar!/:na]	1768496169892
+EVENTS	1768496174044		at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeQuery(HikariProxyPreparedStatement.java) ~[HikariCP-5.0.1.jar!/:na]	1768496169892
+EVENTS	1768496174044		at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:240) ~[hibernate-core-6.3.1.Final.jar!/:6.3.1.Final]	1768496169892
+EVENTS	1768496174044		... 205 common frames omitted	1768496169892
+EVENTS	1768496174044	2026-01-15T16:56:09.895Z TRACE 1 --- [nio-8080-exec-9] o.s.s.w.header.writers.HstsHeaderWriter  : Not injecting HSTS header since it did not match request to [Is Secure]	1768496169895
+EVENTS	1768496179034	2026-01-15T16:56:15.776Z TRACE 1 --- [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : Trying to match request against DefaultSecurityFilterChain [RequestMatcher=Mvc [pattern='/actuator/**'], Filters=[]] (1/10)	1768496175776
+EVENTS	1768496179034	2026-01-15T16:56:15.776Z TRACE 1 --- [nio-8080-exec-7] o.s.security.web.FilterChainProxy        : No security for GET /actuator/health	1768496175776
+EVENTS	1768496179034	2026-01-15T16:56:15.776Z DEBUG 1 --- [nio-8080-exec-7] c.u.b.security.JwtAuthenticationFilter   : Request path: /api/actuator/health, Auth header present: false, JWT extracted: false	1768496175776
+EVENTS	1768496179034	2026-01-15T16:56:15.777Z TRACE 1 --- [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Trying to match request against DefaultSecurityFilterChain [RequestMatcher=Mvc [pattern='/actuator/**'], Filters=[]] (1/10)	1768496175777
+EVENTS	1768496179034	2026-01-15T16:56:15.777Z TRACE 1 --- [nio-8080-exec-8] o.s.security.web.FilterChainProxy        : No security for GET /actuator/health	1768496175777
+EVENTS	1768496179034	2026-01-15T16:56:15.777Z DEBUG 1 --- [nio-8080-exec-8] c.u.b.security.JwtAuthenticationFilter   : Request path: /api/actuator/health, Auth header present: false, JWT extracted: false	1768496175777

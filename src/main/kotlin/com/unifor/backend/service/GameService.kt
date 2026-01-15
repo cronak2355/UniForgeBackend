@@ -40,7 +40,7 @@ class GameService(
     @Transactional(readOnly = true)
     fun getPublicGames(): List<GameSummaryDTO> {
         return gameRepository.findAll()
-            .filter { it.isPublic }
+            .filter { it.isPublic == true }
             .map { GameSummaryDTO.from(it) }
     }
 

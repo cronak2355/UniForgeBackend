@@ -14,7 +14,7 @@ Write-Host ">>> 1. Building Backend (Gradle)..."
 if ($LASTEXITCODE -ne 0) { throw "Gradle Build Failed" }
 
 Write-Host ">>> 2. Logging in to ECR..."
-aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+cmd /C "aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 if ($LASTEXITCODE -ne 0) { throw "ECR Login Failed" }
 
 Write-Host ">>> 3. Building Docker Image..."

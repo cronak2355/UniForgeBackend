@@ -19,8 +19,8 @@ data class Game(
     @Column(nullable = true)
     var thumbnailUrl: String? = null,
 
-    @Column(nullable = false)
-    var isPublic: Boolean = false,
+    @Column(name = "is_public", nullable = true)
+    var isPublic: Boolean? = false,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
