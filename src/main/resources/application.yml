@@ -55,7 +55,7 @@ management:
 
 aws:
   s3:
-    bucket: ${AWS_S3_BUCKET:unifor-uploaded-assets}
+    bucket: ${AWS_S3_BUCKET:uniforge-assets}
     region: ${AWS_REGION:ap-northeast-2}
     access-key: ${AWS_ACCESS_KEY:}
     secret-key: ${AWS_SECRET_KEY:}
