@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/api")
+// @RequestMapping("/api") - Removed to avoid duplicate prefix with context-path
 class AiController(
     private val bedrockService: BedrockService
 ) {
