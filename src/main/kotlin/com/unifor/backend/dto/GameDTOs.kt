@@ -8,7 +8,7 @@ data class GameSummaryDTO(
     val description: String?,
     val thumbnailUrl: String?,
     val authorId: String,
-    val latestVersionId: Long?,
+    val latestVersionId: String?,
     val createdAt: String
 ) {
     companion object {
