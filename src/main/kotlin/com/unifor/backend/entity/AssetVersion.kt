@@ -14,14 +14,14 @@ data class AssetVersion(
     @Column(nullable = false)
     val assetId: String,
 
-    @Column(nullable = false)
-    val version: String = "1.0.0",
+    @Column(nullable = true)
+    val version: String? = "1.0.0",
 
     @Column(length = 255)
     val s3RootPath: String? = null,
 
-    @Column(nullable = false)
-    var status: String = "DRAFT", // DRAFT, PUBLISHED
+    @Column(nullable = true)
+    var status: String? = "DRAFT", // DRAFT, PUBLISHED
 
     @Column(nullable = false)
     val createdAt: Instant = Instant.now(),
