@@ -23,4 +23,8 @@ class LibraryService(
         )
         libraryItemRepository.save(item)
     }
+
+    fun getLibrary(userId: String): List<LibraryItem> {
+        return libraryItemRepository.findByUserId(userId)
+    }
 }

@@ -32,8 +32,9 @@ class BedrockService(
         val payload = mapOf(
             "taskType" to "TEXT_IMAGE",
             "textToImageParams" to mapOf(
-                "text" to prompt,
-                "negativeText" to "bad quality, low resolution, blurry, distorted, nsfw" 
+                // Enforce single subject constraint
+                "text" to "solo, single isolated subject, centered, $prompt",
+                "negativeText" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted, nsfw, text, watermark" 
             ),
             "imageGenerationConfig" to mapOf(
                 "numberOfImages" to 1,
