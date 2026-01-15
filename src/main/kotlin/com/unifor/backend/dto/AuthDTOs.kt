@@ -2,6 +2,7 @@ package com.unifor.backend.dto
 
 import com.unifor.backend.entity.AuthProvider
 import com.unifor.backend.entity.User
+import com.unifor.backend.entity.UserRole
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -42,7 +43,8 @@ data class UserDTO(
     val email: String,
     val name: String,
     val provider: AuthProvider,
-    val profileImage: String?
+    val profileImage: String?,
+    val role: UserRole
 ) {
     companion object {
         fun from(user: User): UserDTO = UserDTO(
@@ -50,7 +52,8 @@ data class UserDTO(
             email = user.email,
             name = user.name,
             provider = user.provider,
-            profileImage = user.profileImage
+            profileImage = user.profileImage,
+            role = user.role
         )
     }
 }
