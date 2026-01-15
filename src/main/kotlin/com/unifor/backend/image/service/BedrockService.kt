@@ -25,27 +25,24 @@ class BedrockService(
     }
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
-        // Switch to Stable Diffusion XL 1.0 (Versioned ID)
-        val modelId = "stability.stable-diffusion-xl-v1:0"
+        // Switch to Amazon Nova Canvas for high quality (Drop-in replacement for Titan)
+        val modelId = "amazon.nova-canvas-v1:0"
         
-        // Stable Diffusion XL Request Format
+        // Nova Canvas / Titan v2 Request Format
         val payload = mapOf(
-            "text_prompts" to listOf(
-                mapOf(
-                    "text" to prompt,
-                    "weight" to 1.0
-                ),
-                mapOf(
-                    "text" to "bad quality, low resolution, blurry, distorted, nsfw", // Negative prompt
-                    "weight" to -1.0
-                )
+            "taskType" to "TEXT_IMAGE",
+            "textToImageParams" to mapOf(
+                "text" to prompt,
+                "negativeText" to "bad quality, low resolution, blurry, distorted, nsfw" 
             ),
-            "cfg_scale" to 10,
-            "steps" to 30,
-            "seed" to (seed ?: (0..2147483647).random()),
-            "width" to width,
-            "height" to height,
-            "samples" to 1
+            "imageGenerationConfig" to mapOf(
+                "numberOfImages" to 1,
+                "height" to 1024, // Nova Canvas works best at 1024+
+                "width" to 1024,
+                "cfgScale" to 8.0,
+                "quality" to "standard", // Nova specific
+                "seed" to (seed ?: (0..2147483647).random())
+            )
         )
 
         val jsonBody = objectMapper.writeValueAsString(payload)
@@ -61,9 +58,9 @@ class BedrockService(
             val response = client.invokeModel(request)
             val responseBody = response.body().asUtf8String()
             
-            // Parse response (SDXL returns "artifacts": [{"base64": "..."}])
+            // Parse response (Nova Canvas returns "images": [base64_string, ...])
             val responseJson = objectMapper.readTree(responseBody)
-            val base64Image = responseJson.get("artifacts").get(0).get("base64").asText()
+            val base64Image = responseJson.get("images").get(0).asText()
             
             return base64Image
 
