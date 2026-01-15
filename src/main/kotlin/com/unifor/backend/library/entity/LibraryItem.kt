@@ -20,5 +20,15 @@ class LibraryItem(
     val targetType: String? = null, // "ASSET" or "GAME"
 
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now()
-)
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "ref_id")
+    var refId: String? = null
+) {
+    @PrePersist
+    fun prePersist() {
+        if (refId == null && targetId != null) {
+            refId = targetId
+        }
+    }
+}
