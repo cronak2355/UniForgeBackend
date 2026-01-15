@@ -19,6 +19,9 @@ data class Game(
     @Column(nullable = true)
     var thumbnailUrl: String? = null,
 
+    @Column(nullable = false)
+    var isPublic: Boolean = false,
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     val author: User,

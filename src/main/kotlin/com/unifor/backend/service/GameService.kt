@@ -40,6 +40,7 @@ class GameService(
     @Transactional(readOnly = true)
     fun getPublicGames(): List<GameSummaryDTO> {
         return gameRepository.findAll()
+            .filter { it.isPublic }
             .map { GameSummaryDTO.from(it) }
     }
 
@@ -76,13 +77,14 @@ class GameService(
     }
 
     @Transactional
-    fun updateGame(gameId: String, title: String?, description: String?, thumbnailUrl: String?): GameSummaryDTO {
+    fun updateGame(gameId: String, title: String?, description: String?, thumbnailUrl: String?, isPublic: Boolean? = null): GameSummaryDTO {
         val game = gameRepository.findById(gameId)
             .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
         
         if (title != null) game.title = title
         if (description != null) game.description = description
         if (thumbnailUrl != null) game.thumbnailUrl = thumbnailUrl
+        if (isPublic != null) game.isPublic = isPublic
         
         game.updatedAt = java.time.Instant.now()
         val savedGame = gameRepository.save(game)

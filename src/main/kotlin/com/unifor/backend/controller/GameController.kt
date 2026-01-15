@@ -62,7 +62,7 @@ class GameController(
         @RequestBody request: UpdateGameRequest
     ): ResponseEntity<GameSummaryDTO> {
         return try {
-            val updated = gameService.updateGame(gameId, request.title, request.description, request.thumbnailUrl)
+            val updated = gameService.updateGame(gameId, request.title, request.description, request.thumbnailUrl, request.isPublic)
             ResponseEntity.ok(updated)
         } catch (e: jakarta.persistence.EntityNotFoundException) {
             ResponseEntity.notFound().build()
@@ -83,5 +83,6 @@ class GameController(
 data class UpdateGameRequest(
     val title: String? = null,
     val description: String? = null,
-    val thumbnailUrl: String? = null
+    val thumbnailUrl: String? = null,
+    val isPublic: Boolean? = null
 )
