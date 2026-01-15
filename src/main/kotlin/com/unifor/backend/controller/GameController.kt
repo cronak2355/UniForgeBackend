@@ -68,6 +68,16 @@ class GameController(
             ResponseEntity.notFound().build()
         }
     }
+
+    @DeleteMapping("/{gameId}")
+    fun deleteGame(@PathVariable gameId: String): ResponseEntity<Void> {
+        return try {
+            gameService.deleteGame(gameId)
+            ResponseEntity.noContent().build()
+        } catch (e: jakarta.persistence.EntityNotFoundException) {
+            ResponseEntity.notFound().build()
+        }
+    }
 }
 
 data class UpdateGameRequest(

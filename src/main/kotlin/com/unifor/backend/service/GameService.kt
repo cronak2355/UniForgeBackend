@@ -86,6 +86,16 @@ class GameService(
         
         game.updatedAt = java.time.Instant.now()
         val savedGame = gameRepository.save(game)
+        val savedGame = gameRepository.save(game)
         return GameSummaryDTO.from(savedGame)
+    }
+
+    @Transactional
+    fun deleteGame(gameId: String) {
+        if (!gameRepository.existsById(gameId)) {
+            throw EntityNotFoundException("Game not found with id $gameId")
+        }
+        // Associated versions will be deleted by Cascade (orphanRemoval=true) in Game entity
+        gameRepository.deleteById(gameId)
     }
 }
