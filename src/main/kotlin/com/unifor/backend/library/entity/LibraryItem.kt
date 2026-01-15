@@ -13,11 +13,11 @@ class LibraryItem(
     @Column(name = "user_id", nullable = false)
     val userId: String,
 
-    @Column(name = "target_id", nullable = false)
-    val targetId: String,
+    @Column(name = "target_id", nullable = true)
+    val targetId: String? = null,
 
-    @Column(name = "target_type", nullable = false)
-    val targetType: String, // "ASSET" or "GAME"
+    @Column(name = "target_type", nullable = true)
+    val targetType: String? = null, // "ASSET" or "GAME"
 
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now()
