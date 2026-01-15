@@ -5,9 +5,7 @@ import com.unifor.backend.repository.UserRepository
 import com.unifor.backend.library.repository.LibraryItemRepository
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 class SystemController(
@@ -55,5 +53,23 @@ class SystemController(
             )
         }
         return ResponseEntity.ok(response)
+    }
+
+    @GetMapping("/system/library-cleanup")
+    fun cleanupLibrary(@RequestParam email: String): ResponseEntity<String> {
+        val user = userRepository.findByEmail(email) 
+            ?: return ResponseEntity.status(404).body("User not found")
+            
+        val items = libraryItemRepository.findByUserId(user.id)
+        var deletedCount = 0
+        
+        items.forEach { item ->
+            if (item.targetId.isNullOrBlank() || item.targetType.isNullOrBlank()) {
+                libraryItemRepository.delete(item)
+                deletedCount++
+            }
+        }
+        
+        return ResponseEntity.ok("Deleted $deletedCount invalid library items for user ${user.email}")
     }
 }
