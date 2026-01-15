@@ -64,7 +64,7 @@ class BedrockService(
 
         } catch (e: Exception) {
             logger.error("Bedrock generation failed", e)
-            throw RuntimeException("Failed to generate image via Bedrock: \${e.message}")
+            throw RuntimeException("Failed to generate image via Bedrock: ${e.message}")
         }
     }
 }
