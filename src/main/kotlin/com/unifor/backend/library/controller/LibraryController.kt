@@ -7,6 +7,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 
+data class AddToLibraryRequest(
+    val targetId: String,
+    val targetType: String
+)
+
 @RestController
 @RequestMapping("/library")
 class LibraryController(
@@ -28,10 +33,9 @@ class LibraryController(
     @PostMapping
     fun addToLibrary(
         @AuthenticationPrincipal user: UserPrincipal,
-        @RequestParam targetId: String,
-        @RequestParam targetType: String
+        @RequestBody request: AddToLibraryRequest
     ): ResponseEntity<Void> {
-        libraryService.addToLibrary(user.id, targetId, targetType)
+        libraryService.addToLibrary(user.id, request.targetId, request.targetType)
         return ResponseEntity.ok().build()
     }
 }
