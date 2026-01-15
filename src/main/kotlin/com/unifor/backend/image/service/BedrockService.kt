@@ -25,22 +25,27 @@ class BedrockService(
     }
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
-        val modelId = "amazon.titan-image-generator-v2:0"
+        // Switch to Stable Diffusion XL 1.0 for better quality
+        val modelId = "stability.stable-diffusion-xl-v1"
         
-        // Titan Image Generator v1 Request Format
+        // Stable Diffusion XL Request Format
         val payload = mapOf(
-            "taskType" to "TEXT_IMAGE",
-            "textToImageParams" to mapOf(
-                "text" to prompt,
-                "negativeText" to "bad quality, low resolution, blurry" // Default negative prompt
+            "text_prompts" to listOf(
+                mapOf(
+                    "text" to prompt,
+                    "weight" to 1.0
+                ),
+                mapOf(
+                    "text" to "bad quality, low resolution, blurry, distorted, nsfw", // Negative prompt
+                    "weight" to -1.0
+                )
             ),
-            "imageGenerationConfig" to mapOf(
-                "numberOfImages" to 1,
-                "height" to height,
-                "width" to width,
-                "cfgScale" to 8.0,
-                "seed" to (seed ?: (0..2147483647).random())
-            )
+            "cfg_scale" to 10,
+            "steps" to 30,
+            "seed" to (seed ?: (0..2147483647).random()),
+            "width" to width,
+            "height" to height,
+            "samples" to 1
         )
 
         val jsonBody = objectMapper.writeValueAsString(payload)
@@ -56,9 +61,9 @@ class BedrockService(
             val response = client.invokeModel(request)
             val responseBody = response.body().asUtf8String()
             
-            // Parse response (Titan returns "images": [base64_string, ...])
+            // Parse response (SDXL returns "artifacts": [{"base64": "..."}])
             val responseJson = objectMapper.readTree(responseBody)
-            val base64Image = responseJson.get("images").get(0).asText()
+            val base64Image = responseJson.get("artifacts").get(0).get("base64").asText()
             
             return base64Image
 
