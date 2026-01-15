@@ -16,7 +16,7 @@ class ImageService(
         ownerId: String,
         imageType: String,
         s3Key: String,
-        contentType: String
+        contentType: String? = null
     ): ImageResource {
         
         // Disable old active images for this owner/type if necessary (optional logic)
