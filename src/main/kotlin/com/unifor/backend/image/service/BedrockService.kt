@@ -25,8 +25,8 @@ class BedrockService(
     }
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
-        // Switch to Stable Diffusion XL 1.0 for better quality
-        val modelId = "stability.stable-diffusion-xl-v1"
+        // Switch to Stable Diffusion XL 1.0 (Versioned ID)
+        val modelId = "stability.stable-diffusion-xl-v1:0"
         
         // Stable Diffusion XL Request Format
         val payload = mapOf(
