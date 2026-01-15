@@ -86,7 +86,6 @@ class GameService(
         
         game.updatedAt = java.time.Instant.now()
         val savedGame = gameRepository.save(game)
-        val savedGame = gameRepository.save(game)
         return GameSummaryDTO.from(savedGame)
     }
 
