@@ -10,7 +10,7 @@ data class CreateImageRequest(
     val ownerId: String,
     val imageType: String,
     val s3Key: String,
-    val contentType: String
+    val contentType: String? = null
 )
 
 @RestController
