@@ -6,10 +6,19 @@ import com.unifor.backend.security.UserPrincipal
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 
 data class AddToLibraryRequest(
-    val targetId: String,
-    val targetType: String
+    val refId: String,
+    val itemType: String
+)
+
+data class LibraryResponse(
+    val id: String,
+    val userId: String,
+    val refId: String?,
+    val itemType: String?,
+    val createdAt: LocalDateTime
 )
 
 @RestController
@@ -19,9 +28,18 @@ class LibraryController(
 ) {
 
     @GetMapping
-    fun getLibrary(@AuthenticationPrincipal user: UserPrincipal): ResponseEntity<List<LibraryItem>> {
+    fun getLibrary(@AuthenticationPrincipal user: UserPrincipal): ResponseEntity<List<LibraryResponse>> {
         val items = libraryService.getLibrary(user.id)
-        return ResponseEntity.ok(items)
+        val response = items.map { item ->
+            LibraryResponse(
+                id = item.id,
+                userId = item.userId,
+                refId = item.targetId,
+                itemType = item.targetType,
+                createdAt = item.createdAt
+            )
+        }
+        return ResponseEntity.ok(response)
     }
 
     // Placeholder for collections (not implemented in service yet, but prevents 404)
@@ -35,7 +53,7 @@ class LibraryController(
         @AuthenticationPrincipal user: UserPrincipal,
         @RequestBody request: AddToLibraryRequest
     ): ResponseEntity<Void> {
-        libraryService.addToLibrary(user.id, request.targetId, request.targetType)
+        libraryService.addToLibrary(user.id, request.refId, request.itemType)
         return ResponseEntity.ok().build()
     }
 }
