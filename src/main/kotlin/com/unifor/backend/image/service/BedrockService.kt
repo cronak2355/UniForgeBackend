@@ -16,32 +16,52 @@ class BedrockService(
 ) {
     private val logger = LoggerFactory.getLogger(BedrockService::class.java)
     private val objectMapper = jacksonObjectMapper()
-    
-    // Client is lazy initialized to ensure region is picked up or credentials are ready
     private val client by lazy {
         BedrockRuntimeClient.builder()
             .region(Region.of(region))
             .build()
     }
 
+    private val translationMap = mapOf(
+        "해골기사" to "Skeleton Knight",
+        "픽셀 아트" to "pixel art",
+        "호러" to "horror",
+        "웅장한" to "epic, grand",
+        "기사" to "knight",
+        "전사" to "warrior",
+        "마법사" to "mage",
+        "몬스터" to "monster",
+        "배경 제거" to "background removal"
+    )
+
+    private fun translatePrompt(prompt: String): String {
+        var translated = prompt
+        translationMap.forEach { (ko, en) ->
+            translated = translated.replace(ko, en)
+        }
+        return translated
+    }
+
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
         // Switch to Amazon Nova Canvas for high quality (Drop-in replacement for Titan)
         val modelId = "amazon.nova-canvas-v1:0"
+        
+        val translatedPrompt = translatePrompt(prompt)
         
         // Nova Canvas / Titan v2 Request Format
         val payload = mapOf(
             "taskType" to "TEXT_IMAGE",
             "textToImageParams" to mapOf(
-                // Enforce single subject constraint
-                "text" to "solo, single isolated subject, centered, $prompt",
-                "negativeText" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted, nsfw, text, watermark" 
+                // Enforce single subject constraint and style
+                "text" to "pixel art style, solo, single isolated subject, centered, $translatedPrompt",
+                "negativeText" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted, nsfw, text, watermark, plain background" 
             ),
             "imageGenerationConfig" to mapOf(
                 "numberOfImages" to 1,
-                "height" to 1024, // Nova Canvas works best at 1024+
-                "width" to 1024,
-                "cfgScale" to 8.0,
-                "quality" to "standard", // Nova specific
+                "height" to 512, // User usually works at 512 in editor
+                "width" to 512,
+                "cfgScale" to 8.5, // Increased for better prompt adherence
+                "quality" to "standard",
                 "seed" to (seed ?: (0..2147483647).random())
             )
         )
@@ -68,6 +88,38 @@ class BedrockService(
         } catch (e: Exception) {
             logger.error("Bedrock generation failed", e)
             throw RuntimeException("Failed to generate image via Bedrock: ${e.message}")
+        }
+    }
+
+    fun removeBackground(base64Image: String): String {
+        val modelId = "amazon.nova-canvas-v1:0"
+        
+        val payload = mapOf(
+            "taskType" to "BACKGROUND_REMOVAL",
+            "backgroundRemovalParams" to mapOf(
+                "image" to base64Image
+            )
+        )
+
+        val jsonBody = objectMapper.writeValueAsString(payload)
+
+        try {
+            val request = InvokeModelRequest.builder()
+                .modelId(modelId)
+                .contentType("application/json")
+                .accept("application/json")
+                .body(software.amazon.awssdk.core.SdkBytes.fromUtf8String(jsonBody))
+                .build()
+
+            val response = client.invokeModel(request)
+            val responseBody = response.body().asUtf8String()
+            
+            val responseJson = objectMapper.readTree(responseBody)
+            return responseJson.get("images").get(0).asText()
+
+        } catch (e: Exception) {
+            logger.error("Bedrock background removal failed", e)
+            throw RuntimeException("Failed to remove background via Bedrock: ${e.message}")
         }
     }
 }

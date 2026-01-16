@@ -48,5 +48,18 @@ class AiController(
             e.printStackTrace()
             ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Unknown error")))
         }
+    @PostMapping("/remove-background")
+    fun removeBackground(@RequestBody request: Map<String, Any>): ResponseEntity<Map<String, Any>> {
+        val base64Image = request["image"] as? String ?: return ResponseEntity.badRequest().build()
+
+        return try {
+            val processedImage = bedrockService.removeBackground(base64Image)
+            ResponseEntity.ok(mapOf(
+                "image" to processedImage
+            ))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Unknown error")))
+        }
     }
 }
