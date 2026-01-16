@@ -23,9 +23,7 @@ data class ImageResource(
     @Column(name = "s3_key", nullable = false)
     val s3Key: String,
 
-    // Legacy column support to prevent 500 error if DB has mixed schema
-    @Column(name = "s3key", nullable = true) 
-    val s3KeyLegacy: String? = s3Key,
+    // Legacy column support removed
 
     @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true,
