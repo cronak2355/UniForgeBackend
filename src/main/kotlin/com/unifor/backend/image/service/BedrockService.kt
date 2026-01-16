@@ -67,7 +67,13 @@ class BedrockService(
 
         } catch (e: Exception) {
             logger.error("Bedrock generation failed", e)
-            throw RuntimeException("Failed to generate image via Bedrock: ${e.message}")
+            val errorMessage = e.message ?: "Unknown error"
+            
+            if (errorMessage.contains("content filters")) {
+                throw RuntimeException("이미지 생성이 차단되었습니다. '마리오(Mario)'와 같은 저작권이 있는 캐릭터나 부적절한 키워드는 생성할 수 없습니다. 다른 프롬프트로 시도해 주세요.")
+            }
+            
+            throw RuntimeException("Failed to generate image via Bedrock: $errorMessage")
         }
     }
 }
