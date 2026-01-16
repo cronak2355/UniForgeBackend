@@ -16,7 +16,7 @@ data class Game(
     @Column(nullable = true, length = 1000)
     var description: String? = null,
 
-    @Column(nullable = true)
+    @Column(nullable = true, length = 1024)
     var thumbnailUrl: String? = null,
 
     @Column(name = "is_public", nullable = true)

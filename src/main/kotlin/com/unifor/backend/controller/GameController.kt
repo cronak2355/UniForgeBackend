@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/games")
 class GameController(
     private val gameService: GameService,
-    private val objectMapper: com.fasterxml.jackson.databind.ObjectMapper
+    private val objectMapper: com.fasterxml.jackson.databind.ObjectMapper,
+    private val imageResourceRepository: com.unifor.backend.image.repository.ImageResourceRepository,
+    private val s3Uploader: com.unifor.backend.common.s3.S3Uploader
 ) {
 
     @PostMapping
@@ -32,6 +34,24 @@ class GameController(
     fun getPublicGames(): ResponseEntity<List<GameSummaryDTO>> {
         val games = gameService.getPublicGames()
         return ResponseEntity.ok(games)
+    }
+
+    @GetMapping("/s3/{gameId}")
+    fun getGameThumbnail(
+        @PathVariable gameId: String,
+        @RequestParam(required = false, defaultValue = "thumbnail") imageType: String
+    ): ResponseEntity<Void> {
+        val imageResource = imageResourceRepository.findByOwnerTypeAndOwnerIdAndImageTypeAndIsActive(
+            ownerType = "GAME",
+            ownerId = gameId,
+            imageType = imageType,
+            isActive = true
+        ) ?: return ResponseEntity.notFound().build()
+
+        val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)
+        return ResponseEntity.status(org.springframework.http.HttpStatus.FOUND)
+            .header(org.springframework.http.HttpHeaders.LOCATION, presignedUrl)
+            .build()
     }
 
     @PostMapping("/{gameId}/versions")
