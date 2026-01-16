@@ -23,7 +23,7 @@ data class ImageResource(
     @Column(name = "s3_key", nullable = false, length = 512)
     val s3Key: String,
 
-    @Column(name = "is_active", nullable = false)
+    // Legacy column support removed
 
     @Column(name = "is_active", nullable = false)
     val isActive: Boolean = true,
