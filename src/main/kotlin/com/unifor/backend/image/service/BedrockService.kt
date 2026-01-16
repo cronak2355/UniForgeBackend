@@ -34,7 +34,7 @@ class BedrockService(
             "textToImageParams" to mapOf(
                 // Enforce single subject constraint
                 "text" to "solo, single isolated subject, centered, $prompt",
-                "negativeText" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted, nsfw, text, watermark" 
+                "negativeText" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted" 
             ),
             "imageGenerationConfig" to mapOf(
                 "numberOfImages" to 1,
