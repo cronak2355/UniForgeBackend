@@ -113,19 +113,61 @@ class AssetController(
     @GetMapping("/s3/{id}")
     fun getAssetImage(
         @PathVariable id: String,
-        @RequestParam(required = false, defaultValue = "preview") imageType: String
+        @RequestParam(required = false, defaultValue = "base") imageType: String
     ): ResponseEntity<Void> {
+        // 1. 먼저 ImageResource에서 찾기
         val imageResource = imageResourceRepository.findByOwnerTypeAndOwnerIdAndImageTypeAndIsActive(
             ownerType = "ASSET",
             ownerId = id,
             imageType = imageType,
             isActive = true
-        ) ?: return ResponseEntity.notFound().build()
+        )
 
-        val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)
+        if (imageResource != null) {
+            val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)
+            return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, presignedUrl)
+                .build()
+        }
+
+        // 2. Fallback: Asset의 imageUrl에서 S3 키 추출
+        val asset = assetRepository.findById(id).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        val imageUrl = asset.imageUrl
+        if (imageUrl.isNullOrEmpty()) {
+            return ResponseEntity.notFound().build()
+        }
+
+        // imageUrl에서 S3 키 추출 또는 직접 리다이렉트
+        val s3Key = extractS3KeyFromUrl(imageUrl)
+        if (s3Key != null) {
+            val presignedUrl = s3Uploader.getDownloadUrl(s3Key)
+            return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, presignedUrl)
+                .build()
+        }
+
+        // 외부 URL인 경우 직접 리다이렉트
         return ResponseEntity.status(HttpStatus.FOUND)
-            .header(HttpHeaders.LOCATION, presignedUrl)
+            .header(HttpHeaders.LOCATION, imageUrl)
             .build()
+    }
+
+    private fun extractS3KeyFromUrl(url: String): String? {
+        // S3 URL에서 키 추출: https://bucket.s3.region.amazonaws.com/KEY
+        if (url.contains(".amazonaws.com/")) {
+            return url.substringAfter(".amazonaws.com/")
+        }
+        // uploads/ASSET/... 형태인 경우 그대로 반환
+        if (url.startsWith("uploads/")) {
+            return url
+        }
+        // https://uniforge.kr/uploads/... 형태
+        if (url.contains("/uploads/")) {
+            return "uploads" + url.substringAfter("/uploads")
+        }
+        return null
     }
     
     @GetMapping("/{id}")
