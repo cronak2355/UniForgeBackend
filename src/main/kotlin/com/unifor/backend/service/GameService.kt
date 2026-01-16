@@ -44,6 +44,12 @@ class GameService(
             .map { GameSummaryDTO.from(it) }
     }
 
+    @Transactional(readOnly = true)
+    fun getAllGames(): List<GameSummaryDTO> {
+        return gameRepository.findAll()
+            .map { GameSummaryDTO.from(it) }
+    }
+
     @Transactional
     fun saveGameVersion(gameId: String, sceneJson: String) {
         val game = gameRepository.findById(gameId)
@@ -98,5 +104,10 @@ class GameService(
         }
         // Associated versions will be deleted by Cascade (orphanRemoval=true) in Game entity
         gameRepository.deleteById(gameId)
+    }
+
+    @Transactional
+    fun deleteAllGames() {
+        gameRepository.deleteAll()
     }
 }

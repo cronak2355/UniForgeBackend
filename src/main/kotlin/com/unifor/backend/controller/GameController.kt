@@ -36,6 +36,13 @@ class GameController(
         return ResponseEntity.ok(games)
     }
 
+    // Admin only endpoint (In a real app, secure this with PreAuthorize("hasRole('ADMIN')"))
+    @GetMapping("/all")
+    fun getAllGames(): ResponseEntity<List<GameSummaryDTO>> {
+        val games = gameService.getAllGames()
+        return ResponseEntity.ok(games)
+    }
+
     @GetMapping("/s3/{gameId}")
     fun getGameThumbnail(
         @PathVariable gameId: String,
@@ -97,6 +104,12 @@ class GameController(
         } catch (e: jakarta.persistence.EntityNotFoundException) {
             ResponseEntity.notFound().build()
         }
+    }
+
+    @DeleteMapping("/all")
+    fun deleteAllGames(): ResponseEntity<Void> {
+        gameService.deleteAllGames()
+        return ResponseEntity.noContent().build()
     }
 }
 
