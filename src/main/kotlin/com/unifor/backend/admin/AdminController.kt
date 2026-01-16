@@ -135,6 +135,25 @@ class AdminController(
             deletedId = assetId
         ))
     }
+
+    @DeleteMapping("/assets/all")
+    fun deleteAllAssets(
+        @AuthenticationPrincipal admin: UserPrincipal
+    ): ResponseEntity<DeleteResponse> {
+        val count = assetRepository.count()
+        
+        // 1. 모든 에셋 버전 삭제 (FK 제약 조건 방지)
+        assetVersionRepository.deleteAll()
+        
+        // 2. 모든 에셋 삭제
+        assetRepository.deleteAll()
+        
+        return ResponseEntity.ok(DeleteResponse(
+            success = true,
+            message = "All assets ($count items) deleted by admin ${admin.email}",
+            deletedId = "ALL"
+        ))
+    }
     
     // ============ Helper Methods ============
     
