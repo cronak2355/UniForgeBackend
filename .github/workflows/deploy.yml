@@ -12,8 +12,8 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: unifor-backend
   ECS_CLUSTER: unifor-cluster
-  ECS_SERVICE: unifor-new-backend-service
-  ECS_TASK_DEFINITION: unifor-new-backend-task
+  ECS_SERVICE: unifor-backend-service-w7jyk3xy
+  ECS_TASK_DEFINITION: unifor-backend
   ECS_CONTAINER_NAME: backend
 
 jobs:
