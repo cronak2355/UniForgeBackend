@@ -43,30 +43,25 @@ class BedrockService(
     }
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
-        // Switch to Stable Diffusion XL 1.0 for high quality pixel art
-        // Using 'stability.stable-diffusion-xl-v1' (without :0) for On-Demand Throughput
-        val modelId = "stability.stable-diffusion-xl-v1"
+        // Switch to Amazon Titan Image Generator v2 (SDXL 1.0 is EOL)
+        val modelId = "amazon.titan-image-generator-v2:0"
         
         val translatedPrompt = translatePrompt(prompt)
         
-        // SDXL Request Format
+        // Titan V2 Payload
         val payload = mapOf(
-            "text_prompts" to listOf(
-                mapOf(
-                    "text" to "pixel art style, solo, single isolated subject, centered, $translatedPrompt",
-                    "weight" to 1.0
-                ),
-                mapOf(
-                    "text" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted, nsfw, text, watermark, plain background",
-                    "weight" to -1.0
-                )
+            "taskType" to "TEXT_IMAGE",
+            "textToImageParams" to mapOf(
+                "text" to "pixel art style, $translatedPrompt",
+                "negativeText" to "bad quality, low resolution, blurry, distorted, nsfw, text, watermark, photo-realistic, 3d render"
             ),
-            "cfg_scale" to 10,
-            "seed" to (seed ?: (0..2147483647).random()),
-            "steps" to 30, // 30-50 recommended for SDXL
-            "width" to 512,
-            "height" to 512,
-            "style_preset" to "pixel-art"
+            "imageGenerationConfig" to mapOf(
+                "numberOfImages" to 1,
+                "height" to 512,
+                "width" to 512,
+                "cfgScale" to 8.0,
+                "seed" to (seed ?: (0..2147483647).random())
+            )
         )
 
         val jsonBody = objectMapper.writeValueAsString(payload)
@@ -82,9 +77,9 @@ class BedrockService(
             val response = client.invokeModel(request)
             val responseBody = response.body().asUtf8String()
             
-            // Parse response (SDXL returns "artifacts": [{ "base64": "..." }])
+            // Titan returns { "images": [ "base64..." ] }
             val responseJson = objectMapper.readTree(responseBody)
-            val base64Image = responseJson.get("artifacts").get(0).get("base64").asText()
+            val base64Image = responseJson.get("images").get(0).asText()
             
             return base64Image
 
