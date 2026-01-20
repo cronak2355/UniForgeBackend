@@ -90,10 +90,43 @@ class BedrockService(
     }
 
     fun removeBackground(base64Image: String): String {
-        // Amazon Nova Canvas model ID is incorrect or EOL. 
-        // Temporarily disabling background removal until a valid Titan Image Generator v2 payload is implemented.
-        // Returning original image as fallback to prevent 500 errors.
-        logger.warn("Background removal temporarily disabled due to model unavailability.")
-        return base64Image
+        // Re-enabled: Amazon Nova Canvas for Background Removal
+        val modelId = "amazon.nova-canvas-v1:0"
+        
+        val payload = mapOf(
+            "taskType" to "BACKGROUND_REMOVAL",
+            "backgroundRemovalParams" to mapOf(
+                "image" to base64Image
+            )
+        )
+
+        try {
+            val jsonBody = objectMapper.writeValueAsString(payload)
+            
+            val request = InvokeModelRequest.builder()
+                .modelId(modelId)
+                .contentType("application/json")
+                .accept("application/json") 
+                .body(software.amazon.awssdk.core.SdkBytes.fromUtf8String(jsonBody))
+                .build()
+
+            val response = client.invokeModel(request)
+            val responseBody = response.body().asUtf8String()
+            
+            // Expecting JSON response with "image" field containing base64
+            val responseJson = objectMapper.readTree(responseBody)
+            
+            if (responseJson.has("image")) {
+                return responseJson.get("image").asText()
+            } else {
+                 logger.warn("Unexpected Nova Canvas response format: ${responseBody.take(100)}...")
+                 return base64Image
+            }
+
+        } catch (e: Exception) {
+            logger.error("Bedrock background removal failed", e)
+            // Return original image as fallback to prevent app crash
+            return base64Image
+        }
     }
 }
