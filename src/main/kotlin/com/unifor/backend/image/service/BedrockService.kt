@@ -51,9 +51,9 @@ class BedrockService(
         
         // Stable Image Ultra / SD3 Payload
         val payload = mapOf(
-            "prompt" to "pixel art style, solo, single isolated subject, centered, $translatedPrompt",
+            "prompt" to "pixel art style, full body, head to toe, standing pose, solo, single isolated subject, centered, $translatedPrompt",
             "mode" to "text-to-image",
-            "aspect_ratio" to "1:1",
+            "aspect_ratio" to "2:3",
             "output_format" to "png",
             "seed" to (seed ?: (0..2147483647).random())
         )
