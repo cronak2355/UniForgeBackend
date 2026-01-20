@@ -1,5 +1,6 @@
 package com.unifor.backend.controller
 
+import com.unifor.backend.image.service.TranslationService
 import com.unifor.backend.image.service.BedrockService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -7,7 +8,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 // @RequestMapping("/api") - Removed to avoid duplicate prefix with context-path
 class AiController(
-    private val bedrockService: BedrockService
+    private val bedrockService: BedrockService,
+    private val translationService: TranslationService
 ) {
 
     @PostMapping("/AIgenerate")
@@ -62,6 +64,19 @@ class AiController(
         } catch (e: Exception) {
             e.printStackTrace()
             ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Unknown error")))
+        }
+    }
+    @PostMapping("/ai/translate")
+    fun translate(@RequestBody request: Map<String, String>): ResponseEntity<Map<String, String>> {
+        val text = request["text"] ?: return ResponseEntity.badRequest().build()
+        val targetLang = request["targetLang"] ?: "en"
+        
+        return try {
+            val translatedText = translationService.translate(text, targetLang = targetLang)
+            ResponseEntity.ok(mapOf("translatedText" to translatedText))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Translation failed")))
         }
     }
 }
