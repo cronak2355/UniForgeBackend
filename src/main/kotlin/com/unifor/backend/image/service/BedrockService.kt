@@ -44,8 +44,8 @@ class BedrockService(
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
         // Switch to Stable Diffusion XL 1.0 for high quality pixel art
-        // Using explicit version :0 to avoid potential alias issues
-        val modelId = "stability.stable-diffusion-xl-v1:0"
+        // Using 'stability.stable-diffusion-xl-v1' (without :0) for On-Demand Throughput
+        val modelId = "stability.stable-diffusion-xl-v1"
         
         val translatedPrompt = translatePrompt(prompt)
         
