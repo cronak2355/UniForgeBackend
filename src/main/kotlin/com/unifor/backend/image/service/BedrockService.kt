@@ -43,25 +43,19 @@ class BedrockService(
     }
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
-        // Switch to Amazon Titan Image Generator v2 (SDXL 1.0 is EOL)
-        val modelId = "amazon.titan-image-generator-v2:0"
+        // Upgrade to Stable Image Ultra (SD3.5 Large) in Oregon (us-west-2)
+        // High quality pixel art generation model
+        val modelId = "stability.stable-image-ultra-v1:1"
         
         val translatedPrompt = translatePrompt(prompt)
         
-        // Titan V2 Payload
+        // Stable Image Ultra / SD3 Payload
         val payload = mapOf(
-            "taskType" to "TEXT_IMAGE",
-            "textToImageParams" to mapOf(
-                "text" to "pixel art style, $translatedPrompt",
-                "negativeText" to "bad quality, low resolution, blurry, distorted, nsfw, text, watermark, photo-realistic, 3d render"
-            ),
-            "imageGenerationConfig" to mapOf(
-                "numberOfImages" to 1,
-                "height" to 512,
-                "width" to 512,
-                "cfgScale" to 8.0,
-                "seed" to (seed ?: (0..2147483647).random())
-            )
+            "prompt" to "pixel art style, solo, single isolated subject, centered, $translatedPrompt",
+            "mode" to "text-to-image",
+            "aspect_ratio" to "1:1",
+            "output_format" to "png",
+            "seed" to (seed ?: (0..2147483647).random())
         )
 
         val jsonBody = objectMapper.writeValueAsString(payload)
@@ -77,7 +71,7 @@ class BedrockService(
             val response = client.invokeModel(request)
             val responseBody = response.body().asUtf8String()
             
-            // Titan returns { "images": [ "base64..." ] }
+            // Ultra returns { "images": [ "base64..." ] }
             val responseJson = objectMapper.readTree(responseBody)
             val base64Image = responseJson.get("images").get(0).asText()
             
@@ -88,7 +82,7 @@ class BedrockService(
             val errorMessage = e.message ?: "Unknown error"
             
             if (errorMessage.contains("content filters")) {
-                throw RuntimeException("이미지 생성이 차단되었습니다. '마리오(Mario)'와 같은 저작권이 있는 캐릭터나 부적절한 키워드는 생성할 수 없습니다. 다른 프롬프트로 시도해 주세요.")
+                throw RuntimeException("이미지 생성이 차단되었습니다. 저작권이 있는 캐릭터나 부적절한 키워드는 사용할 수 없습니다.")
             }
             
             throw RuntimeException("Failed to generate image via Bedrock: $errorMessage")

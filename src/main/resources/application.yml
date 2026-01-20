@@ -60,6 +60,8 @@ aws:
     region: ${AWS_REGION:ap-northeast-2}
     access-key: ${AWS_ACCESS_KEY:}
     secret-key: ${AWS_SECRET_KEY:}
+  bedrock:
+    region: us-west-2
 
 logging:
   level:
