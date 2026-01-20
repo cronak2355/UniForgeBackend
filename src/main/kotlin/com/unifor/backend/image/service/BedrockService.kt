@@ -44,7 +44,8 @@ class BedrockService(
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
         // Switch to Stable Diffusion XL 1.0 for high quality pixel art
-        val modelId = "stability.stable-diffusion-xl-v1"
+        // Using explicit version :0 to avoid potential alias issues
+        val modelId = "stability.stable-diffusion-xl-v1:0"
         
         val translatedPrompt = translatePrompt(prompt)
         
@@ -100,34 +101,10 @@ class BedrockService(
     }
 
     fun removeBackground(base64Image: String): String {
-        val modelId = "amazon.nova-canvas-v1:0"
-        
-        val payload = mapOf(
-            "taskType" to "BACKGROUND_REMOVAL",
-            "backgroundRemovalParams" to mapOf(
-                "image" to base64Image
-            )
-        )
-
-        val jsonBody = objectMapper.writeValueAsString(payload)
-
-        try {
-            val request = InvokeModelRequest.builder()
-                .modelId(modelId)
-                .contentType("application/json")
-                .accept("application/json")
-                .body(software.amazon.awssdk.core.SdkBytes.fromUtf8String(jsonBody))
-                .build()
-
-            val response = client.invokeModel(request)
-            val responseBody = response.body().asUtf8String()
-            
-            val responseJson = objectMapper.readTree(responseBody)
-            return responseJson.get("images").get(0).asText()
-
-        } catch (e: Exception) {
-            logger.error("Bedrock background removal failed", e)
-            throw RuntimeException("Failed to remove background via Bedrock: ${e.message}")
-        }
+        // Amazon Nova Canvas model ID is incorrect or EOL. 
+        // Temporarily disabling background removal until a valid Titan Image Generator v2 payload is implemented.
+        // Returning original image as fallback to prevent 500 errors.
+        logger.warn("Background removal temporarily disabled due to model unavailability.")
+        return base64Image
     }
 }
