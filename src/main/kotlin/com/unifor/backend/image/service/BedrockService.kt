@@ -43,27 +43,29 @@ class BedrockService(
     }
 
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
-        // Switch to Amazon Nova Canvas for high quality (Drop-in replacement for Titan)
-        val modelId = "amazon.nova-canvas-v1:0"
+        // Switch to Stable Diffusion XL 1.0 for high quality pixel art
+        val modelId = "stability.stable-diffusion-xl-v1"
         
         val translatedPrompt = translatePrompt(prompt)
         
-        // Nova Canvas / Titan v2 Request Format
+        // SDXL Request Format
         val payload = mapOf(
-            "taskType" to "TEXT_IMAGE",
-            "textToImageParams" to mapOf(
-                // Enforce single subject constraint and style
-                "text" to "pixel art style, solo, single isolated subject, centered, $translatedPrompt",
-                "negativeText" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted, nsfw, text, watermark, plain background" 
+            "text_prompts" to listOf(
+                mapOf(
+                    "text" to "pixel art style, solo, single isolated subject, centered, $translatedPrompt",
+                    "weight" to 1.0
+                ),
+                mapOf(
+                    "text" to "multiple, two, group, crowd, duplicate, many, extra limbs, bad quality, low resolution, blurry, distorted, nsfw, text, watermark, plain background",
+                    "weight" to -1.0
+                )
             ),
-            "imageGenerationConfig" to mapOf(
-                "numberOfImages" to 1,
-                "height" to 512, // User usually works at 512 in editor
-                "width" to 512,
-                "cfgScale" to 8.5, // Increased for better prompt adherence
-                "quality" to "standard",
-                "seed" to (seed ?: (0..2147483647).random())
-            )
+            "cfg_scale" to 10,
+            "seed" to (seed ?: (0..2147483647).random()),
+            "steps" to 30, // 30-50 recommended for SDXL
+            "width" to 512,
+            "height" to 512,
+            "style_preset" to "pixel-art"
         )
 
         val jsonBody = objectMapper.writeValueAsString(payload)
@@ -79,9 +81,9 @@ class BedrockService(
             val response = client.invokeModel(request)
             val responseBody = response.body().asUtf8String()
             
-            // Parse response (Nova Canvas returns "images": [base64_string, ...])
+            // Parse response (SDXL returns "artifacts": [{ "base64": "..." }])
             val responseJson = objectMapper.readTree(responseBody)
-            val base64Image = responseJson.get("images").get(0).asText()
+            val base64Image = responseJson.get("artifacts").get(0).get("base64").asText()
             
             return base64Image
 
