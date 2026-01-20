@@ -121,7 +121,7 @@ class AssetController(
             ownerId = id,
             imageType = imageType,
             isActive = true
-        )
+        ).firstOrNull()
 
         if (imageResource != null) {
             val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)

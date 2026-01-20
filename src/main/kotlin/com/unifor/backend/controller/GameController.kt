@@ -54,7 +54,7 @@ class GameController(
             ownerId = gameId,
             imageType = imageType,
             isActive = true
-        )
+        ).firstOrNull()
 
         // 2. 있으면 바로 리다이렉트
         if (imageResource != null) {

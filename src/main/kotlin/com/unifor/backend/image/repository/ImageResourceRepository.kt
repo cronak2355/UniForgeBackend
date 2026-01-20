@@ -11,5 +11,5 @@ interface ImageResourceRepository : JpaRepository<ImageResource, String> {
         ownerId: String,
         imageType: String,
         isActive: Boolean
-    ): ImageResource?
+    ): List<ImageResource>
 }
