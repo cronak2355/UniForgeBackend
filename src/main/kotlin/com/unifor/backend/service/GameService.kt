@@ -106,6 +106,12 @@ class GameService(
         gameRepository.deleteById(gameId)
     }
 
+    @Transactional(readOnly = true)
+    fun getGame(gameId: String): Game {
+        return gameRepository.findById(gameId)
+            .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
+    }
+
     @Transactional
     fun deleteAllGames() {
         gameRepository.deleteAll()
