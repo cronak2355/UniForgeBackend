@@ -100,7 +100,7 @@ class GameController(
             return url
         }
         // https://uniforge.kr/uploads/... 형태
-        if (url.contains "/uploads/") {
+        if (url.contains("/uploads/")) {
             return "uploads" + url.substringAfter("/uploads")
         }
         return null
