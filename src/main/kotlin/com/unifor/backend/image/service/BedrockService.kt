@@ -132,7 +132,6 @@ class BedrockService(
             "mode" to "image-to-image",
             "image" to base64Image,
             "strength" to 0.7, // Balance between keeping character and changing pose
-            "aspect_ratio" to "1:1", // Square output for grid? Or Maybe 21:9 for strip? Stick to 1:1 for grid.
             "output_format" to "png",
             "seed" to (seed ?: (0..2147483647).random())
         )
