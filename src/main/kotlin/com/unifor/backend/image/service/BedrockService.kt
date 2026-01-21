@@ -75,12 +75,10 @@ class BedrockService(
         
         logger.info("[BedrockService] Animation: $prompt -> $translatedPrompt")
 
-        // Define 4 frames for walking animation
+        // Define 2 frames for animation (reduced to avoid CloudFront timeout)
         val framePoses = listOf(
-            "standing pose, left foot forward, arms at sides",
-            "walking pose, right leg forward, left arm forward",
-            "standing pose, right foot forward, arms at sides", 
-            "walking pose, left leg forward, right arm forward"
+            "standing pose, arms at sides",
+            "walking pose, leg forward, arm swinging"
         )
         
         val baseSeed = seed ?: (0..2147483647).random().toLong()
@@ -108,7 +106,7 @@ class BedrockService(
                 val responseJson = objectMapper.readTree(response.body().asUtf8String())
                 imageList.add(responseJson.get("images").get(0).asText())
                 
-                logger.info("[BedrockService] Frame ${index + 1}/4 generated")
+                logger.info("[BedrockService] Frame ${index + 1}/2 generated")
 
             } catch (e: Exception) {
                 logger.error("Animation frame $index failed", e)
