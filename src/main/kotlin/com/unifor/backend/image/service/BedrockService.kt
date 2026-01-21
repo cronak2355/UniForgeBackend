@@ -114,4 +114,48 @@ class BedrockService(
             throw RuntimeException("Background removal failed", e)
         }
     }
+
+    fun generateAnimationSheet(prompt: String, base64Image: String, seed: Long? = null): String {
+        val modelId = "stability.stable-image-ultra-v1:1"
+        
+        // Translate prompt
+        val translatedPrompt = translationService.translate(prompt)
+        logger.info("[BedrockService] Animation Prompt: $prompt -> $translatedPrompt")
+
+        // Construct I2I Payload
+        // We ask for a sprite sheet with 4 frames
+        val finalPrompt = "sprite sheet, 4 frames sequence, consecutive action, side view, same character, white background, simple background, $translatedPrompt"
+        
+        val payload = mapOf(
+            "prompt" to finalPrompt,
+            "negative_prompt" to "text, watermark, low quality, detailed background, complex background, blurry, distorted",
+            "mode" to "image-to-image",
+            "image" to base64Image,
+            "strength" to 0.7, // Balance between keeping character and changing pose
+            "aspect_ratio" to "1:1", // Square output for grid? Or Maybe 21:9 for strip? Stick to 1:1 for grid.
+            "output_format" to "png",
+            "seed" to (seed ?: (0..2147483647).random())
+        )
+
+        val jsonBody = objectMapper.writeValueAsString(payload)
+
+        try {
+            val request = InvokeModelRequest.builder()
+                .modelId(modelId)
+                .contentType("application/json")
+                .accept("application/json")
+                .body(software.amazon.awssdk.core.SdkBytes.fromUtf8String(jsonBody))
+                .build()
+
+            val response = client.invokeModel(request)
+            val responseBody = response.body().asUtf8String()
+            val responseJson = objectMapper.readTree(responseBody)
+            
+            return responseJson.get("images").get(0).asText()
+
+        } catch (e: Exception) {
+            logger.error("Bedrock animation generation failed", e)
+            throw RuntimeException("Animation generation failed: ${e.message}")
+        }
+    }
 }

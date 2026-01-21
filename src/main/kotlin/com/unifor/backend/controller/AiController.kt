@@ -79,4 +79,22 @@ class AiController(
             ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Translation failed")))
         }
     }
+
+    @PostMapping("/generate-animation-sheet")
+    fun generateAnimationSheet(@RequestBody request: Map<String, Any>): ResponseEntity<Map<String, Any>> {
+        val prompt = request["prompt"] as? String ?: return ResponseEntity.badRequest().build()
+        val image = request["image"] as? String ?: return ResponseEntity.badRequest().build()
+        val seed = (request["seed"] as? Number)?.toLong()
+
+        return try {
+            val resultImage = bedrockService.generateAnimationSheet(prompt, image, seed)
+            ResponseEntity.ok(mapOf(
+                "image" to resultImage,
+                "seed" to (seed ?: 0)
+            ))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            ResponseEntity.internalServerError().body(mapOf("error" to (e.message ?: "Animation generation failed")))
+        }
+    }
 }
