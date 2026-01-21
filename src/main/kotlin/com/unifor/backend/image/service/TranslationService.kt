@@ -35,7 +35,7 @@ class TranslationService(
         val modelId = "anthropic.claude-3-haiku-20240307-v1:0"
 
         try {
-            val systemPrompt = "You are a professional translator. Translate the text provided by the user to English. Output ONLY the translated text, no introductory words, no explanations, no quotes."
+            val systemPrompt = "You are a specialized prompt translator for an AI image generator. Your task is to extract the visual description from the user's input and translate it into English keywords or phrases. 1. Ignore conversational fillers, polite requests, or commands (e.g., 'draw this', 'please', 'make a'). 2. Focus ONLY on the visual elements (subject, appearance, items, colors). 3. Output ONLY the translated English description. No introductory text."
             
             val payload = mapOf(
                 "anthropic_version" to "bedrock-2023-05-31",
