@@ -1,4 +1,4 @@
-index-BVt4BKlY.js:8 Unable to preventDefault inside passive event listener invocation.package com.unifor.backend.image.service
+package com.unifor.backend.image.service
 
 import org.springframework.stereotype.Service
 import org.springframework.beans.factory.annotation.Value
