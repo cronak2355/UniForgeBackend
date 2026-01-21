@@ -72,7 +72,7 @@ class AiController(
         val targetLang = request["targetLang"] ?: "en"
         
         return try {
-            val translatedText = translationService.translate(text, targetLang = targetLang)
+            val translatedText = translationService.translate(text)
             ResponseEntity.ok(mapOf("translatedText" to translatedText))
         } catch (e: Exception) {
             e.printStackTrace()
