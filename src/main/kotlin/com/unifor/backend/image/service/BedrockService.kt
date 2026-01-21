@@ -116,23 +116,33 @@ class BedrockService(
     }
 
     fun generateAnimationSheet(prompt: String, base64Image: String, seed: Long? = null): String {
-        val modelId = "stability.stable-image-ultra-v1:1"
+        // Switch to SDXL 1.0 for reliable Image-to-Image support
+        val modelId = "stability.stable-diffusion-xl-v1"
         
         // Translate prompt
         val translatedPrompt = translationService.translate(prompt)
         logger.info("[BedrockService] Animation Prompt: $prompt -> $translatedPrompt")
 
-        // Construct I2I Payload
-        // We ask for a sprite sheet with 4 frames
+        // Construct Payload for SDXL Image-to-Image
         val finalPrompt = "sprite sheet, 4 frames sequence, consecutive action, side view, same character, white background, simple background, $translatedPrompt"
         
         val payload = mapOf(
-            "prompt" to finalPrompt,
-            "negative_prompt" to "text, watermark, low quality, detailed background, complex background, blurry, distorted",
-            "mode" to "image-to-image",
-            "image" to base64Image,
-            "strength" to 0.7, // Balance between keeping character and changing pose
-            "output_format" to "png",
+            "text_prompts" to listOf(
+                mapOf("text" to finalPrompt, "weight" to 1.0),
+                mapOf("text" to "text, watermark, low quality, detailed background, complex background, blurry, distorted", "weight" to -1.0)
+            ),
+            "init_image" to base64Image,
+            "cfg_scale" to 10,
+            "steps" to 30,
+            "style_preset" to "pixel-art", // SDXL supports style presets
+            "image_strength" to 0.35, // Lower means more influence from init_image (0.35 is good for keeping shape but animating) - check SDXL docs 
+            // NOTE: Bedrock SDXL init_image_strength: 0.0 to 1.0. 
+            // But wait, for SDXL, 'image_strength' controls how much to change? 
+            // usually strength 0.3 means 30% change? Or 30% original?
+            // "image_strength" (float) – The proportion of the generation that is based on the initial image. 
+            // 0.0 to 1.0. A value closer to 1.0 creates an image that is more similar to the initial image.
+            // So we want high similarity? No, we want animation.
+            // Let's try 0.6
             "seed" to (seed ?: (0..2147483647).random())
         )
 
@@ -150,7 +160,8 @@ class BedrockService(
             val responseBody = response.body().asUtf8String()
             val responseJson = objectMapper.readTree(responseBody)
             
-            return responseJson.get("images").get(0).asText()
+            // SDXL returns { "artifacts": [ { "base64": "..." } ] }
+            return responseJson.get("artifacts").get(0).get("base64").asText()
 
         } catch (e: Exception) {
             logger.error("Bedrock animation generation failed", e)

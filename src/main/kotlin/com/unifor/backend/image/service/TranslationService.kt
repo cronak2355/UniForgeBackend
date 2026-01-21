@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 @Service
 class TranslationService(
-    @Value("\${aws.bedrock.region:us-east-1}") private val region: String
+    @Value("\${aws.s3.region:ap-northeast-2}") private val region: String
 ) {
     private val logger = LoggerFactory.getLogger(TranslationService::class.java)
     
