@@ -107,8 +107,7 @@ class BedrockService(
 
         } catch (e: Exception) {
             logger.error("Bedrock background removal failed", e)
-            // Return original image as fallback to prevent app crash
-            return base64Image
+            throw RuntimeException("Background removal failed", e)
         }
     }
 }
