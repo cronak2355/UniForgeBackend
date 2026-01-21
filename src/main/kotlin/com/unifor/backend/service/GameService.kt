@@ -40,6 +40,13 @@ class GameService(
     @Transactional(readOnly = true)
     fun getPublicGames(): List<GameSummaryDTO> {
         return gameRepository.findAll()
+            .filter { it.isPublic == true }
+            .map { GameSummaryDTO.from(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllGames(): List<GameSummaryDTO> {
+        return gameRepository.findAll()
             .map { GameSummaryDTO.from(it) }
     }
 
@@ -76,13 +83,37 @@ class GameService(
     }
 
     @Transactional
-    fun updateThumbnail(gameId: String, thumbnailUrl: String): GameSummaryDTO {
+    fun updateGame(gameId: String, title: String?, description: String?, thumbnailUrl: String?, isPublic: Boolean? = null): GameSummaryDTO {
         val game = gameRepository.findById(gameId)
             .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
         
-        game.thumbnailUrl = thumbnailUrl
+        if (title != null) game.title = title
+        if (description != null) game.description = description
+        if (thumbnailUrl != null) game.thumbnailUrl = thumbnailUrl
+        if (isPublic != null) game.isPublic = isPublic
+        
         game.updatedAt = java.time.Instant.now()
         val savedGame = gameRepository.save(game)
         return GameSummaryDTO.from(savedGame)
+    }
+
+    @Transactional
+    fun deleteGame(gameId: String) {
+        if (!gameRepository.existsById(gameId)) {
+            throw EntityNotFoundException("Game not found with id $gameId")
+        }
+        // Associated versions will be deleted by Cascade (orphanRemoval=true) in Game entity
+        gameRepository.deleteById(gameId)
+    }
+
+    @Transactional(readOnly = true)
+    fun getGame(gameId: String): Game {
+        return gameRepository.findById(gameId)
+            .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
+    }
+
+    @Transactional
+    fun deleteAllGames() {
+        gameRepository.deleteAll()
     }
 }

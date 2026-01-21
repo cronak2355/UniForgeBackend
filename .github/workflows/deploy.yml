@@ -1,3 +1,4 @@
+
 name: Backend CI/CD
 
 on:
@@ -11,7 +12,8 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: unifor-backend
   ECS_CLUSTER: unifor-cluster
-  ECS_SERVICE: unifor-backend
+  ECS_SERVICE: unifor-backend-service-w7jyk3xy
+  ECS_TASK_DEFINITION: unifor-backend
   ECS_CONTAINER_NAME: backend
 
 jobs:
@@ -87,7 +89,7 @@ jobs:
 
       - name: Download Task Definition
         run: |
-          aws ecs describe-task-definition --task-definition ${{ env.ECS_SERVICE }} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def

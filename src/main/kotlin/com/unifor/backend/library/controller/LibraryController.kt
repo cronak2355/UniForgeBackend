@@ -1,54 +1,59 @@
-﻿package com.unifor.backend.library.controller
+package com.unifor.backend.library.controller
 
+import com.unifor.backend.library.entity.LibraryItem
 import com.unifor.backend.library.service.LibraryService
+import com.unifor.backend.security.UserPrincipal
+import org.springframework.http.ResponseEntity
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
-
-@RestController
-@RequestMapping("/library")
-class LibraryController(
-    private val libraryService: LibraryService
-) {
-    @GetMapping
-    fun getLibrary(
-        @org.springframework.security.core.annotation.AuthenticationPrincipal user: com.unifor.backend.security.UserPrincipal
-    ) = libraryService.getUserLibrary(user.id)
-
-    @PostMapping
-    fun addToLibrary(
-        @org.springframework.security.core.annotation.AuthenticationPrincipal user: com.unifor.backend.security.UserPrincipal,
-        @RequestBody request: AddToLibraryRequest
-    ) = libraryService.addToLibrary(user.id, request.refId, request.itemType)
-
-    // Collection Endpoints
-    @GetMapping("/collections")
-    fun getCollections(
-        @org.springframework.security.core.annotation.AuthenticationPrincipal user: com.unifor.backend.security.UserPrincipal
-    ) = libraryService.getUserCollections(user.id)
-
-    @PostMapping("/collections")
-    fun createCollection(
-        @org.springframework.security.core.annotation.AuthenticationPrincipal user: com.unifor.backend.security.UserPrincipal,
-        @RequestBody request: CreateCollectionRequest
-    ) = libraryService.createCollection(user.id, request.name)
-
-    @PutMapping("/items/{itemId}/move")
-    fun moveItem(
-        @org.springframework.security.core.annotation.AuthenticationPrincipal user: com.unifor.backend.security.UserPrincipal,
-        @PathVariable itemId: String,
-        @RequestBody request: MoveItemRequest
-    ) = libraryService.moveItemToCollection(user.id, itemId, request.collectionId)
-}
+import java.time.LocalDateTime
 
 data class AddToLibraryRequest(
     val refId: String,
     val itemType: String
 )
 
-data class CreateCollectionRequest(
-    val name: String
+data class LibraryResponse(
+    val id: String,
+    val userId: String,
+    val refId: String?,
+    val itemType: String?,
+    val createdAt: LocalDateTime
 )
 
-data class MoveItemRequest(
-    val collectionId: String? // Nullable to remove from collection
-)
+@RestController
+@RequestMapping("/library")
+class LibraryController(
+    private val libraryService: LibraryService
+) {
 
+    @GetMapping
+    fun getLibrary(@AuthenticationPrincipal user: UserPrincipal): ResponseEntity<List<LibraryResponse>> {
+        val items = libraryService.getLibrary(user.id)
+        val response = items.map { item ->
+            LibraryResponse(
+                id = item.id,
+                userId = item.userId,
+                refId = item.targetId,
+                itemType = item.targetType,
+                createdAt = item.createdAt
+            )
+        }
+        return ResponseEntity.ok(response)
+    }
+
+    // Placeholder for collections (not implemented in service yet, but prevents 404)
+    @GetMapping("/collections")
+    fun getCollections(@AuthenticationPrincipal user: UserPrincipal): ResponseEntity<List<Any>> {
+        return ResponseEntity.ok(emptyList())
+    }
+
+    @PostMapping
+    fun addToLibrary(
+        @AuthenticationPrincipal user: UserPrincipal,
+        @RequestBody request: AddToLibraryRequest
+    ): ResponseEntity<Void> {
+        libraryService.addToLibrary(user.id, request.refId, request.itemType)
+        return ResponseEntity.ok().build()
+    }
+}

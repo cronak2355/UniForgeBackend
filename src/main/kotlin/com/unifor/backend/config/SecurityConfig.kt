@@ -75,8 +75,8 @@ class SecurityConfig(
                         "/api/assets/**",
                         "/marketplace/**",
                         "/api/marketplace/**",
-                        "/games/public",
-                        "/api/games/public"
+                        "/games/**",
+                        "/api/games/**"
                     ).permitAll()
                     // 관리자 전용 엔드포인트
                     .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")

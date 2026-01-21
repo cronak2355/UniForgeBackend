@@ -8,7 +8,8 @@ data class GameSummaryDTO(
     val description: String?,
     val thumbnailUrl: String?,
     val authorId: String,
-    val latestVersionId: Long?,
+    val latestVersionId: String?,
+    val isPublic: Boolean,
     val createdAt: String
 ) {
     companion object {
@@ -19,6 +20,7 @@ data class GameSummaryDTO(
             thumbnailUrl = game.thumbnailUrl,
             authorId = game.author.id,
             latestVersionId = game.versions.maxByOrNull { it.versionNumber }?.id,
+            isPublic = game.isPublic ?: false,
             createdAt = game.createdAt.toString()
         )
     }

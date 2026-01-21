@@ -31,6 +31,6 @@ class GlobalExceptionHandler {
     fun handleGenericException(e: Exception): ResponseEntity<ErrorResponse> {
         logger.error("Unexpected error occurred", e)
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ErrorResponse(message = "서버 오류가 발생했습니다"))
+            .body(ErrorResponse(message = "서버 오류: ${e.message}"))
     }
 }

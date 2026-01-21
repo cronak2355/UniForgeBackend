@@ -1,0 +1,603 @@
+{
+    "services": [
+        {
+            "serviceArn": "arn:aws:ecs:ap-northeast-2:859012633338:service/unifor-cluster/unifor-backend",
+            "serviceName": "unifor-backend",
+            "clusterArn": "arn:aws:ecs:ap-northeast-2:859012633338:cluster/unifor-cluster",
+            "loadBalancers": [
+                {
+                    "targetGroupArn": "arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596",
+                    "containerName": "backend",
+                    "containerPort": 8080
+                }
+            ],
+            "serviceRegistries": [],
+            "status": "ACTIVE",
+            "desiredCount": 2,
+            "runningCount": 2,
+            "pendingCount": 0,
+            "launchType": "FARGATE",
+            "platformVersion": "LATEST",
+            "platformFamily": "Linux",
+            "taskDefinition": "arn:aws:ecs:ap-northeast-2:859012633338:task-definition/unifor-backend:74",
+            "deploymentConfiguration": {
+                "deploymentCircuitBreaker": {
+                    "enable": false,
+                    "rollback": false
+                },
+                "maximumPercent": 200,
+                "minimumHealthyPercent": 100,
+                "strategy": "ROLLING",
+                "bakeTimeInMinutes": 0
+            },
+            "deployments": [
+                {
+                    "id": "ecs-svc/1876232091640481929",
+                    "status": "PRIMARY",
+                    "taskDefinition": "arn:aws:ecs:ap-northeast-2:859012633338:task-definition/unifor-backend:74",
+                    "desiredCount": 2,
+                    "pendingCount": 0,
+                    "runningCount": 2,
+                    "failedTasks": 0,
+                    "createdAt": "2026-01-16T01:47:18.078000+09:00",
+                    "updatedAt": "2026-01-16T01:50:31.389000+09:00",
+                    "launchType": "FARGATE",
+                    "platformVersion": "1.4.0",
+                    "platformFamily": "Linux",
+                    "networkConfiguration": {
+                        "awsvpcConfiguration": {
+                            "subnets": [
+                                "subnet-0aff194d464a9f15e",
+                                "subnet-0dde7be0b9232da2c"
+                            ],
+                            "securityGroups": [
+                                "sg-09bf7149618e6de8b"
+                            ],
+                            "assignPublicIp": "DISABLED"
+                        }
+                    },
+                    "rolloutState": "COMPLETED",
+                    "rolloutStateReason": "ECS deployment ecs-svc/1876232091640481929 completed."
+                }
+            ],
+            "roleArn": "arn:aws:iam::859012633338:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+            "events": [
+                {
+                    "id": "208bdfc1-cb45-4782-aa35-a908e4154ce0",
+                    "createdAt": "2026-01-16T01:50:31.399000+09:00",
+                    "message": "(service unifor-backend) has reached a steady state."
+                },
+                {
+                    "id": "c5183b4a-3bbc-42d2-a196-76f64c5f1c1a",
+                    "createdAt": "2026-01-16T01:50:31.398000+09:00",
+                    "message": "(service unifor-backend) (deployment ecs-svc/1876232091640481929) deployment completed."
+                },
+                {
+                    "id": "17918d14-d32f-4644-b8e7-387df7b967c4",
+                    "createdAt": "2026-01-16T01:49:38.644000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/4978236385465646250) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "f3d1bad9-2014-42ea-874c-459c31c7a99d",
+                    "createdAt": "2026-01-16T01:49:38.619000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "c8438bc2-787e-438f-be7f-fa82cd55732e",
+                    "createdAt": "2026-01-16T01:49:28.541000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task be1a3e139b2944da9c9a5b34f6c5db41)."
+                },
+                {
+                    "id": "7bf1bc01-995e-4341-989d-d1209ccf0811",
+                    "createdAt": "2026-01-16T01:49:17.300000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/4978236385465646250) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "79bd05ca-ac76-43a0-984f-f71e57ae2de6",
+                    "createdAt": "2026-01-16T01:49:17.276000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "8b21c12e-2eff-485e-b09f-0e49ca506e82",
+                    "createdAt": "2026-01-16T01:49:06.345000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task dae8a40ea60a4fbbaee8855aa04b26ae)."
+                },
+                {
+                    "id": "dbfe4b80-997d-49fb-9a54-3d72e41ca2e7",
+                    "createdAt": "2026-01-16T01:48:45.565000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "4b03a7c6-1b25-49b3-9b28-97b53bf25606",
+                    "createdAt": "2026-01-16T01:48:14.685000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 0e972e9d235c4782810886bc006b0a7b)."
+                },
+                {
+                    "id": "ad59828b-0d0a-4b5b-86f2-1e38b690bb50",
+                    "createdAt": "2026-01-16T01:48:14.147000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "1e0ccc66-9517-401c-ada0-b0f67a25fe8c",
+                    "createdAt": "2026-01-16T01:47:43.421000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task de9db1c1ff8545789bd0236dcb398850)."
+                },
+                {
+                    "id": "d2099fc9-ae9a-49b2-9f9c-2c4915036be3",
+                    "createdAt": "2026-01-16T01:38:35.574000+09:00",
+                    "message": "(service unifor-backend) has reached a steady state."
+                },
+                {
+                    "id": "503a2396-eca5-491b-9d2e-f38af98a2baa",
+                    "createdAt": "2026-01-16T01:38:35.573000+09:00",
+                    "message": "(service unifor-backend) (deployment ecs-svc/4978236385465646250) deployment completed."
+                },
+                {
+                    "id": "46b5313f-6878-4ce2-82b1-19215ef6b39d",
+                    "createdAt": "2026-01-16T01:37:41.371000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/1475338728158233661) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "6787bfa4-7e64-45c6-b57b-85e182b998b6",
+                    "createdAt": "2026-01-16T01:37:41.336000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "3cc50a75-65a5-45ed-927f-8d428891194e",
+                    "createdAt": "2026-01-16T01:37:31.627000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task ff113d30e7e54e7784bae2c87f19b96a)."
+                },
+                {
+                    "id": "3b0eff4c-973d-415f-84e9-046218f99800",
+                    "createdAt": "2026-01-16T01:37:00.283000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/1475338728158233661) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "61e0df0f-ba72-4f0e-be9a-2a58a89b5c5a",
+                    "createdAt": "2026-01-16T01:37:00.276000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "dad9469e-f08c-4105-9a1e-8e8e1fa758cf",
+                    "createdAt": "2026-01-16T01:36:50.278000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 87b44eef93474f1a89f3700c15973dcb)."
+                },
+                {
+                    "id": "9a41d827-c237-49dd-9a29-1697b5442136",
+                    "createdAt": "2026-01-16T01:36:38.831000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "f3535464-aa04-4a7e-9b09-ce67a9f3b590",
+                    "createdAt": "2026-01-16T01:36:07.865000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task dae8a40ea60a4fbbaee8855aa04b26ae)."
+                },
+                {
+                    "id": "9ffe16e3-acd8-4717-b8ad-cb80ce735c7a",
+                    "createdAt": "2026-01-16T01:36:07.281000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "daae09ac-88bc-41dc-9f6e-1cbbdc822122",
+                    "createdAt": "2026-01-16T01:35:36.222000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task be1a3e139b2944da9c9a5b34f6c5db41)."
+                },
+                {
+                    "id": "b489eac9-3649-4f69-8e6c-7fdcfe1a724d",
+                    "createdAt": "2026-01-15T22:21:44.510000+09:00",
+                    "message": "(service unifor-backend) has reached a steady state."
+                },
+                {
+                    "id": "4b040e1d-7df4-47ee-bb43-65e6527424d5",
+                    "createdAt": "2026-01-15T22:21:44.509000+09:00",
+                    "message": "(service unifor-backend) (deployment ecs-svc/1475338728158233661) deployment completed."
+                },
+                {
+                    "id": "01aefeb2-775f-4130-b1a2-e38d48cee849",
+                    "createdAt": "2026-01-15T22:20:41.797000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/7398087958296753481) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "357a31f9-c020-4ed3-8004-7837ef1f715c",
+                    "createdAt": "2026-01-15T22:20:41.792000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "98b441b4-7771-4e3a-802f-76b8da6494da",
+                    "createdAt": "2026-01-15T22:20:30.768000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 3abadecde3ed467dbec31bd0fbff4e97)."
+                },
+                {
+                    "id": "c6c7d851-23e9-47ac-a121-79abc5d71ad8",
+                    "createdAt": "2026-01-15T22:20:20.559000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/7398087958296753481) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "b20ad3f9-e9ed-4d02-9135-264832d8166a",
+                    "createdAt": "2026-01-15T22:20:20.553000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "67ca20ec-1f4f-4302-864b-ebb7c53c00a0",
+                    "createdAt": "2026-01-15T22:20:09.993000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 47f6e3b0a8984892bc27788cde49383d)."
+                },
+                {
+                    "id": "fb920dfd-85fc-4a43-a214-8a298a44e3af",
+                    "createdAt": "2026-01-15T22:19:18.278000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "1437e006-e5cd-43bc-9082-783cbdcdea8a",
+                    "createdAt": "2026-01-15T22:19:08.362000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task ff113d30e7e54e7784bae2c87f19b96a)."
+                },
+                {
+                    "id": "d0413589-d200-4c1c-914b-bff93482f5c8",
+                    "createdAt": "2026-01-15T22:18:47.547000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 87b44eef93474f1a89f3700c15973dcb)."
+                },
+                {
+                    "id": "6c2fd05d-e593-4ead-b274-0214ae866a35",
+                    "createdAt": "2026-01-15T21:34:06.382000+09:00",
+                    "message": "(service unifor-backend) has reached a steady state."
+                },
+                {
+                    "id": "c4ec5940-7ec0-43d4-9827-5c56a1d55b1c",
+                    "createdAt": "2026-01-15T21:34:06.381000+09:00",
+                    "message": "(service unifor-backend) (deployment ecs-svc/7398087958296753481) deployment completed."
+                },
+                {
+                    "id": "a85ce79b-50b4-44f5-8ffc-4dfc42448916",
+                    "createdAt": "2026-01-15T21:33:12.101000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/3932480642241507370) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "7d1171fe-92f8-4b9a-aa26-23be6cb48a4e",
+                    "createdAt": "2026-01-15T21:33:12.092000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "e85c0476-3089-43e1-a88d-4de0eb59258c",
+                    "createdAt": "2026-01-15T21:33:02.044000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 89c37b5a3eb24b6ab8ea482867ba8b13)."
+                },
+                {
+                    "id": "b07c8819-fad1-46fc-ba89-2128ccb9b220",
+                    "createdAt": "2026-01-15T21:32:41.946000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/3932480642241507370) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "b3ac3f2c-aba2-46c0-ba66-d04cea257ca3",
+                    "createdAt": "2026-01-15T21:32:41.940000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "57689663-100e-470c-b9e9-f251327ca78c",
+                    "createdAt": "2026-01-15T21:32:40.484000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 99307941fb66412c8db119d0d27b7604)."
+                },
+                {
+                    "id": "bbda1985-7425-4768-b420-58897475e8cc",
+                    "createdAt": "2026-01-15T21:31:48.473000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "d00cdf48-323c-4709-90ad-48fe62df5b73",
+                    "createdAt": "2026-01-15T21:31:38.736000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 3abadecde3ed467dbec31bd0fbff4e97)."
+                },
+                {
+                    "id": "d3ab00b4-f087-414f-bdef-d54124868002",
+                    "createdAt": "2026-01-15T21:31:16.703000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 47f6e3b0a8984892bc27788cde49383d)."
+                },
+                {
+                    "id": "9f989577-e944-4629-82f5-c8e1ef57e1ef",
+                    "createdAt": "2026-01-15T19:07:59.515000+09:00",
+                    "message": "(service unifor-backend) has reached a steady state."
+                },
+                {
+                    "id": "a1afb1b2-1863-43c2-a38a-919ad1a4452d",
+                    "createdAt": "2026-01-15T19:07:59.514000+09:00",
+                    "message": "(service unifor-backend) (deployment ecs-svc/3932480642241507370) deployment completed."
+                },
+                {
+                    "id": "da712f80-8b0e-4aee-8ebf-c7e2ce44b8cc",
+                    "createdAt": "2026-01-15T19:06:55.783000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/4902283415100216878) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "d6faa0fd-ec56-4923-8e92-df7ff0d4c8df",
+                    "createdAt": "2026-01-15T19:06:55.778000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "5bb64f8f-8cca-4ab5-be88-813c6a947d68",
+                    "createdAt": "2026-01-15T19:06:46.772000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task c9938ab4e8ca41c8b6055f74cb69b71a)."
+                },
+                {
+                    "id": "93f69392-c453-4efd-8946-55acb12d6f88",
+                    "createdAt": "2026-01-15T19:06:25.184000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/3996595541943710515) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "2c7789a3-d5ad-42cb-9fd2-327fff629356",
+                    "createdAt": "2026-01-15T19:06:25.178000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "e56bf5e8-f5f1-4eeb-aff3-46ce59a8b8cb",
+                    "createdAt": "2026-01-15T19:06:14.345000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 399862ac451945a5a17e01aa4d7ccae4)."
+                },
+                {
+                    "id": "6f72b340-c552-4f3d-8434-cafda14bbed8",
+                    "createdAt": "2026-01-15T19:05:53.299000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "9211832b-d913-4a75-a534-2cbabcb9b29b",
+                    "createdAt": "2026-01-15T19:05:23.542000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 89c37b5a3eb24b6ab8ea482867ba8b13)."
+                },
+                {
+                    "id": "5c23b070-bfa1-4a11-918d-a98724b73714",
+                    "createdAt": "2026-01-15T19:05:22.958000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "a44aba75-eaed-40df-b4d8-6bffc3f8e3aa",
+                    "createdAt": "2026-01-15T19:04:51.261000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 99307941fb66412c8db119d0d27b7604)."
+                },
+                {
+                    "id": "79656112-e881-4bd1-8832-d46ed81d1d3e",
+                    "createdAt": "2026-01-15T19:03:47.727000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/3996595541943710515) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "ca5a5bf3-46ef-4e5d-b558-cdbf972d5e1d",
+                    "createdAt": "2026-01-15T19:03:37.597000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "c40b5db9-55ce-46ed-9006-9a4c4675c1b8",
+                    "createdAt": "2026-01-15T19:03:36.821000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 218ec0caffe245dbb0e3ed87d09cbc6d)."
+                },
+                {
+                    "id": "4ebc6566-7ac3-45c7-99da-d9386763708b",
+                    "createdAt": "2026-01-15T19:03:36.703000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/4902283415100216878) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "3816b48d-84a2-456a-b0ec-000357ca4f2e",
+                    "createdAt": "2026-01-15T19:03:36.678000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "a60a7f26-b579-4a4c-8627-7af536ed8a8c",
+                    "createdAt": "2026-01-15T19:03:26.167000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 6fa4a4a24528496eb61007b6186c9e1c)."
+                },
+                {
+                    "id": "8608818c-8b6c-4043-953d-3d33e1e6a23a",
+                    "createdAt": "2026-01-15T19:03:05.366000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "4bb9545a-753e-4238-b9cd-4c6f6fd8e063",
+                    "createdAt": "2026-01-15T19:02:34.576000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 218ec0caffe245dbb0e3ed87d09cbc6d)."
+                },
+                {
+                    "id": "e551d218-485a-4fdd-808e-2f5b3bbeeb49",
+                    "createdAt": "2026-01-15T19:02:33.988000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "5609c416-bacd-40a5-87df-05600ac4c5d9",
+                    "createdAt": "2026-01-15T19:02:02.340000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 399862ac451945a5a17e01aa4d7ccae4)."
+                },
+                {
+                    "id": "a5252fde-f99f-4939-bcee-39fbc6f388f8",
+                    "createdAt": "2026-01-15T18:42:54.997000+09:00",
+                    "message": "(service unifor-backend) has reached a steady state."
+                },
+                {
+                    "id": "ab4f0dc1-016b-4aa5-9dee-adf6b25bead8",
+                    "createdAt": "2026-01-15T18:42:54.996000+09:00",
+                    "message": "(service unifor-backend) (deployment ecs-svc/4902283415100216878) deployment completed."
+                },
+                {
+                    "id": "8aa2bcd3-1ef7-472f-b27c-852100542012",
+                    "createdAt": "2026-01-15T18:42:01.645000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/9382626136701539491) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "1ef270f5-f921-4fc9-a4bd-dd8795909a35",
+                    "createdAt": "2026-01-15T18:42:01.633000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "f3cfdafe-dc4f-4b71-9239-3c75d95c99d2",
+                    "createdAt": "2026-01-15T18:41:51.893000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 1a510e9229c9491d939010ee3dd1ecce)."
+                },
+                {
+                    "id": "e4aeffa8-6382-4044-819b-fe7aa5572500",
+                    "createdAt": "2026-01-15T18:41:30.021000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/9382626136701539491) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "ed940c91-ce2c-41da-a027-44d73dd6e94b",
+                    "createdAt": "2026-01-15T18:41:30.016000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "1453b07b-fdda-4c11-b8df-4a56c1b09247",
+                    "createdAt": "2026-01-15T18:41:19.336000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task a2ff2d03fa0543de9440adf1efa1a65c)."
+                },
+                {
+                    "id": "7827244b-2692-4ef4-9078-a4e1d8522dd4",
+                    "createdAt": "2026-01-15T18:41:09.226000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "67838845-9218-4fb4-9358-1b5f85cedd19",
+                    "createdAt": "2026-01-15T18:40:37.653000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 6fa4a4a24528496eb61007b6186c9e1c)."
+                },
+                {
+                    "id": "00736a26-00e5-4bc5-a898-32c97f8ad195",
+                    "createdAt": "2026-01-15T18:40:27.837000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "06caa78b-7e88-4604-ac5b-7eae7eb6efbf",
+                    "createdAt": "2026-01-15T18:40:05.257000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task c9938ab4e8ca41c8b6055f74cb69b71a)."
+                },
+                {
+                    "id": "d0871c73-1ee3-4ac7-8e13-5603727dc0c9",
+                    "createdAt": "2026-01-15T18:39:01.700000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/5807019412129384068) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "11cc9232-9f55-4a8b-8436-a82e4b2d8861",
+                    "createdAt": "2026-01-15T18:39:01.695000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "915d6375-5415-4e85-8071-d3d06e750c12",
+                    "createdAt": "2026-01-15T18:38:51.198000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task e10965ed6ff243eaa0f794fd02a57477)."
+                },
+                {
+                    "id": "5de22c9d-d968-464c-93a7-6714be6c8688",
+                    "createdAt": "2026-01-15T18:38:42.121000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/5807019412129384068) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "833d1252-bb35-4147-a4d7-6e10153e8383",
+                    "createdAt": "2026-01-15T18:38:42.116000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "2d8a1fa0-3106-4357-b86f-246ea68ca841",
+                    "createdAt": "2026-01-15T18:38:40.407000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task dd2ccfa99d59436293dae177cfef4a58)."
+                },
+                {
+                    "id": "2a9a2918-c16f-40bc-835f-148900c4c803",
+                    "createdAt": "2026-01-15T18:37:48.755000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "6ff26562-3853-4dbb-b151-7f404e1f8926",
+                    "createdAt": "2026-01-15T18:37:38.908000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task a2ff2d03fa0543de9440adf1efa1a65c)."
+                },
+                {
+                    "id": "876e7a5a-38bf-40bd-a8d6-37dbd5e8b1ca",
+                    "createdAt": "2026-01-15T18:37:17.404000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task 1a510e9229c9491d939010ee3dd1ecce)."
+                },
+                {
+                    "id": "c7b72938-6ab5-4db7-b118-f69a289c1aee",
+                    "createdAt": "2026-01-15T18:10:14.895000+09:00",
+                    "message": "(service unifor-backend) has reached a steady state."
+                },
+                {
+                    "id": "ef6251ea-be6c-4c7b-ba4f-8d5dadd91ebb",
+                    "createdAt": "2026-01-15T18:10:14.894000+09:00",
+                    "message": "(service unifor-backend) (deployment ecs-svc/5807019412129384068) deployment completed."
+                },
+                {
+                    "id": "1dfb176a-ce0f-4e97-a33e-fc390a65db5a",
+                    "createdAt": "2026-01-15T18:09:12.306000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/6826151513491651540) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "2fd0989a-094f-40ee-b58a-1971d4b2ae33",
+                    "createdAt": "2026-01-15T18:09:12.299000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "62184e90-6c92-480f-ac87-b9ed77c3b722",
+                    "createdAt": "2026-01-15T18:09:02.053000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task 410b78db5f3f4192afa47f4a9a7a43c5)."
+                },
+                {
+                    "id": "75209102-956c-4948-8f21-586f80eb8afd",
+                    "createdAt": "2026-01-15T18:08:09.128000+09:00",
+                    "message": "(service unifor-backend, taskSet ecs-svc/6786510919099392009) has begun draining connections on 1 tasks."
+                },
+                {
+                    "id": "652e1bf8-1e52-4766-bd62-eb1f9158e5ed",
+                    "createdAt": "2026-01-15T18:08:09.122000+09:00",
+                    "message": "(service unifor-backend) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "e0f00139-f8ca-4162-8d5b-0bf5ce3cfdd7",
+                    "createdAt": "2026-01-15T18:08:09.057000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                },
+                {
+                    "id": "d28b0d1c-8999-467a-a53b-2f4213b17f34",
+                    "createdAt": "2026-01-15T18:07:58.596000+09:00",
+                    "message": "(service unifor-backend) has stopped 1 running tasks: (task c9eeaad8bf074fe7aabfb2b0f57b73ee)."
+                },
+                {
+                    "id": "53dda81a-d211-4517-bec9-439997ec3c30",
+                    "createdAt": "2026-01-15T18:07:39.304000+09:00",
+                    "message": "(service unifor-backend) has started 1 tasks: (task e10965ed6ff243eaa0f794fd02a57477)."
+                },
+                {
+                    "id": "148dd362-6af8-4b5d-935f-58a658eb360c",
+                    "createdAt": "2026-01-15T18:07:05.655000+09:00",
+                    "message": "(service unifor-backend) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-northeast-2:859012633338:targetgroup/h120251224163100359500000007/44e1acb736955596)"
+                }
+            ],
+            "createdAt": "2025-12-25T00:26:24.408000+09:00",
+            "currentServiceRevisions": [
+                {
+                    "arn": "arn:aws:ecs:ap-northeast-2:859012633338:service-revision/unifor-cluster/unifor-backend/1876232091640481929",
+                    "requestedTaskCount": 2,
+                    "runningTaskCount": 2,
+                    "pendingTaskCount": 0
+                }
+            ],
+            "placementConstraints": [],
+            "placementStrategy": [],
+            "networkConfiguration": {
+                "awsvpcConfiguration": {
+                    "subnets": [
+                        "subnet-0aff194d464a9f15e",
+                        "subnet-0dde7be0b9232da2c"
+                    ],
+                    "securityGroups": [
+                        "sg-09bf7149618e6de8b"
+                    ],
+                    "assignPublicIp": "DISABLED"
+                }
+            },
+            "healthCheckGracePeriodSeconds": 180,
+            "schedulingStrategy": "REPLICA",
+            "deploymentController": {
+                "type": "ECS"
+            },
+            "createdBy": "arn:aws:iam::859012633338:user/HYO",
+            "enableECSManagedTags": false,
+            "propagateTags": "NONE",
+            "enableExecuteCommand": false,
+            "availabilityZoneRebalancing": "ENABLED",
+            "resourceManagementType": "CUSTOMER"
+        }
+    ],
+    "failures": []
+}

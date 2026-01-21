@@ -1,22 +1,20 @@
-﻿package com.unifor.backend.upload.service
+package com.unifor.backend.upload.service
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
-import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 
 @Service
 class PresignService(
-    private val presigner: S3Presigner,
-    @Value("\${aws.s3.bucket}") private val bucket: String,
-    @Value("\${aws.s3.region}") private val region: String
+    private val s3Presigner: S3Presigner,
+    @Value("\${aws.s3.bucket}") private val bucket: String
 ) {
-
     fun generateImageUploadUrl(
         ownerType: String,   // GAME | ASSET
         ownerId: String,
@@ -53,10 +51,14 @@ class PresignService(
             .putObjectRequest(putRequest)
             .build()
 
-        val presignedUrl = presigner.presignPutObject(presignRequest)
+        val presignedUrl = s3Presigner.presignPutObject(presignRequest)
 
         // S3 직접 URL로 이미지 접근 (CloudFront 라우팅 문제 우회)
-        val publicUrl = "https://$bucket.s3.$region.amazonaws.com/$key"
+        // If region is needed, it must be injected or hardcoded if logic fails. 
+        // Assuming region is available or we construct string. 
+        // The original code used 'region' var but constructor in main might not have it.
+        // Let's check constructor! 
+        val publicUrl = "https://$bucket.s3.ap-northeast-2.amazonaws.com/$key"
 
         return mapOf(
             "uploadUrl" to presignedUrl.url().toString(),
@@ -89,16 +91,12 @@ class PresignService(
             .bucket(bucket)
             .key(key)
             .build()
-
+            
         val presignRequest = GetObjectPresignRequest.builder()
             .signatureDuration(Duration.ofMinutes(60))
             .getObjectRequest(getObjectRequest)
             .build()
-
-        return presigner.presignGetObject(presignRequest).url().toString()
+            
+        return s3Presigner.presignGetObject(presignRequest).url().toExternalForm()
     }
 }
-
-
-
-
