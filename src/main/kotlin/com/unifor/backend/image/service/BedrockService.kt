@@ -9,11 +9,15 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.slf4j.LoggerFactory
 import java.util.Base64
 import org.springframework.beans.factory.annotation.Value
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 @Service
 class BedrockService(
     @Value("\${aws.bedrock.region:us-east-1}") private val region: String,
-    private val translationService: TranslationService // Injected
+    private val translationService: TranslationService
 ) {
     private val logger = LoggerFactory.getLogger(BedrockService::class.java)
     private val objectMapper = jacksonObjectMapper()
@@ -116,8 +120,7 @@ class BedrockService(
     }
 
     fun generateAnimationSheet(prompt: String, base64Image: String, seed: Long? = null): String {
-        // Switch to Amazon Titan Image Generator v1 (Native AWS Model)
-        // Supports On-Demand Throughput explicitly.
+        // Amazon Titan Image Generator v1
         val modelId = "amazon.titan-image-generator-v1"
         
         // Translate prompt
@@ -125,8 +128,8 @@ class BedrockService(
         logger.info("[BedrockService] Animation Prompt (Titan): $prompt -> $translatedPrompt")
 
         // Construct Payload for Titan Image Variation
-        // Titan Image G1 uses "IMAGE_VARIATION" task type for i2i-like behavior
-        val finalPrompt = "sprite sheet, 4 frames sequence, consecutive action, side view, white background, $translatedPrompt"
+        // We request 4 variations to create a 4-frame sprite sheet
+        val finalPrompt = "sprite sheet, character action sequence, side view, white background, $translatedPrompt"
         
         val payload = mapOf(
             "taskType" to "IMAGE_VARIATION",
@@ -135,7 +138,7 @@ class BedrockService(
                 "images" to listOf(base64Image)
             ),
             "imageGenerationConfig" to mapOf(
-                "numberOfImages" to 1,
+                "numberOfImages" to 4, // Generate 4 frames
                 "height" to 512,
                 "width" to 512,
                 "cfgScale" to 8.0,
@@ -157,9 +160,30 @@ class BedrockService(
             val responseBody = response.body().asUtf8String()
             val responseJson = objectMapper.readTree(responseBody)
             
-            // Titan returns { "images": [ "base64..." ] }
             if (responseJson.has("images")) {
-                return responseJson.get("images").get(0).asText()
+                val imagesNode = responseJson.get("images")
+                if (imagesNode.size() == 4) {
+                    // Stitch 4 images horizontally
+                    val stitchedImage = BufferedImage(2048, 512, BufferedImage.TYPE_INT_ARGB)
+                    val g = stitchedImage.createGraphics()
+                    
+                    for (i in 0 until 4) {
+                        val base64Frame = imagesNode.get(i).asText()
+                        val frameBytes = Base64.getDecoder().decode(base64Frame)
+                        val frameImg = ImageIO.read(ByteArrayInputStream(frameBytes))
+                        g.drawImage(frameImg, i * 512, 0, null)
+                    }
+                    g.dispose()
+                    
+                    // Convert back to Base64
+                    val os = ByteArrayOutputStream()
+                    ImageIO.write(stitchedImage, "png", os)
+                    return Base64.getEncoder().encodeToString(os.toByteArray())
+                    
+                } else {
+                    // Fallback if less than 4 images
+                     return imagesNode.get(0).asText()
+                }
             } else {
                 throw RuntimeException("Titan response missing 'images' field: $responseBody")
             }
