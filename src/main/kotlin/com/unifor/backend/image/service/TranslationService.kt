@@ -73,6 +73,7 @@ class TranslationService(
 
         } catch (e: Exception) {
             logger.error("Bedrock Translation failed: ${e.message}", e)
+            logger.warn("Falling back to original text: $text")
             return text // Fallback to original
         }
     }
