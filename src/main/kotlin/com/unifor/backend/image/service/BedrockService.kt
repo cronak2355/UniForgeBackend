@@ -76,7 +76,8 @@ class BedrockService(
     }
 
     fun removeBackground(base64Image: String): String {
-        // Re-enabled: Amazon Nova Canvas for Background Removal
+        // Attempt Nova Canvas for Background Removal
+        // If it fails (e.g. model unavailable or 500), return original image to trigger frontend fallback
         val modelId = "amazon.nova-canvas-v1:0"
         
         val payload = mapOf(
@@ -99,25 +100,24 @@ class BedrockService(
             val response = client.invokeModel(request)
             val responseBody = response.body().asUtf8String()
             
-            // Expecting JSON response with "image" field containing base64
             val responseJson = objectMapper.readTree(responseBody)
             
             if (responseJson.has("image")) {
                 return responseJson.get("image").asText()
             } else {
-                 logger.warn("Unexpected Nova Canvas response format: ${responseBody.take(100)}...")
+                 logger.warn("Nova Canvas returned unexpected format. Returning original image.")
                  return base64Image
             }
 
         } catch (e: Exception) {
-            logger.error("Bedrock background removal failed", e)
-            throw RuntimeException("Background removal failed", e)
+            logger.warn("Bedrock background removal failed (Model: $modelId): ${e.message}. Returning original image for frontend fallback.")
+            return base64Image
         }
     }
 
     fun generateAnimationSheet(prompt: String, base64Image: String, seed: Long? = null): String {
-        // Switch to SDXL 1.0 for reliable Image-to-Image support
-        val modelId = "stability.stable-diffusion-xl-v1"
+        // Use specific version tag for SDXL to avoid EOL error
+        val modelId = "stability.stable-diffusion-xl-v1:0"
         
         // Translate prompt
         val translatedPrompt = translationService.translate(prompt)
