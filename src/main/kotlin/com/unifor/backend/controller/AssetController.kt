@@ -206,6 +206,22 @@ class AssetController(
         return ResponseEntity.ok(savedVersion)
     }
 
+    @PatchMapping("/versions/{versionId}")
+    fun patchVersion(
+        @PathVariable versionId: String,
+        @RequestBody request: UpdateVersionRequest
+    ): ResponseEntity<AssetVersion> {
+        val version = assetVersionRepository.findById(versionId)
+            .orElseThrow { RuntimeException("Version not found: $versionId") }
+        
+        if (request.s3RootPath != null) {
+            version.s3RootPath = request.s3RootPath
+        }
+        
+        val savedVersion = assetVersionRepository.save(version)
+        return ResponseEntity.ok(savedVersion)
+    }
+
     @GetMapping("/{assetId}/versions/{versionId}/upload-url")
     fun getUploadUrl(
         @PathVariable assetId: String,
@@ -332,6 +348,10 @@ data class UpdateAssetRequest(
 )
 
 data class CreateVersionRequest(
+    val s3RootPath: String? = null
+)
+
+data class UpdateVersionRequest(
     val s3RootPath: String? = null
 )
 

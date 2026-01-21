@@ -18,7 +18,7 @@ data class AssetVersion(
     val version: String? = "1.0.0",
 
     @Column(length = 255)
-    val s3RootPath: String? = null,
+    var s3RootPath: String? = null,
 
     @Column(nullable = true)
     var status: String? = "DRAFT", // DRAFT, PUBLISHED
