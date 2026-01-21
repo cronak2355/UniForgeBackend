@@ -31,6 +31,9 @@ class BedrockService(
         // Use AWS Translate service for full translation capability
         val translatedPrompt = translationService.translate(prompt)
         
+        logger.info("[BedrockService] Input Prompt: $prompt")
+        logger.info("[BedrockService] Translated Prompt: $translatedPrompt")
+        
         // Stable Image Ultra / SD3 Payload
         val payload = mapOf(
             "prompt" to "pixel art style, full body, head to toe, standing pose, solo, single isolated subject, centered, $translatedPrompt",
