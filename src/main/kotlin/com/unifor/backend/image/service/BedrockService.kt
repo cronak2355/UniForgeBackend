@@ -65,56 +65,58 @@ class BedrockService(
     }
 
     /**
-     * Generate 4 animation frames as separate images.
-     * Frontend will stitch them together.
+     * Generate 4 animation frames using Stable Image Ultra.
+     * Creates walking animation with different action prompts.
      */
     fun generateAnimationSheet(prompt: String, base64Image: String, seed: Long? = null): List<String> {
-        val modelId = "amazon.titan-image-generator-v1"
+        // Use same working model as image generation
+        val modelId = "stability.stable-image-ultra-v1:1"
         val translatedPrompt = translationService.translate(prompt)
         
         logger.info("[BedrockService] Animation: $prompt -> $translatedPrompt")
 
-        val payload = mapOf(
-            "taskType" to "IMAGE_VARIATION",
-            "imageVariationParams" to mapOf(
-                "text" to "character action sequence, side view, white background, $translatedPrompt",
-                "images" to listOf(base64Image)
-            ),
-            "imageGenerationConfig" to mapOf(
-                "numberOfImages" to 4,
-                "height" to 512,
-                "width" to 512,
-                "cfgScale" to 8.0,
-                "seed" to (seed ?: (0..2147483647).random())
-            )
+        // Define 4 frames for walking animation
+        val framePoses = listOf(
+            "standing pose, left foot forward, arms at sides",
+            "walking pose, right leg forward, left arm forward",
+            "standing pose, right foot forward, arms at sides", 
+            "walking pose, left leg forward, right arm forward"
         )
+        
+        val baseSeed = seed ?: (0..2147483647).random().toLong()
+        val imageList = mutableListOf<String>()
 
-        try {
-            val request = InvokeModelRequest.builder()
-                .modelId(modelId)
-                .contentType("application/json")
-                .accept("application/json")
-                .body(software.amazon.awssdk.core.SdkBytes.fromUtf8String(objectMapper.writeValueAsString(payload)))
-                .build()
+        for ((index, pose) in framePoses.withIndex()) {
+            val payload = mapOf(
+                "prompt" to "pixel art style, side view, $pose, white background, $translatedPrompt",
+                "negative_prompt" to "text, watermark, low quality, multiple characters, complex background",
+                "mode" to "text-to-image",
+                "aspect_ratio" to "1:1",
+                "output_format" to "png",
+                "seed" to (baseSeed + index)
+            )
 
-            val response = client.invokeModel(request)
-            val responseJson = objectMapper.readTree(response.body().asUtf8String())
-            
-            if (responseJson.has("images")) {
-                val imageList = mutableListOf<String>()
-                val imagesNode = responseJson.get("images")
-                for (i in 0 until imagesNode.size()) {
-                    imageList.add(imagesNode.get(i).asText())
-                }
-                return imageList
-            } else {
-                throw RuntimeException("Titan response missing 'images' field")
+            try {
+                val request = InvokeModelRequest.builder()
+                    .modelId(modelId)
+                    .contentType("application/json")
+                    .accept("application/json")
+                    .body(software.amazon.awssdk.core.SdkBytes.fromUtf8String(objectMapper.writeValueAsString(payload)))
+                    .build()
+
+                val response = client.invokeModel(request)
+                val responseJson = objectMapper.readTree(response.body().asUtf8String())
+                imageList.add(responseJson.get("images").get(0).asText())
+                
+                logger.info("[BedrockService] Frame ${index + 1}/4 generated")
+
+            } catch (e: Exception) {
+                logger.error("Animation frame $index failed", e)
+                throw RuntimeException("Animation generation failed at frame ${index + 1}: ${e.message}")
             }
-
-        } catch (e: Exception) {
-            logger.error("Animation generation failed", e)
-            throw RuntimeException("Animation generation failed: ${e.message}")
         }
+
+        return imageList
     }
 }
 
