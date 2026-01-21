@@ -87,9 +87,9 @@ class AiController(
         val seed = (request["seed"] as? Number)?.toLong()
 
         return try {
-            val resultImage = bedrockService.generateAnimationSheet(prompt, image, seed)
+            val resultImages = bedrockService.generateAnimationSheet(prompt, image, seed)
             ResponseEntity.ok(mapOf(
-                "image" to resultImage,
+                "images" to resultImages,  // Changed: array of 4 images for frontend stitching
                 "seed" to (seed ?: 0)
             ))
         } catch (e: Exception) {

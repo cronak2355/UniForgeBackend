@@ -1,8 +1,7 @@
 # Dockerfile for optimized deployment
 # Assumes build/libs/*.jar exists (built by CI pipeline)
 
-# Switch to Debian-based image to support java.awt (BufferedImage) without extra config
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
