@@ -116,34 +116,31 @@ class BedrockService(
     }
 
     fun generateAnimationSheet(prompt: String, base64Image: String, seed: Long? = null): String {
-        // Use specific version tag for SDXL to avoid EOL error
-        val modelId = "stability.stable-diffusion-xl-v1:0"
+        // Switch to Amazon Titan Image Generator v1 (Native AWS Model)
+        // Supports On-Demand Throughput explicitly.
+        val modelId = "amazon.titan-image-generator-v1"
         
         // Translate prompt
         val translatedPrompt = translationService.translate(prompt)
-        logger.info("[BedrockService] Animation Prompt: $prompt -> $translatedPrompt")
+        logger.info("[BedrockService] Animation Prompt (Titan): $prompt -> $translatedPrompt")
 
-        // Construct Payload for SDXL Image-to-Image
-        val finalPrompt = "sprite sheet, 4 frames sequence, consecutive action, side view, same character, white background, simple background, $translatedPrompt"
+        // Construct Payload for Titan Image Variation
+        // Titan Image G1 uses "IMAGE_VARIATION" task type for i2i-like behavior
+        val finalPrompt = "sprite sheet, 4 frames sequence, consecutive action, side view, white background, $translatedPrompt"
         
         val payload = mapOf(
-            "text_prompts" to listOf(
-                mapOf("text" to finalPrompt, "weight" to 1.0),
-                mapOf("text" to "text, watermark, low quality, detailed background, complex background, blurry, distorted", "weight" to -1.0)
+            "taskType" to "IMAGE_VARIATION",
+            "imageVariationParams" to mapOf(
+                "text" to finalPrompt,
+                "images" to listOf(base64Image)
             ),
-            "init_image" to base64Image,
-            "cfg_scale" to 10,
-            "steps" to 30,
-            "style_preset" to "pixel-art", // SDXL supports style presets
-            "image_strength" to 0.35, // Lower means more influence from init_image (0.35 is good for keeping shape but animating) - check SDXL docs 
-            // NOTE: Bedrock SDXL init_image_strength: 0.0 to 1.0. 
-            // But wait, for SDXL, 'image_strength' controls how much to change? 
-            // usually strength 0.3 means 30% change? Or 30% original?
-            // "image_strength" (float) – The proportion of the generation that is based on the initial image. 
-            // 0.0 to 1.0. A value closer to 1.0 creates an image that is more similar to the initial image.
-            // So we want high similarity? No, we want animation.
-            // Let's try 0.6
-            "seed" to (seed ?: (0..2147483647).random())
+            "imageGenerationConfig" to mapOf(
+                "numberOfImages" to 1,
+                "height" to 512,
+                "width" to 512,
+                "cfgScale" to 8.0,
+                "seed" to (seed ?: (0..2147483647).random())
+            )
         )
 
         val jsonBody = objectMapper.writeValueAsString(payload)
@@ -160,8 +157,12 @@ class BedrockService(
             val responseBody = response.body().asUtf8String()
             val responseJson = objectMapper.readTree(responseBody)
             
-            // SDXL returns { "artifacts": [ { "base64": "..." } ] }
-            return responseJson.get("artifacts").get(0).get("base64").asText()
+            // Titan returns { "images": [ "base64..." ] }
+            if (responseJson.has("images")) {
+                return responseJson.get("images").get(0).asText()
+            } else {
+                throw RuntimeException("Titan response missing 'images' field: $responseBody")
+            }
 
         } catch (e: Exception) {
             logger.error("Bedrock animation generation failed", e)
