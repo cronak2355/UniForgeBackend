@@ -12,7 +12,8 @@ import org.springframework.beans.factory.annotation.Value
 
 @Service
 class BedrockService(
-    @Value("\${aws.bedrock.region:us-east-1}") private val region: String
+    @Value("\${aws.bedrock.region:us-east-1}") private val region: String,
+    private val translationService: TranslationService // Injected
 ) {
     private val logger = LoggerFactory.getLogger(BedrockService::class.java)
     private val objectMapper = jacksonObjectMapper()
@@ -22,32 +23,13 @@ class BedrockService(
             .build()
     }
 
-    private val translationMap = mapOf(
-        "해골기사" to "Skeleton Knight",
-        "픽셀 아트" to "pixel art",
-        "호러" to "horror",
-        "웅장한" to "epic, grand",
-        "기사" to "knight",
-        "전사" to "warrior",
-        "마법사" to "mage",
-        "몬스터" to "monster",
-        "배경 제거" to "background removal"
-    )
-
-    private fun translatePrompt(prompt: String): String {
-        var translated = prompt
-        translationMap.forEach { (ko, en) ->
-            translated = translated.replace(ko, en)
-        }
-        return translated
-    }
-
     fun generateImage(prompt: String, seed: Long? = null, width: Int = 512, height: Int = 512): String {
         // Upgrade to Stable Image Ultra (SD3.5 Large) in Oregon (us-west-2)
         // High quality pixel art generation model
         val modelId = "stability.stable-image-ultra-v1:1"
         
-        val translatedPrompt = translatePrompt(prompt)
+        // Use AWS Translate service for full translation capability
+        val translatedPrompt = translationService.translate(prompt)
         
         // Stable Image Ultra / SD3 Payload
         val payload = mapOf(
