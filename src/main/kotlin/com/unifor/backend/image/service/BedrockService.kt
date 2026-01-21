@@ -28,7 +28,7 @@ class BedrockService(
         logger.info("[BedrockService] Input: $prompt -> Translated: $translatedPrompt")
         
         val payload = mapOf(
-            "prompt" to "pixel art style, full body, head to toe, standing pose, solo, single isolated subject, centered, white background, simple background, $translatedPrompt",
+            "prompt" to "$translatedPrompt, pixel art style, full body, head to toe, standing pose, solo, single isolated subject, centered, white background, simple background",
             "negative_prompt" to "text, watermark, low quality, cropped, worst quality, detailed background, complex background, noise, dithering, shadow, drop shadow, contact shadow, cast shadow, floor, ground, reflection, standing on something",
             "mode" to "text-to-image",
             "aspect_ratio" to "2:3",
@@ -85,7 +85,7 @@ class BedrockService(
 
         for ((index, frameDesc) in frameDescriptions.withIndex()) {
             val payload = mapOf(
-                "prompt" to "pixel art style, side view, solo, single character, white background, $frameDesc",
+                "prompt" to "$frameDesc, pixel art style, side view, solo, single character, white background",
                 "negative_prompt" to "text, watermark, low quality, multiple characters, complex background, shadow, drop shadow, contact shadow, cast shadow, floor, ground, reflection, standing on something",
                 "mode" to "text-to-image",
                 "aspect_ratio" to "1:1",
