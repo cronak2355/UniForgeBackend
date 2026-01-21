@@ -65,28 +65,27 @@ class BedrockService(
     }
 
     /**
-     * Generate 4 animation frames using Stable Image Ultra.
-     * Creates walking animation with different action prompts.
+     * Generate 2 animation frames using Stable Image Ultra.
+     * Uses user's prompt for the action description.
      */
     fun generateAnimationSheet(prompt: String, base64Image: String, seed: Long? = null): List<String> {
-        // Use same working model as image generation
         val modelId = "stability.stable-image-ultra-v1:1"
         val translatedPrompt = translationService.translate(prompt)
         
         logger.info("[BedrockService] Animation: $prompt -> $translatedPrompt")
 
-        // Define 2 frames for animation (reduced to avoid CloudFront timeout)
-        val framePoses = listOf(
-            "standing pose, arms at sides",
-            "walking pose, leg forward, arm swinging"
+        // Use user's action prompt with frame variations
+        val frameDescriptions = listOf(
+            "frame 1 of animation, $translatedPrompt, pose A",
+            "frame 2 of animation, $translatedPrompt, pose B"
         )
         
         val baseSeed = seed ?: (0..2147483647).random().toLong()
         val imageList = mutableListOf<String>()
 
-        for ((index, pose) in framePoses.withIndex()) {
+        for ((index, frameDesc) in frameDescriptions.withIndex()) {
             val payload = mapOf(
-                "prompt" to "pixel art style, side view, $pose, white background, $translatedPrompt",
+                "prompt" to "pixel art style, side view, solo, single character, white background, $frameDesc",
                 "negative_prompt" to "text, watermark, low quality, multiple characters, complex background",
                 "mode" to "text-to-image",
                 "aspect_ratio" to "1:1",
