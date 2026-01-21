@@ -35,19 +35,28 @@ class TranslationService(
         val modelId = "anthropic.claude-3-haiku-20240307-v1:0"
 
         try {
-            val systemPrompt = "You are a specialized prompt translator for an AI image generator. Your task is to extract the visual description from the user's input and translate it into English keywords or phrases. 1. Ignore conversational fillers, polite requests, or commands (e.g., 'draw this', 'please', 'make a'). 2. Focus ONLY on the visual elements (subject, appearance, items, colors). 3. Output ONLY the translated English description. No introductory text."
+            // Combine instruction and text into a single user message for maximum compatibility
+            val fullPrompt = """
+                You are a specialized prompt translator for an AI image generator. 
+                Task: Extract the visual description from the user's input and translate it into English keywords.
+                Rules:
+                1. Ignore conversational fillers (e.g., 'draw this', 'please').
+                2. Focus ONLY on visual elements (subject, appearance, items, colors).
+                3. Output ONLY the translated English description. No intro.
+
+                Input Text: $text
+            """.trimIndent()
             
             val payload = mapOf(
                 "anthropic_version" to "bedrock-2023-05-31",
                 "max_tokens" to 500,
-                "system" to systemPrompt,
                 "messages" to listOf(
                     mapOf(
                         "role" to "user",
                         "content" to listOf(
                             mapOf(
                                 "type" to "text",
-                                "text" to text
+                                "text" to fullPrompt
                             )
                         )
                     )
