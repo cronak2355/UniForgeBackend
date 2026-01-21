@@ -35,18 +35,19 @@ class TranslationService(
         val modelId = "anthropic.claude-3-haiku-20240307-v1:0"
 
         try {
-            val prompt = "Translate the following text to English. Output ONLY the translated text, no introductory words.\n\nText: $text"
+            val systemPrompt = "You are a professional translator. Translate the text provided by the user to English. Output ONLY the translated text, no introductory words, no explanations, no quotes."
             
             val payload = mapOf(
                 "anthropic_version" to "bedrock-2023-05-31",
-                "max_tokens" to 200,
+                "max_tokens" to 500,
+                "system" to systemPrompt,
                 "messages" to listOf(
                     mapOf(
                         "role" to "user",
                         "content" to listOf(
                             mapOf(
                                 "type" to "text",
-                                "text" to prompt
+                                "text" to text
                             )
                         )
                     )
