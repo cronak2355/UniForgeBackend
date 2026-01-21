@@ -24,18 +24,23 @@ class PresignService(
         contentType: String
     ): Map<String, String> {
 
-        if (!contentType.startsWith("image/")) {
-            throw IllegalArgumentException("Only image uploads are allowed")
+        if (!contentType.startsWith("image/") && !contentType.startsWith("audio/")) {
+            throw IllegalArgumentException("Only image or audio uploads are allowed")
         }
 
         val extension = when (contentType) {
             "image/png" -> "png"
             "image/jpeg" -> "jpg"
             "image/webp" -> "webp"
-            else -> throw IllegalArgumentException("Unsupported image type")
+            "audio/mpeg" -> "mp3"
+            "audio/wav" -> "wav"
+            "audio/ogg" -> "ogg"
+            "audio/x-m4a" -> "m4a"
+            else -> throw IllegalArgumentException("Unsupported file type")
         }
 
-        val key = buildKey(ownerType, ownerId, imageType, extension)
+        val folder = if (contentType.startsWith("audio/")) "sounds" else "images"
+        val key = buildKey(ownerType, ownerId, imageType, extension, folder)
 
         val putRequest = PutObjectRequest.builder()
             .bucket(bucket)
@@ -64,15 +69,16 @@ class PresignService(
         ownerType: String,
         ownerId: String,
         imageType: String,
-        extension: String
+        extension: String,
+        folder: String = "images" 
     ): String {
         val uuid = UUID.randomUUID().toString()
 
         return when (ownerType) {
             "GAME" ->
-                "games/$ownerId/images/$imageType-$uuid.$extension"
+                "games/$ownerId/$folder/$imageType-$uuid.$extension"
             "ASSET" ->
-                "assets/$ownerId/images/$imageType-$uuid.$extension"
+                "assets/$ownerId/$folder/$imageType-$uuid.$extension"
             else ->
                 throw IllegalArgumentException("Invalid ownerType")
         }
