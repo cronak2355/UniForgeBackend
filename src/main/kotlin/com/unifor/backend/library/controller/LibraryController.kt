@@ -1,6 +1,5 @@
 package com.unifor.backend.library.controller
 
-import com.unifor.backend.library.entity.LibraryItem
 import com.unifor.backend.library.service.LibraryService
 import com.unifor.backend.security.UserPrincipal
 import org.springframework.http.ResponseEntity
@@ -13,12 +12,22 @@ data class AddToLibraryRequest(
     val itemType: String
 )
 
+data class LibraryAssetInfo(
+    val id: String,
+    val name: String?,
+    val imageUrl: String?,
+    val assetType: String?,
+    val authorId: String?,
+    val authorName: String?
+)
+
 data class LibraryResponse(
     val id: String,
     val userId: String,
     val refId: String?,
     val itemType: String?,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    val asset: LibraryAssetInfo?
 )
 
 @RestController
@@ -29,14 +38,25 @@ class LibraryController(
 
     @GetMapping
     fun getLibrary(@AuthenticationPrincipal user: UserPrincipal): ResponseEntity<List<LibraryResponse>> {
-        val items = libraryService.getLibrary(user.id)
-        val response = items.map { item ->
+        val itemsWithDetails = libraryService.getLibraryWithDetails(user.id)
+        val response = itemsWithDetails.map { itemWithAsset ->
+            val item = itemWithAsset.item
             LibraryResponse(
                 id = item.id,
                 userId = item.userId,
                 refId = item.targetId,
                 itemType = item.targetType,
-                createdAt = item.createdAt
+                createdAt = item.createdAt,
+                asset = if (item.targetType == "ASSET" && item.targetId != null) {
+                    LibraryAssetInfo(
+                        id = item.targetId,
+                        name = itemWithAsset.assetName,
+                        imageUrl = itemWithAsset.assetImageUrl,
+                        assetType = itemWithAsset.assetType,
+                        authorId = itemWithAsset.authorId,
+                        authorName = itemWithAsset.authorName
+                    )
+                } else null
             )
         }
         return ResponseEntity.ok(response)
