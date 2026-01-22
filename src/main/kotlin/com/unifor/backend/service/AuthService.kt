@@ -34,7 +34,7 @@ class AuthService(
         )
         
         // JWT 토큰 생성
-        val token = jwtTokenProvider.generateToken(user.id, user.email)
+        val token = jwtTokenProvider.generateToken(user.id, user.email, user.role.name)
         
         return AuthResponse(
             token = token,
@@ -45,7 +45,7 @@ class AuthService(
     fun login(request: LoginRequest): AuthResponse {
         // 사용자 조회
         val user = userRepository.findByEmail(request.email)
-            .orElseThrow { IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다") }
+            ?: throw IllegalArgumentException("이메일 또는 비밀번호가 올바르지 않습니다")
         
         // 비밀번호 확인
         if (user.password == null || !passwordEncoder.matches(request.password, user.password)) {
@@ -58,7 +58,7 @@ class AuthService(
         }
         
         // JWT 토큰 생성
-        val token = jwtTokenProvider.generateToken(user.id, user.email)
+        val token = jwtTokenProvider.generateToken(user.id, user.email, user.role.name)
         
         return AuthResponse(
             token = token,

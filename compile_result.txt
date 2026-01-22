@@ -1,0 +1,59 @@
+﻿> Task :checkKotlinGradlePluginConfigurationErrors
+> Task :compileKotlin FAILED
+./gradlew : 
+위치 줄:1 문자:1
++ ./gradlew compileKotlin 2>&1
+ | Out-File -FilePath compile_
+result.txt  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (:String)   
+  [], RemoteException
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+FAILURE: Build failed with an 
+exception.
+
+* What went wrong:
+Execution failed for task ':co
+mpileKotlin'.
+> java.io.IOException: Unable 
+to delete directory 'C:\Users\
+danmu\OneDrive\Desktop\AWS\bac
+kend\build\kotlin\compileKotli
+n\cacheable'
+    Failed to delete some chil
+dren. This might happen becaus
+e a process has files open or 
+has its working directory set 
+in the target directory.
+    - C:\Users\danmu\OneDrive\
+Desktop\AWS\backend\build\kotl
+in\compileKotlin\cacheable\cac
+hes-jvm\inputs
+    - C:\Users\danmu\OneDrive\
+Desktop\AWS\backend\build\kotl
+in\compileKotlin\cacheable\cac
+hes-jvm\jvm
+    - C:\Users\danmu\OneDrive\
+Desktop\AWS\backend\build\kotl
+in\compileKotlin\cacheable\cac
+hes-jvm\lookups
+    - C:\Users\danmu\OneDrive\
+Desktop\AWS\backend\build\kotl
+in\compileKotlin\cacheable\cac
+hes-jvm
+
+* Try:
+> Run with --stacktrace option
+ to get the stack trace.
+> Run with --info or --debug o
+ption to get more log output.
+> Run with --scan to get full 
+insights.
+> Get more help at https://hel
+p.gradle.org.
+
+BUILD FAILED in 3s
+2 actionable tasks: 2 executed

@@ -40,11 +40,18 @@ class GameService(
     @Transactional(readOnly = true)
     fun getPublicGames(): List<GameSummaryDTO> {
         return gameRepository.findAll()
+            .filter { it.isPublic == true }
+            .map { GameSummaryDTO.from(it) }
+    }
+
+    @Transactional(readOnly = true)
+    fun getAllGames(): List<GameSummaryDTO> {
+        return gameRepository.findAll()
             .map { GameSummaryDTO.from(it) }
     }
 
     @Transactional
-    fun saveGameVersion(gameId: Long, sceneJson: String) {
+    fun saveGameVersion(gameId: String, sceneJson: String) {
         val game = gameRepository.findById(gameId)
             .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
 
@@ -58,5 +65,55 @@ class GameService(
             sceneJson = sceneJson
         )
         gameVersionRepository.save(version)
+    }
+
+    @Transactional(readOnly = true)
+    fun getLatestGameVersion(gameId: String): com.unifor.backend.dto.GameVersionResponseDTO {
+        val versions = gameVersionRepository.findByGameIdOrderByVersionNumberDesc(gameId)
+        if (versions.isEmpty()) {
+            throw EntityNotFoundException("No versions found for game $gameId")
+        }
+        val latest = versions[0]
+        return com.unifor.backend.dto.GameVersionResponseDTO(
+            versionId = latest.id,
+            versionNumber = latest.versionNumber,
+            sceneJson = latest.sceneJson,
+            createdAt = latest.createdAt.toString()
+        )
+    }
+
+    @Transactional
+    fun updateGame(gameId: String, title: String?, description: String?, thumbnailUrl: String?, isPublic: Boolean? = null): GameSummaryDTO {
+        val game = gameRepository.findById(gameId)
+            .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
+        
+        if (title != null) game.title = title
+        if (description != null) game.description = description
+        if (thumbnailUrl != null) game.thumbnailUrl = thumbnailUrl
+        if (isPublic != null) game.isPublic = isPublic
+        
+        game.updatedAt = java.time.Instant.now()
+        val savedGame = gameRepository.save(game)
+        return GameSummaryDTO.from(savedGame)
+    }
+
+    @Transactional
+    fun deleteGame(gameId: String) {
+        if (!gameRepository.existsById(gameId)) {
+            throw EntityNotFoundException("Game not found with id $gameId")
+        }
+        // Associated versions will be deleted by Cascade (orphanRemoval=true) in Game entity
+        gameRepository.deleteById(gameId)
+    }
+
+    @Transactional(readOnly = true)
+    fun getGame(gameId: String): Game {
+        return gameRepository.findById(gameId)
+            .orElseThrow { EntityNotFoundException("Game not found with id $gameId") }
+    }
+
+    @Transactional
+    fun deleteAllGames() {
+        gameRepository.deleteAll()
     }
 }

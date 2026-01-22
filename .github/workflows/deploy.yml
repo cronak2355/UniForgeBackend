@@ -1,3 +1,4 @@
+
 name: Backend CI/CD
 
 on:
@@ -11,7 +12,9 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: unifor-backend
   ECS_CLUSTER: unifor-cluster
-  ECS_SERVICE: unifor-backend
+  ECS_SERVICE: unifor-backend-service-w7jyk3xy
+  ECS_TASK_DEFINITION: unifor-backend
+  ECS_CONTAINER_NAME: backend
 
 jobs:
   build-and-test:
@@ -34,7 +37,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build and Test
-        run: ./gradlew build
+        run: ./gradlew build -x test
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -78,20 +81,28 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build --build-arg COMMIT_HASH=${{ github.sha }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Update ECS Service
+      - name: Download Task Definition
         run: |
-          aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE }} \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=100" \
-            --force-new-deployment
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
 
-      - name: Check Deployment Triggered
-        run: |
-          echo "Deployment triggered successfully! (Stability check skipped for speed - check AWS Console for progress)"
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.ECS_CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: false

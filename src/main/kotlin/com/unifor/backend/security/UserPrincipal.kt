@@ -1,6 +1,7 @@
 package com.unifor.backend.security
 
 import com.unifor.backend.entity.User
+import com.unifor.backend.entity.UserRole
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -13,13 +14,21 @@ class UserPrincipal(
     
     val id: String get() = user.id
     val email: String get() = user.email
+    val role: UserRole get() = user.role
+    
+    fun isAdmin(): Boolean = user.role == UserRole.ADMIN
     
     override fun getName(): String = user.id
     
     override fun getAttributes(): Map<String, Any> = attributes
     
-    override fun getAuthorities(): Collection<GrantedAuthority> = 
-        listOf(SimpleGrantedAuthority("ROLE_USER"))
+    override fun getAuthorities(): Collection<GrantedAuthority> {
+        val authorities = mutableListOf<GrantedAuthority>(SimpleGrantedAuthority("ROLE_USER"))
+        if (user.role == UserRole.ADMIN) {
+            authorities.add(SimpleGrantedAuthority("ROLE_ADMIN"))
+        }
+        return authorities
+    }
     
     override fun getPassword(): String? = user.password
     

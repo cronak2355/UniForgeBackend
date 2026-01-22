@@ -11,5 +11,8 @@ VOLUME /tmp
 # Copy the built JAR file from the context (which will be populated by CI)
 COPY build/libs/*.jar app.jar
 
+ARG COMMIT_HASH
+ENV COMMIT_HASH=${COMMIT_HASH}
+
 # Run the application
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]

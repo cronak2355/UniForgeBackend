@@ -4,10 +4,12 @@ import com.unifor.backend.security.JwtAuthenticationFilter
 import com.unifor.backend.security.OAuth2AuthenticationFailureHandler
 import com.unifor.backend.security.OAuth2AuthenticationSuccessHandler
 import com.unifor.backend.security.HttpCookieOAuth2AuthorizationRequestRepository
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -19,12 +21,30 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity(prePostEnabled = true)
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val oAuth2AuthenticationSuccessHandler: OAuth2AuthenticationSuccessHandler,
     private val oAuth2AuthenticationFailureHandler: OAuth2AuthenticationFailureHandler,
     private val httpCookieOAuth2AuthorizationRequestRepository: HttpCookieOAuth2AuthorizationRequestRepository
 ) {
+
+    @Bean
+    fun webSecurityCustomizer(): WebSecurityCustomizer {
+        return WebSecurityCustomizer { web ->
+            web.ignoring().requestMatchers(
+                "/actuator/**",
+                "/api/actuator/**",
+                "/health",
+                "/api/health",
+                "/version",
+                "/api/version",
+                "/system/**",
+                "/api/system/**",
+                "/error"
+            )
+        }
+    }
     
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
@@ -40,21 +60,34 @@ class SecurityConfig(
                     // 공개 엔드포인트
                     .requestMatchers(
                         "/health",
+                        "/api/health",
+                        "/version",
+                        "/api/version",
                         "/actuator/**",
+                        "/api/actuator/**",
                         "/auth/signup",
                         "/auth/login",
+                        "/system/**",
+                        "/api/system/**",
                         "/oauth2/**",
                         "/login/oauth2/**",
                         "/assets/**",
+                        "/api/assets/**",
                         "/marketplace/**",
-                        "/games/public"
+                        "/api/marketplace/**",
+                        "/games/**",
+                        "/api/games/**"
                     ).permitAll()
+                    // 관리자 전용 엔드포인트
+                    .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                     // 나머지는 인증 필요
                     .anyRequest().authenticated()
             }
             .exceptionHandling { ex ->
-                ex.authenticationEntryPoint { _, response, _ ->
-                    response.sendError(401, "Unauthorized")
+                ex.authenticationEntryPoint { _, response, authException ->
+                    response.status = HttpServletResponse.SC_UNAUTHORIZED
+                    response.contentType = "application/json;charset=UTF-8"
+                    response.writer.write("{\"error\": \"Unauthorized\", \"message\": \"${authException.message}\"}")
                 }
             }
             .oauth2Login { oauth2 ->
@@ -75,7 +108,7 @@ class SecurityConfig(
                 "http://localhost:5173",
                 "http://localhost:3000"
             )
-            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             allowCredentials = true
             maxAge = 3600L

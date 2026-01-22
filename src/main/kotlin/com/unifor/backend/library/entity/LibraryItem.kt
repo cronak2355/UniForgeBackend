@@ -1,4 +1,4 @@
-﻿package com.unifor.backend.library.entity
+package com.unifor.backend.library.entity
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -13,16 +13,22 @@ class LibraryItem(
     @Column(name = "user_id", nullable = false)
     val userId: String,
 
-    @Column(name = "item_type", nullable = false)
-    val itemType: String, // GAME, ASSET
+    @Column(name = "item_id")
+    val targetId: String? = null,
 
-    @Column(name = "ref_id", nullable = false)
-    val refId: String,
-
-    @Column(name = "collection_id")
-    var collectionId: String? = null,
+    @Column(name = "item_type")
+    val targetType: String? = null, // "ASSET" or "GAME"
 
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now()
-)
+    val createdAt: LocalDateTime = LocalDateTime.now(),
 
+    @Column(name = "ref_id")
+    var refId: String? = null
+) {
+    @PrePersist
+    fun prePersist() {
+        if (refId == null && targetId != null) {
+            refId = targetId
+        }
+    }
+}

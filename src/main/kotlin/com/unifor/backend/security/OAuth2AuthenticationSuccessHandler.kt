@@ -52,7 +52,7 @@ class OAuth2AuthenticationSuccessHandler(
             log.info("OAuth2 로그인: email={}, name={}", email, name)
             
             // 사용자 조회 또는 생성
-            val existingUser = userRepository.findByEmail(email).orElse(null)
+            val existingUser = userRepository.findByEmail(email)
             val user = if (existingUser != null) {
                 log.debug("기존 사용자 발견: id={}", existingUser.id)
                 // 기존 사용자: 프로필 이미지만 업데이트 (필요시)
@@ -77,7 +77,7 @@ class OAuth2AuthenticationSuccessHandler(
             }
             
             // JWT 토큰 생성
-            val token = jwtTokenProvider.generateToken(user.id, user.email)
+            val token = jwtTokenProvider.generateToken(user.id, user.email, user.role.name)
             log.debug("JWT 토큰 생성 완료: userId={}", user.id)
             
             // 프론트엔드로 리다이렉트 (토큰 포함)
