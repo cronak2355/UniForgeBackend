@@ -58,43 +58,10 @@ class BedrockService(
     }
 
     fun removeBackground(base64Image: String): String {
-        val modelId = "amazon.nova-canvas-v1:0"
-        
-        logger.info("[BedrockService] Removing background using model: $modelId")
-
-        // Prepare Payload for Amazon Nova Canvas (Background Removal)
-        val payloadMap = mapOf(
-            "taskType" to "BACKGROUND_REMOVAL",
-            "backgroundRemovalParams" to mapOf(
-                "image" to base64Image
-            )
-        )
-        val payloadJson = objectMapper.writeValueAsString(payloadMap)
-
-        val request = InvokeModelRequest.builder()
-            .modelId(modelId)
-            .body(software.amazon.awssdk.core.SdkBytes.fromUtf8String(payloadJson))
-            .build()
-
-        try {
-            val response = client.invokeModel(request)
-            val responseBody = response.body().asUtf8String()
-            val responseMap = objectMapper.readValue(responseBody, Map::class.java)
-            
-            @Suppress("UNCHECKED_CAST")
-            val images = responseMap["images"] as? List<String>
-            
-            if (images.isNullOrEmpty()) {
-                throw RuntimeException("No image returned from Bedrock Nova Canvas")
-            }
-            
-            logger.info("[BedrockService] Background removal successful")
-            return images[0]
-
-        } catch (e: Exception) {
-            logger.error("[BedrockService] Background removal failed: ${e.message}", e)
-            throw e
-        }
+        // Return original image - let frontend handle background removal client-side
+        // This avoids dependency on unstable Nova Canvas API
+        logger.info("[BedrockService] Background removal delegated to frontend")
+        return base64Image
     }
 
     /**
