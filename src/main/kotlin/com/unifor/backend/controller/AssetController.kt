@@ -125,9 +125,12 @@ class AssetController(
         ).firstOrNull()
 
         if (imageResource != null) {
-            val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)
+            // [FIX] Use CloudFront URL for direct access and better CORS support
+            val cloudFrontUrl = "https://d3268cfwjiozkv.cloudfront.net/${imageResource.s3Key}"
+            // val presignedUrl = s3Uploader.getDownloadUrl(imageResource.s3Key)
+            
             return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, presignedUrl)
+                .header(HttpHeaders.LOCATION, cloudFrontUrl)
                 .build()
         }
 
@@ -143,9 +146,11 @@ class AssetController(
         // imageUrl에서 S3 키 추출 또는 직접 리다이렉트
         val s3Key = extractS3KeyFromUrl(imageUrl)
         if (s3Key != null) {
-            val presignedUrl = s3Uploader.getDownloadUrl(s3Key)
+            val cloudFrontUrl = "https://d3268cfwjiozkv.cloudfront.net/$s3Key"
+            // val presignedUrl = s3Uploader.getDownloadUrl(s3Key)
+            
             return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, presignedUrl)
+                .header(HttpHeaders.LOCATION, cloudFrontUrl)
                 .build()
         }
 
