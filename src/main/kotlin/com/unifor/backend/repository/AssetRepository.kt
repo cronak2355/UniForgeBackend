@@ -8,6 +8,4 @@ import org.springframework.stereotype.Repository
 @Repository
 interface AssetRepository : JpaRepository<Asset, String> {
     fun findByAuthorId(authorId: String): List<Asset>
-    // Note: If you want to use Sort with findByAuthorId, you can add:
-    // fun findByAuthorId(authorId: String, sort: Sort): List<Asset>
-}
+    fun findByIsPublicTrue(sort: Sort): List<Asset>

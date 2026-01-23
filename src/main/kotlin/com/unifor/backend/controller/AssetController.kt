@@ -96,7 +96,8 @@ class AssetController(
             // but for findAll we can pass Sort to JpaRepository's findAll(Sort).
             assetRepository.findByAuthorId(authorId).sortedWith(getComparator(sort))
         } else {
-            assetRepository.findAll(sortOption)
+            // Marketplace: Fetch only PUBLIC assets
+            assetRepository.findByIsPublicTrue(sortOption)
         }
         return ResponseEntity.ok(assets.map { toResponse(it) })
     }
